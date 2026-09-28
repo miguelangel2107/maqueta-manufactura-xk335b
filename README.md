@@ -30,47 +30,57 @@ Este repositorio alberga la documentación técnica, diagramas de instrumentaci�
 
 ---
 
-## 🗺️ 3. Mapa de Flujo Documental y Arquitectura del Repositorio
+## 3. Mapa de Flujo Documental y Arquitectura del Repositorio
 
 A continuación se presenta la trazabilidad metodológica y el flujo de interconexión técnica entre la documentación, el diseño CAD y el backend de base de datos:
 
 ```mermaid
-graph TD
+graph TB
     classDef root fill:#0d47a1,stroke:#0d47a1,stroke-width:2px,color:#fff;
-    classDef dir fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
-    classDef file fill:#ffffff,stroke:#455a64,stroke-width:1px,color:#263238;
+    classDef folder fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
+    classDef doc fill:#ffffff,stroke:#37474f,stroke-width:1px,color:#263238;
+    classDef script fill:#ede7f6,stroke:#512da8,stroke-width:1px,color:#311b92;
 
     Repo[Repositorio: maqueta-manufactura-xk335b]:::root
 
-    Repo --> Doc[documentation/]:::dir
-    Repo --> DB[database/]:::dir
-    Repo --> WebConfig[Configuración Web: docs/]:::dir
+    subgraph SEC_DOC["📁 documentation/"]
+        DocInv["📁 manuales_ingenieria_inversa/"]:::folder
+        DocPlanos["📁 planos_isa/"]:::folder
+        
+        Lab1PDF["Informe_Laboratorio_1.pdf"]:::doc
+        Datasheets["datasheets/: S7-200, VFD, Sensores"]:::doc
+        ReadmeInv["README.md: Diagnóstico Kaizen"]:::doc
+        
+        PlanosCAD["Planos P&ID y Eléctricos (.DWG / .PDF)"]:::doc
+        ReadmePlanos["README.md: Normas ISA 5.1 e IEC"]:::doc
+        Mockups["mockups/: HMI y Dashboard ERP"]:::doc
 
-    %% Documentación
-    Doc --> Inversa[manuales_ingenieria_inversa/]:::dir
-    Doc --> Planos[planos_isa/]:::dir
+        DocInv --> Lab1PDF
+        DocInv --> Datasheets
+        DocInv --> ReadmeInv
 
-    Inversa --> Lab1PDF[Informe_Laboratorio_1.pdf]:::file
-    Inversa --> ReadmeInv[README.md: Diagnóstico y Ruptura de Lazo]:::file
-    Inversa --> DS[datasheets/: S7-200, VFD Powtran, Sensores]:::file
+        DocPlanos --> PlanosCAD
+        DocPlanos --> ReadmePlanos
+        DocPlanos --> Mockups
+    end
 
-    Planos --> ReadmePlanos[README.md: Normas ISA 5.1 e IEC]:::file
-    Planos --> ArchivosCAD[Planos P&ID y Eléctricos .DWG / .PDF]:::file
-    Planos --> Mockups[mockups/: HMI y Dashboard ERP]:::file
+    subgraph SEC_DB["📁 database/"]
+        ReadmeDB["README.md: Arquitectura 3 Capas"]:::doc
+        ScriptsSQL["scripts/: Modelo E-R, DDL y Triggers"]:::script
+    end
 
-    %% Base de datos
-    DB --> ReadmeDB[README.md: Arquitectura 3 Capas]:::file
-    DB --> ScriptsDB[scripts/: Modelo E-R, Diccionario y DDL SQL]:::file
+    %% Conexiones desde la raíz
+    Repo --> SEC_DOC
+    Repo --> SEC_DB
 
-    %% Interconexión metodológica
-    Lab1PDF -. Mapeo de Señales .-> ArchivosCAD
-    ArchivosCAD -. Diccionario de Tags .-> Mockups
-    Mockups -. Requerimientos Persistencia .-> ScriptsDB
-    ScriptsDB -. Telemetría de Campo .-> ReadmeDB
+    %% Relaciones de Ingeniería Interdisciplinar
+    Lab1PDF ==>|1. Mapeo de Señales| PlanosCAD
+    PlanosCAD ==>|2. Tags ISA 5.1| Mockups
+    Mockups ==>|3. Variables de Persistencia| ScriptsSQL
+    ScriptsSQL ==>|4. Telemetría de Campo| ReadmeDB
 
-    style Repo font-weight:bold;
+    linkStyle 4,5,6,7 stroke:#d84315,stroke-width:2px,color:#bf360c;
 ```
-
 ---
 
 ## 🏭 4. Descripción Técnica de la Planta (Manufactura Flexible)
@@ -108,7 +118,26 @@ Durante la inspección cable por cable y análisis fenomenológico se identifica
 
 ---
 
-## 🔄 7. Flujo de Trabajo y Control de Versiones
-* Cada miembro del equipo desarrollará sus modificaciones en ramas específicas (`feature/<nombre-tarea>`).
-* Queda estrictamente restringido el *push* directo sobre la rama `main`.
-* La integración de código y esquemas se formaliza mediante **Pull Requests (PR)** sujetos a revisión técnica (*Code Review*) por parte del auditor técnico o auxiliares de docencia.
+## 7. Metodología de Trabajo y Gestión del Ciclo de Vida (Git / Kaizen)
+
+En cumplimiento con los requerimientos pedagógicos y de control de versiones del Laboratorio Nº 3 (Fase 1: Auditoría Kaizen e Ingeniería Inversa), la escuadra opera bajo un flujo de desarrollo concurrente estructurado por asignaturas:
+
+### 7.1. Estructura y Custodia Documental (ETN-902)
+* **Trazabilidad de Planos e Informes:** Los diagramas P&ID bajo norma ANSI/ISA-S5.1 y esquemas eléctricos bajo norma IEC se versionan de forma incremental en el directorio `/documentation/planos_isa/`.
+* **Historial de Modificaciones:** Cada ajuste físico o corrección sobre la instrumentación se registra mediante commits atómicos descriptivos en consola (`git commit -m "docs(isa): ..."`), respaldando la evolución hacia la Versión 2.0 de los planos de planta.
+
+### 7.2. Ramificaciones Operativas y Revisión Técnica (ETN-1034)
+* **Aislamiento por Estación (Branching):** Para evitar sobreescritura accidental, las modificaciones de hardware, mapeo I/O de los PLCs Siemens S7-200 y rutinas de automatización se desarrollan en ramas específicas por subsistema:
+  * `feature/alimentacion-s7200`
+  * `feature/procesamiento-pinza`
+  * `feature/transporte-maestro-rs485`
+  * `feature/seleccion-vfd-motor`
+* **Flujo de Integración (Pull Requests & Code Review):** La incorporación de cambios a la rama principal (`main`) se ejecuta exclusivamente mediante *Pull Requests* auditados en la interfaz de GitHub, garantizando que todo cambio cumpla con las normas técnicas antes de su fusión (*merge*).
+
+### 7.3. Persistencia y Diccionario de Datos (ETN-1000)
+* **Modelado Relacional Normalizado:** Los scripts de base de datos DDL/DML para PostgreSQL y los esquemas en herramientas CASE se custodian en `/database/scripts/`, garantizando el cumplimiento de la Tercera Forma Normal (3FN).
+* **Consistencia Semántica:** Se audita que las tablas de telemetría y alarmas empleen exactamente la misma nomenclatura de variables y *tags* (PV, MV, DV) definida en los planos P&ID.
+
+### 7.4. Criterio de Calificación (Definition of Done)
+* **Trazabilidad Total:** Registro obligatorio de actividad (*commits*) de la totalidad de los 7 integrantes del equipo interdisciplinar en el historial del repositorio (`git log --oneline --graph`).
+* **Filtro de Seguridad:** No se autoriza el despliegue de código en hardware físico ni energización en caliente sin la auditoría previa de las simulaciones y la aprobación formal de la documentación técnica.
