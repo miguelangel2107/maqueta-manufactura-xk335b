@@ -20,7 +20,7 @@ Este repositorio alberga la documentación técnica, diagramas de instrumentaci�
 
 | Estudiante | Asignatura | Rol Principal |
 | :--- | :---: | :--- |
-| **Univ. López Rodríguez Miguel Ángel** | **ETN-1034** | **Líder de Escuadra / Auditoría de Hardware y Red RS-485** |
+| **Univ. López Rodríguez Miguel Ángel** | **ETN-1034** | **Auditoría de Hardware y Red RS-485** |
 | Univ. Wilson David Huanca Challco | ETN-1034 | Inspección de Procesamiento y Análisis de Ruptura de Lazo |
 | Univ. Siñani Canaza Juan Carlos | ETN-1034 | Mapeo I/O de PLCs y Diagnóstico de Actuadores |
 | Univ. Henrry Jherson Torrez Patty | ETN-902 | Clasificación de Variables (PV, MV, DV) y Causalidad Dinámica |
