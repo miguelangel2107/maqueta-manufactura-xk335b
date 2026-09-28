@@ -35,43 +35,41 @@ Este repositorio alberga la documentación técnica, diagramas de instrumentaci�
 A continuación se presenta la trazabilidad metodológica y el flujo de interconexión técnica entre la documentación, el diseño CAD y el backend de base de datos:
 
 ```mermaid
-graph TB
+flowchart TB
     classDef root fill:#0d47a1,stroke:#0d47a1,stroke-width:2px,color:#fff;
     classDef folder fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
     classDef doc fill:#ffffff,stroke:#37474f,stroke-width:1px,color:#263238;
     classDef script fill:#ede7f6,stroke:#512da8,stroke-width:1px,color:#311b92;
 
-    Repo[Repositorio: maqueta-manufactura-xk335b]:::root
+    Repo["Repositorio: maqueta-manufactura-xk335b"]:::root
+    Documentation["📁 documentation/"]:::folder
+    Database["📁 database/"]:::folder
+    DocInv["📁 manuales_ingenieria_inversa/"]:::folder
+    DocPlanos["📁 planos_isa/"]:::folder
 
-    subgraph SEC_DOC["📁 documentation/"]
-        DocInv["📁 manuales_ingenieria_inversa/"]:::folder
-        DocPlanos["📁 planos_isa/"]:::folder
-        
-        Lab1PDF["Informe_Laboratorio_1.pdf"]:::doc
-        Datasheets["datasheets/: S7-200, VFD, Sensores"]:::doc
-        ReadmeInv["README.md: Diagnóstico Kaizen"]:::doc
-        
-        PlanosCAD["Planos P&ID y Eléctricos (.DWG / .PDF)"]:::doc
-        ReadmePlanos["README.md: Normas ISA 5.1 e IEC"]:::doc
-        Mockups["mockups/: HMI y Dashboard ERP"]:::doc
+    Lab1PDF["Informe_Laboratorio_1.pdf"]:::doc
+    Datasheets["datasheets/: S7-200, VFD, Sensores"]:::doc
+    ReadmeInv["README.md: Diagnóstico Kaizen"]:::doc
 
-        DocInv --> Lab1PDF
-        DocInv --> Datasheets
-        DocInv --> ReadmeInv
+    PlanosCAD["Planos P&ID y Eléctricos (.DWG / .PDF)"]:::doc
+    ReadmePlanos["README.md: Normas ISA 5.1 e IEC"]:::doc
+    Mockups["mockups/: HMI y Dashboard ERP"]:::doc
 
-        DocPlanos --> PlanosCAD
-        DocPlanos --> ReadmePlanos
-        DocPlanos --> Mockups
-    end
+    ReadmeDB["README.md: Arquitectura 3 Capas"]:::doc
+    ScriptsSQL["scripts/: Modelo E-R, DDL y Triggers"]:::script
 
-    subgraph SEC_DB["📁 database/"]
-        ReadmeDB["README.md: Arquitectura 3 Capas"]:::doc
-        ScriptsSQL["scripts/: Modelo E-R, DDL y Triggers"]:::script
-    end
-
-    %% Conexiones desde la raíz
-    Repo --> SEC_DOC
-    Repo --> SEC_DB
+    Repo --> Documentation
+    Repo --> Database
+    Documentation --> DocInv
+    Documentation --> DocPlanos
+    DocInv --> Lab1PDF
+    DocInv --> Datasheets
+    DocInv --> ReadmeInv
+    DocPlanos --> PlanosCAD
+    DocPlanos --> ReadmePlanos
+    DocPlanos --> Mockups
+    Database --> ReadmeDB
+    Database --> ScriptsSQL
 
     %% Relaciones de Ingeniería Interdisciplinar
     Lab1PDF ==>|1. Mapeo de Señales| PlanosCAD
@@ -79,7 +77,7 @@ graph TB
     Mockups ==>|3. Variables de Persistencia| ScriptsSQL
     ScriptsSQL ==>|4. Telemetría de Campo| ReadmeDB
 
-    linkStyle 4,5,6,7 stroke:#d84315,stroke-width:2px,color:#bf360c;
+    linkStyle 12,13,14,15 stroke:#d84315,stroke-width:2px,color:#bf360c;
 ```
 ---
 
