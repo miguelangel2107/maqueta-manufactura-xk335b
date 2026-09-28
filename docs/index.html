@@ -10,10 +10,16 @@
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
   <style>
     :root {
-      --theme-color: #0d47a1; /* Azul institucional ingeniería */
+      --theme-color: #0d47a1;
     }
     .markdown-section {
       max-width: 90%;
+    }
+    .mermaid {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
   </style>
 </head>
@@ -23,8 +29,9 @@
     window.$docsify = {
       name: 'Manufactura Flexible XK-335B',
       repo: 'https://github.com/miguelangel2107/maqueta-manufactura-xk335b',
+      basePath: '../',       /* Lee los archivos markdown de la raíz del repo */
       homepage: 'README.md',
-      loadSidebar: false,
+      loadSidebar: 'docs/_sidebar.md', /* Ubicación de la barra lateral */
       subMaxLevel: 3,
       auto2top: true,
       search: {
@@ -43,7 +50,16 @@
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-  <!-- Resaltadores de sintaxis de código -->
+
+  <!-- Soporte para Diagramas de Flujo (Mermaid.js) -->
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    window.mermaid = mermaid;
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
+
+  <!-- Resaltado de sintaxis -->
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
