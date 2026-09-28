@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Planta de Manufactura Flexible XK-335B - UMSA</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Laboratorio de Manufactura y Control Industrial UMSA - Gestión II/2026">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <!-- Tema Docsify -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <style>
+    :root {
+      --theme-color: #0d47a1; /* Azul institucional ingeniería */
+    }
+    .markdown-section {
+      max-width: 90%;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">Cargando documentación técnica...</div>
+  <script>
+    window.$docsify = {
+      name: 'Manufactura Flexible XK-335B',
+      repo: 'https://github.com/miguelangel2107/maqueta-manufactura-xk335b',
+      homepage: 'README.md',
+      loadSidebar: false,
+      subMaxLevel: 3,
+      auto2top: true,
+      search: {
+        placeholder: 'Buscar en la documentación...',
+        noData: 'No se encontraron resultados',
+        depth: 3
+      },
+      copyCode: {
+        buttonText: 'Copiar',
+        errorText: 'Error',
+        successText: 'Copiado'
+      }
+    }
+  </script>
+  <!-- Motor Docsify y Plugins -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <!-- Resaltadores de sintaxis de código -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+</body>
+</html>
