@@ -72,12 +72,12 @@ flowchart TB
     Database --> ScriptsSQL
 
     %% Relaciones de Ingeniería Interdisciplinar
-    Lab1PDF ==>|1. Mapeo de Señales| PlanosCAD
+    Lab1PDF ==>|1. Mapeo de Senales| PlanosCAD
     PlanosCAD ==>|2. Tags ISA 5.1| Mockups
     Mockups ==>|3. Variables de Persistencia| ScriptsSQL
-    ScriptsSQL ==>|4. Telemetría de Campo| ReadmeDB
+    ScriptsSQL ==>|4. Telemetria de Campo| ReadmeDB
 
-    linkStyle 12,13,14,15 stroke:#d84315,stroke-width:2px,color:#bf360c;
+    linkStyle 12,13,14,15 stroke:#d84315,stroke-width:2px;
 ```
 ---
 
