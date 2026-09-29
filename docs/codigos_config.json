@@ -1,0 +1,59 @@
+{
+  "estacion1_transporte_maestro.awl": {
+    "id": "code-s7200-est1-awl",
+    "titulo": "Programa Maestro S7-200: Unidad de Transporte (AWL/STL)",
+    "estacion": "1",
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "awl",
+    "autor": "Univ. Wilson Huanca / Univ. Miguel Ángel López",
+    "version": "v1.2.0 (Fase 1)",
+    "orden_prioridad": 10,
+    "descripcion": "Lógica de control para carro de transferencia cartesiano, finales de carrera ópticos y maestro de sondeo en red RS-485."
+  },
+  "estacion1_transporte.mwp": {
+    "id": "code-s7200-est1-mwp",
+    "titulo": "Proyecto STEP 7-Micro/WIN: Unidad de Transporte (.MWP)",
+    "estacion": "1",
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "plc",
+    "autor": "Univ. Wilson Huanca",
+    "version": "v1.2.0",
+    "orden_prioridad": 11,
+    "isDownloadOnly": true,
+    "descripcion": "Archivo binario fuente listo para apertura y edición en STEP 7-Micro/WIN v4.0 SP9 con tabla de símbolos de E/S."
+  },
+  "estacion5_seleccion_vfd.awl": {
+    "id": "code-s7200-est5-awl",
+    "titulo": "Control VFD y Clasificación: Unidad de Selección (AWL/STL)",
+    "estacion": "5",
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "awl",
+    "autor": "Univ. Juan Carlos Siñani",
+    "version": "v1.3.1 (Fase 1)",
+    "orden_prioridad": 20,
+    "descripcion": "Consigna analógica por AQW0 hacia variador POWTRAN PT9100A, conteo de alta velocidad HSC0 y discriminación dieléctrica inductiva/capacitiva."
+  },
+  "estacion5_seleccion.mwp": {
+    "id": "code-s7200-est5-mwp",
+    "titulo": "Proyecto STEP 7-Micro/WIN: Unidad de Selección (.MWP)",
+    "estacion": "5",
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "plc",
+    "autor": "Univ. Juan Carlos Siñani",
+    "version": "v1.3.1",
+    "orden_prioridad": 21,
+    "isDownloadOnly": true,
+    "descripcion": "Proyecto completo de ingeniería para Micro/WIN v4.0 con bloques de interrupción y configuración de rampa de aceleración/desaceleración."
+  },
+  "telemetria_modbus_rtu.py": {
+    "id": "code-py-telemetria",
+    "titulo": "Driver de Telemetría: Sondeo Modbus-RTU y Base de Datos (Python)",
+    "estacion": "all",
+    "controlador": "Gateway Linux / PC Industrial",
+    "tipo": "script",
+    "autor": "Univ. Mauricio Cuevas",
+    "version": "v1.0.4 (ETN-1000)",
+    "orden_prioridad": 30,
+    "descripcion": "Script de adquisición serial concurrente sobre RS-485 para inyección de series temporales en el esquema 3FN de PostgreSQL."
+  }
+}

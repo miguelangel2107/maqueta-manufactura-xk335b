@@ -1,0 +1,68 @@
+// =============================================================================
+// UNIVERSIDAD MAYOR DE SAN ANDRÉS - FACULTAD DE INGENIERÍA
+// LABORATORIO DE CONTROL AUTOMÁTICO (ETN-902 / ETN-1034)
+// PROYECTO: MAQUETA DE MANUFACTURA FLEXIBLE XK-335B
+// UNIDAD 5: SELECCIÓN Y CLASIFICACIÓN (VARIADOR VFD POWTRAN Y SENSOR CAPACITIVO)
+// CPU: SIEMENS SIMATIC S7-224XP CN (6ES7 214-2BD23-0XB8)
+// SOFTWARE: STEP 7-Micro/WIN v4.0 SP9
+// FORMATO: STL / AWL (STATEMENT LIST)
+// =============================================================================
+
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=LÓGICA DE CONTROL DE CINTA TRANSPORTADORA Y DISCRIMINACIÓN DIELÉCTRICA
+BEGIN
+
+Network 1 // CONFIGURACIÓN DEL CONTADOR RÁPIDO HSC0 (ENCODER INCREMENTAL)
+// Lectura de frecuencia y pulsos del eje motor (1000 PPR)
+LD     SM0.1                       // Primer ciclo de scan
+MOVB   16#F8, SMB37                // Control HSC0: Habilitar, dirección ascendente, modo cuadratura 4X
+MOVD   +0, SMD38                   // Valor inicial = 0
+MOVD   +50000, SMD42               // Valor preseleccionado de alarma
+HDEF   0, 0                        // Contador HSC0 asignado a modo 0 (Entradas I0.6 fase A e I0.7 fase B)
+HSC    0                           // Iniciar ejecución del contador de alta velocidad
+
+Network 2 // CONVERSIÓN Y ESCALADO DE CONSIGNA ANALÓGICA HACIA VFD (AQW0)
+// Rango 0-10 VDC mapeado a 0-32000 cuentas para el variador POWTRAN PT9100A
+LD     SM0.0                       // Bit siempre activo
+MOVW   VW300, AC0                  // Leer consigna deseada en RPM (0 - 1500 RPM)
+*I     +21, AC0                    // Factor de escala analógico (32000 / 1500 = 21.33)
+MOVW   AC0, AQW0                   // Escribir a la salida analógica integrada 0 (Bornes M / V0)
+
+Network 3 // HABILITACIÓN DE MARCHA DIRECTA Y MARCHA INVERSA DEL MOTOR
+// Salidas digitales a bornes FWD / REV del variador de frecuencia
+LD     I0.0                        // Pulsador marcha cinta
+AN     I0.1                        // Sin orden de parada
+=      Q0.0                        // Activar borne FWD (Marcha adelante 220 VAC trifásica)
+LD     M5.0                        // Bit de inversión de giro Kaizen (Auditoría Lab 1)
+=      Q0.1                        // Activar borne REV (Inversión documentada de cinta)
+
+Network 4 // DISCRIMINACIÓN DE PIEZAS METÁLICAS VS. PLÁSTICAS
+// Detección concurrente sensor inductivo LM18 (I0.2) y sensor capacitivo CM18 (I0.3)
+LD     I0.2                        // Sensor Inductivo activo (Pieza Metálica / Aluminio)
+AN     M1.1                        // Sin ciclo de expulsión activo
+EU                                 // Flanco positivo
+S      M1.0, 1                     // Bandera: Pieza detectada = Metal
+MOVW   HC0, VD310                  // Almacenar posición de encoder del evento
+
+LD     I0.3                        // Sensor Capacitivo Winston CM18 activo (Dieléctrico plástico)
+AN     I0.2                        // Confirmación: No es metal
+EU                                 // Flanco positivo
+S      M1.2, 1                     // Bandera: Pieza detectada = Plástico Blanco/Negro
+
+Network 5 // ACCIONAMIENTO DE DESVIADORES NEUMÁTICOS HACIA TOLVAS
+// Cilindros neumáticos SMC guiados para clasificación selectiva
+LD     M1.0                        // Pieza Metálica en trayectoria
+A      I0.4                        // Fotocélula de paso en tolva 1 alcanzada
+=      Q0.2                        // Disparar cilindro desviador metal (Tolva 1)
+TON    T41, +10                    // Retención de 100 ms
+LD     T41
+R      M1.0, 1                     // Restablecer bandera tras expulsión
+
+LD     M1.2                        // Pieza Plástica en trayectoria
+A      I0.5                        // Fotocélula de paso en tolva 2 alcanzada
+=      Q0.3                        // Disparar cilindro desviador plástico (Tolva 2)
+TON    T42, +10                    // Retención de 100 ms
+LD     T42
+R      M1.2, 1                     // Restablecer bandera tras expulsión
+
+END_ORGANIZATION_BLOCK

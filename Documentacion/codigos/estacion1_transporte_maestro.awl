@@ -1,0 +1,74 @@
+// =============================================================================
+// UNIVERSIDAD MAYOR DE SAN ANDRÉS - FACULTAD DE INGENIERÍA
+// LABORATORIO DE CONTROL AUTOMÁTICO (ETN-902 / ETN-1034)
+// PROYECTO: MAQUETA DE MANUFACTURA FLEXIBLE XK-335B
+// UNIDAD 1: TRANSPORTE Y MANIPULADOR CARTESIANO (NODO MAESTRO RS-485)
+// CPU: SIEMENS SIMATIC S7-224XP CN (6ES7 214-2BD23-0XB8)
+// SOFTWARE: STEP 7-Micro/WIN v4.0 SP9
+// FORMATO: STL / AWL (STATEMENT LIST)
+// =============================================================================
+
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=LÓGICA PRINCIPAL DE TRANSPORTE Y CONTROL DE NODO MAESTRO
+BEGIN
+
+Network 1 // INICIALIZACIÓN EN PRIMER CICLO DE SCAN (SM0.1)
+// Configuración de puertos de comunicación serial y habilitación de interrupciones
+LD     SM0.1
+MOVB   16#49, SMB30                // Puerto 0: 9600 bps, 8 bits, sin paridad, modo PPI/Libre
+MOVB   16#49, SMB130               // Puerto 1: RS-485 red industrial multipunto
+R      Q0.0, 8                     // Reset de todas las salidas físicas de potencia
+S      M0.0, 1                     // Activar bit de 'Sistema Listo / Standby'
+MOVW   +0, VW100                   // Inicializar registro de posición actual del carro
+
+Network 2 // VERIFICACIÓN DE PARADA DE EMERGENCIA Y SEGURIDAD KAIZEN
+// Enclavamiento de seguridad física (Parada QS-101 en I0.0)
+LDN    I0.0                        // Contacto NC de seta de emergencia activada
+O      M10.7                       // O alarma de software activa
+=      Q0.0                        // Desenergizar bobina del contactor de fuerza
+R      M0.1, 1                     // Deshabilitar marcha automática
+R      Q0.2, 4                     // Frenar servomotor y desconectar electroválvulas
+
+Network 3 // BÚSQUEDA DE CERO Y REFERENCIACIÓN (HOMING DEL CARRO)
+// Pulsador de rearme e inicio de secuencia de calibración
+LD     I0.1                        // Pulsador físico START
+A      M0.0                        // Sistema en Standby
+AN     I0.0                        // Sin parada de emergencia
+EU                                 // Flanco de subida
+S      M0.1, 1                     // Iniciar ciclo de homing
+=      Q0.1                        // Lámpara indicadora de marcha activa
+
+Network 4 // CONTROL DE TRASLACIÓN HORIZONTAL HACIA ESTACIÓN 2
+// Secuencia del servomotor paso a paso / servodriver Panasonic MINAS A4
+LD     M0.1                        // En marcha automática
+A      I0.2                        // Sensor inductivo Home alcanzado (BG1)
+TON    T37, +20                    // Temporizador de estabilización (200 ms)
+LD     T37
+=      Q0.2                        // Salida de pulsos PTO / Avance hacia tolva de Alimentación
+MOVW   +2500, VW102                // Consigna de cota en milímetros
+
+Network 5 // ACCIONAMIENTO DE PINZA NEUMÁTICA SMC Y CILINDRO VERTICAL
+// Toma de pieza cilíndrica desde la base de alimentación
+LD     I0.3                        // Carro posicionado sobre Estación 2
+AN     I0.4                        // Cilindro vertical arriba (sensor magnético SMC)
+=      Q0.3                        // Descender cilindro vertical
+LD     I0.5                        // Cilindro en posición inferior
+TON    T38, +15                    // Espera de 150 ms para agarre seguro
+LD     T38
+=      Q0.4                        // Cerrar pinza angular neumática SMC MHC2-16D
+
+Network 6 // SONDEO SERIAL A LOS NODOS ESCLAVOS (ESTACIONES 2 A 5)
+// Trama de consulta por bus RS-485 hacia los autómatas periféricos
+LD     SM0.0                       // Bit siempre en '1' (Always ON)
+LPS
+AN     M2.0                        // Sin transmisión en curso
+MOVB   16#01, VB200                // Dirección de nodo esclavo a consultar
+MOVB   16#03, VB201                // Código de función Modbus (Read Holding Registers)
+XMT    VB200, 1                    // Enviar trama por Puerto 1 (RS-485)
+S      M2.0, 1                     // Marcar flag de sondeo activo
+LPP
+TON    T39, +50                    // Timeout de comunicación (500 ms)
+LD     T39
+R      M2.0, 1                     // Liberar flag por timeout de respuesta
+
+END_ORGANIZATION_BLOCK

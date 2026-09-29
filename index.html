@@ -853,6 +853,9 @@
       font-weight: 700;
       margin-bottom: 0.35rem;
       line-height: 1.35;
+      overflow-wrap: break-word !important;
+      word-break: break-word !important;
+      hyphens: auto;
     }
 
     .card-filename {
@@ -860,13 +863,106 @@
       font-size: 0.72rem;
       color: var(--text-muted);
       margin-bottom: 0.5rem;
-      word-break: break-all;
+      overflow-wrap: break-word !important;
+      word-break: break-word !important;
+      hyphens: auto;
     }
 
     .card-desc {
       font-size: 0.83rem;
       color: var(--text-sub);
       line-height: 1.45;
+      overflow-wrap: break-word !important;
+      word-break: break-word !important;
+      hyphens: auto;
+    }
+
+    .badge-transferencia { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+    .badge-codigo { background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: rgba(168, 85, 247, 0.3); }
+
+    /* Solución Kaizen y Estados */
+    .badge-resuelto {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .badge-pendiente {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .card-solucion-box {
+      margin-top: 0.6rem;
+      padding: 0.55rem 0.75rem;
+      background: rgba(16, 185, 129, 0.08);
+      border-left: 3px solid #10b981;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      color: #a7f3d0;
+      line-height: 1.45;
+    }
+
+    /* Submenús de Galería por Pestañas */
+    .gallery-subnav-tabs {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .gallery-tab-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.55rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .gallery-tab-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent-blue);
+    }
+
+    .gallery-tab-btn.active {
+      background: var(--accent-blue);
+      color: #0f172a;
+      border-color: var(--accent-blue);
+      font-weight: 700;
+    }
+
+    .subtab-count {
+      background: rgba(0, 0, 0, 0.25);
+      color: inherit;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
     }
 
     .card-actions {
@@ -1214,18 +1310,175 @@
       border: none;
     }
 
-    /* Visor de Código y Archivos Markdown Legible */
+    /* Visor de Imágenes en Modal (Evitar texto binario - Bug 1) */
+    .image-viewer-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #090d16;
+      padding: 1.5rem;
+      overflow: auto;
+    }
+
+    .image-viewer-content img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-color);
+    }
+
+    /* Visor de Código AWL y Archivos de Texto Legible */
     .code-viewer-content {
       width: 100%;
       height: 100%;
-      padding: 1.5rem;
+      padding: 1.25rem;
       overflow-y: auto;
       font-family: var(--font-mono);
       font-size: 0.85rem;
       line-height: 1.65;
       background: #111827; /* Fondo oscuro equilibrado */
       color: #e2e8f0;       /* Texto claro de alta legibilidad */
+    }
+
+    .code-editor-gutter {
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      width: 100%;
+    }
+
+    .code-line {
+      display: flex;
+      align-items: flex-start;
+      min-height: 1.6em;
+    }
+
+    .code-line:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .line-num {
+      width: 48px;
+      min-width: 48px;
+      text-align: right;
+      padding-right: 1.25rem;
+      color: #64748b;
+      user-select: none;
+      font-weight: 500;
+      border-right: 1px solid #334155;
+      margin-right: 1rem;
+    }
+
+    .line-code {
+      flex: 1;
       white-space: pre-wrap;
+      word-break: break-all;
+      color: #e2e8f0;
+    }
+
+    /* Modal Graficador CSV */
+    .csv-modal-container {
+      max-width: 1050px;
+      width: 95vw;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .csv-modal-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+      background: var(--bg-base);
+    }
+
+    .csv-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      align-items: flex-end;
+      background: var(--bg-surface);
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .csv-control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .csv-control-group label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .csv-stats-summary {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
+      align-items: center;
+      padding: 0.4rem 0.6rem;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: var(--radius-sm);
+      width: 100%;
+    }
+
+    .csv-chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      min-height: 320px;
+      background: #090d16;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+    }
+
+    .csv-chart-wrapper canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .csv-math-helper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .csv-math-helper .helper-pill {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .csv-math-helper strong {
+      color: var(--text-main);
     }
 
     /* Lightbox Modal */
@@ -1971,7 +2224,12 @@
         </li>
         <li>
           <button class="nav-tab-btn" data-view="evidencias">
-            <span>📸</span> Galería Kaizen
+            <span>📸</span> Galería
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-view="codigos">
+            <span>💻</span> Códigos y Firmware
           </button>
         </li>
         <li>
@@ -2022,8 +2280,17 @@
             <button class="nav-tab-btn mobile-drawer-btn" data-view="evidencias">
               <span class="btn-icon-wrap">📸</span>
               <div class="btn-text-wrap">
-                <strong>Galería Kaizen</strong>
-                <small>16 evidencias de inspección física</small>
+                <strong>Galería</strong>
+                <small>Fallas Kaizen, diagramas y modelado</small>
+              </div>
+            </button>
+          </li>
+          <li>
+            <button class="nav-tab-btn mobile-drawer-btn" data-view="codigos">
+              <span class="btn-icon-wrap">💻</span>
+              <div class="btn-text-wrap">
+                <strong>Códigos y Firmware</strong>
+                <small>Programas PLC S7-200, AWL, HMI y SCADA</small>
               </div>
             </button>
           </li>
@@ -2246,6 +2513,8 @@
         <button class="pill-btn" data-cat="electrico">Planos Eléctricos (IEC)</button>
         <button class="pill-btn" data-cat="pid">Planos P&ID (ISA-S5.1)</button>
         <button class="pill-btn" data-cat="datasheet">Fichas Técnicas (Datasheets)</button>
+        <button class="pill-btn" data-cat="transferencia">Ensayos y Transferencia (CSV)</button>
+        <button class="pill-btn" data-cat="codigo">Códigos y Firmware</button>
         <button class="pill-btn" data-cat="sql">Base de Datos (SQL)</button>
         <button class="pill-btn" data-cat="mockup">Mockups UI/UX</button>
       </div>
@@ -2260,22 +2529,39 @@
   </section>
 
   <!-- =======================================================================
-       VISTA 3: GALERÍA DE EVIDENCIAS KAIZEN
+       VISTA 3: GALERÍA DE PLANTA (KAIZEN, DIAGRAMAS Y MODELADO EXPERIMENTAL)
        ======================================================================= -->
   <section id="vista-evidencias" class="spa-view" style="display: none;">
     <div class="section-header">
       <div class="section-title">
-        <h3>📸 Banco de Evidencias Fotográficas y Diagnóstico Kaizen</h3>
-        <p>Inspección estática de campo: Registro visual de fallas de seguridad, montajes inadecuados con silicona y discrepancias de cableado.</p>
+        <h3>📸 Galería de Planta: Diagnóstico Kaizen, Diagramas y Modelado</h3>
+        <p id="gallerySubtitle">Registro visual estructurado: Inspección de fallas físicas de hardware, diagramas de causalidad y curvas de modelado experimental.</p>
       </div>
     </div>
 
+    <!-- Submenús por Pestañas de la Galería -->
+    <div class="gallery-subnav-tabs" id="gallerySubnavTabs">
+      <button class="gallery-tab-btn active" data-subcat="kaizen">
+        <span>🔍</span> Diagnóstico Kaizen (Fallas Físicas)
+        <span class="subtab-count" id="countKaizen">0</span>
+      </button>
+      <button class="gallery-tab-btn" data-subcat="diagramas">
+        <span>📐</span> Referencias / Diagramas
+        <span class="subtab-count" id="countDiagramas">0</span>
+      </button>
+      <button class="gallery-tab-btn" data-subcat="transferencia">
+        <span>📈</span> Funciones de Transferencia (Fase 2 / Lab 4)
+        <span class="subtab-count" id="countTransferencia">0</span>
+      </button>
+    </div>
+
+    <!-- Filtros de Criticidad (Visibles en Diagnóstico Kaizen) -->
     <div class="gallery-filter-chips" id="galleryFilterChips">
-      <button class="pill-btn active" data-sev="all">Todas las Evidencias (16)</button>
+      <button class="pill-btn active" data-sev="all">Todas las Fallas</button>
       <button class="pill-btn" data-sev="CRITICAL">🔴 Crítica</button>
       <button class="pill-btn" data-sev="HIGH">🟠 Alta</button>
       <button class="pill-btn" data-sev="MEDIUM">🟡 Media</button>
-      <button class="pill-btn" data-sev="INFO">🔵 Referencia / Diagramas</button>
+      <button class="pill-btn" data-sev="SOLVED">✅ Resueltas</button>
     </div>
 
     <div class="gallery-grid" id="galleryGrid">
@@ -2341,6 +2627,53 @@
   </section>
 
   <!-- =======================================================================
+       VISTA 5: CÓDIGOS, LÓGICA DE CONTROL Y FIRMWARE (FASE 1 / FASE 2)
+       ======================================================================= -->
+  <section id="vista-codigos" class="spa-view" style="display: none;">
+    <div class="section-header">
+      <div class="section-title">
+        <h3>💻 Repositorio de Códigos, Lógica de Control y Firmware</h3>
+        <p>Programas de PLC Siemens S7-200 (STEP 7-Micro/WIN), listas de instrucciones AWL (STL), proyectos MicroLogix, interfaces HMI y scripts de telemetría.</p>
+      </div>
+    </div>
+
+    <!-- Barra de Búsqueda y Filtros de Códigos -->
+    <div class="search-filter-bar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="codigoSearchInput" placeholder="Buscar código por nombre, controlador, autor o función..." />
+      </div>
+
+      <div class="station-select-box">
+        <label for="codigoStationFilter">Estación:</label>
+        <select id="codigoStationFilter" class="form-select">
+          <option value="all">Todas las Estaciones</option>
+          <option value="1">Estación 1: Unidad de Transporte</option>
+          <option value="2">Estación 2: Unidad de Alimentación</option>
+          <option value="3">Estación 3: Unidad de Procesamiento</option>
+          <option value="4">Estación 4: Unidad de Ensamblaje</option>
+          <option value="5">Estación 5: Unidad de Selección</option>
+        </select>
+      </div>
+
+      <div class="category-pills" id="codigoTypePills">
+        <button class="pill-btn active" data-type="all">Todos los Códigos</button>
+        <button class="pill-btn" data-type="awl">Listas AWL / STL (Siemens)</button>
+        <button class="pill-btn" data-type="plc">Proyectos Micro/WIN (.MWP)</button>
+        <button class="pill-btn" data-type="script">Scripts y Telemetría (.py)</button>
+        <button class="pill-btn" data-type="hmi">Pantallas HMI (.dop/.mer)</button>
+      </div>
+
+      <div class="results-info" id="codigoResultsCount">Cargando repositorio de códigos...</div>
+    </div>
+
+    <!-- Grilla de Códigos -->
+    <div class="docs-grid" id="codigosGrid">
+      <!-- Se puebla dinámicamente mediante docs/codigos_data.js -->
+    </div>
+  </section>
+
+  <!-- =======================================================================
        MODAL VISOR DE DOCUMENTOS EMBEBIDO (PDF / CÓDIGO)
        ======================================================================= -->
   <div class="modal-overlay" id="docModal">
@@ -2358,7 +2691,60 @@
       </div>
       <div class="modal-body" id="modalBody">
         <iframe id="docIframe" src="" loading="lazy"></iframe>
+        <div id="imageViewer" class="image-viewer-content" style="display: none;">
+          <img id="modalImgDisplay" src="" alt="Vista previa de imagen" />
+        </div>
         <div id="codeViewer" class="code-viewer-content" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       MODAL GRAFICADOR DINÁMICO DE ENSAYOS CSV (FUNCIONES DE TRANSFERENCIA)
+       ======================================================================= -->
+  <div class="modal-overlay" id="csvModal">
+    <div class="modal-container csv-modal-container">
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <h4 id="csvModalTitle">📈 Analizador Dinámico de Ensayos de Planta (Fase 2)</h4>
+          <span id="csvModalSub">Curvas de Reacción Temporal y Modelado Experimental FOPDT</span>
+        </div>
+        <div class="modal-header-actions">
+          <a href="#" id="csvModalDownload" download class="btn-icon" title="Descargar archivo CSV">📥</a>
+          <button class="btn-icon" id="csvModalCloseBtn" title="Cerrar analizador">✕</button>
+        </div>
+      </div>
+      <div class="csv-modal-body">
+        <div class="csv-toolbar">
+          <div class="csv-control-group">
+            <label for="csvAxisX">Eje X (Tiempo / Base Temporal):</label>
+            <select id="csvAxisX" class="form-select"></select>
+          </div>
+          <div class="csv-control-group">
+            <label for="csvAxisY">Eje Y1 (Respuesta Principal):</label>
+            <select id="csvAxisY" class="form-select"></select>
+          </div>
+          <div class="csv-control-group">
+            <label for="csvAxisY2">Eje Y2 (Entrada / Escalón u(t)):</label>
+            <select id="csvAxisY2" class="form-select">
+              <option value="">-- Ninguno (Eje Simple) --</option>
+            </select>
+          </div>
+          <div class="csv-stats-summary" id="csvStatsSummary">
+            <span>Cargando datos del ensayo...</span>
+          </div>
+        </div>
+
+        <div class="csv-chart-wrapper">
+          <canvas id="csvChartCanvas"></canvas>
+        </div>
+
+        <div class="csv-math-helper">
+          <div class="helper-pill"><strong>Modelo FOPDT:</strong> \( G(s) = \frac{K \cdot e^{-\theta s}}{\tau s + 1} \)</div>
+          <div class="helper-pill"><strong>Tiempo Muerto (\(\theta\)):</strong> Retardo inicial antes de la respuesta física</div>
+          <div class="helper-pill"><strong>Constante de Tiempo (\(\tau\)):</strong> Tiempo al 63.2% de régimen permanente</div>
+          <div class="helper-pill"><strong>Ganancia (\(K\)):</strong> \( \Delta y(\infty) / \Delta u \)</div>
+        </div>
       </div>
     </div>
   </div>
@@ -2378,8 +2764,14 @@
       <div class="lightbox-body">
         <img src="" alt="" id="lightboxImg" class="lightbox-img">
         <div class="lightbox-details">
-          <h5>Diagnóstico Técnico y Acción Correctiva</h5>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+            <h5>Diagnóstico Técnico y Acción Correctiva</h5>
+            <span id="lightboxResueltoBadge"></span>
+          </div>
           <p id="lightboxDesc">Descripción técnica detallada...</p>
+          <div id="lightboxSolucionBox" style="display: none; margin-top: 0.75rem; padding: 0.6rem 0.85rem; background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; border-radius: var(--radius-sm); font-size: 0.82rem; color: #a7f3d0;">
+            <strong>Acción Correctiva Kaizen:</strong> <span id="lightboxSolucionText"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -2441,19 +2833,27 @@
       <span class="mobile-nav-icon">📚</span>
       <span class="mobile-nav-label">Documentos</span>
     </button>
-    <button class="mobile-nav-btn nav-tab-btn" data-view="evidencias" aria-label="Vista Galería Kaizen">
+    <button class="mobile-nav-btn nav-tab-btn" data-view="evidencias" aria-label="Vista Galería">
       <span class="mobile-nav-icon">📸</span>
-      <span class="mobile-nav-label">Kaizen</span>
+      <span class="mobile-nav-label">Galería</span>
+    </button>
+    <button class="mobile-nav-btn nav-tab-btn" data-view="codigos" aria-label="Vista Códigos y Firmware">
+      <span class="mobile-nav-icon">💻</span>
+      <span class="mobile-nav-label">Códigos</span>
     </button>
     <button class="mobile-nav-btn nav-tab-btn" data-view="database" aria-label="Vista Base de Datos">
       <span class="mobile-nav-icon">🗄️</span>
-      <span class="mobile-nav-label">Base Datos</span>
+      <span class="mobile-nav-label">BD</span>
     </button>
   </nav>
+
+  <!-- Chart.js CDN para el analizador dinámico de curvas experimentales CSV -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Carga de catálogos y datos externos desacoplados -->
   <script src="docs/catalogo_documentos.js"></script>
   <script src="docs/evidencias_data.js"></script>
+  <script src="docs/codigos_data.js"></script>
 
   <!-- LÓGICA DE LA APLICACIÓN SPA -->
   <script>
@@ -2465,6 +2865,7 @@
       sinoptico: document.getElementById("vista-sinoptico"),
       documentacion: document.getElementById("vista-documentacion"),
       evidencias: document.getElementById("vista-evidencias"),
+      codigos: document.getElementById("vista-codigos"),
       database: document.getElementById("vista-database")
     };
 
@@ -2758,7 +3159,20 @@
         const ext = doc.archivo.includes(".") ? doc.archivo.split(".").pop().toUpperCase() : "DOC";
         let actionButtons = "";
 
-        if (doc.isDownloadOnly) {
+        if (doc.isCsv || (doc.archivo && doc.archivo.toLowerCase().endsWith(".csv"))) {
+          // Archivos de ensayos experimentales CSV: botón de análisis gráfico interactivo
+          actionButtons = `
+            <button class="btn-view" onclick="abrirAnalizadorCsv('${doc.ruta}', '${doc.titulo}')" style="background: #0284c7; color: #ffffff;">
+              <span>📈</span> Analizar Gráfica
+            </button>
+            <a href="${doc.ruta}" download="${doc.archivo}" class="btn-direct" title="Descargar CSV">
+              <span>📥</span>
+            </a>
+            <a href="${doc.ruta}" target="_blank" class="btn-direct" title="Abrir en pestaña nueva">
+              <span>↗</span>
+            </a>
+          `;
+        } else if (doc.isDownloadOnly) {
           // Archivos CAD o binarios propietarios (.dwg, .zip, etc.): descarga directa como acción principal
           actionButtons = `
             <a href="${doc.ruta}" download="${doc.archivo}" class="btn-view" style="text-decoration: none; background: #059669; color: #ffffff;" title="Descargar archivo directamente">
@@ -2850,28 +3264,45 @@
     });
 
     // =========================================================================
-    // 4. GALERÍA DE EVIDENCIAS KAIZEN (DESACOPLADA Y GENERADA AUTOMÁTICAMENTE)
+    // 4. GALERÍA REESTRUCTURADA: KAIZEN, DIAGRAMAS Y TRANSFERENCIA
     // =========================================================================
     let listaEvidencias = [];
+    let currentGallerySubcat = "kaizen";
+    let currentGallerySeverity = "all";
 
     function inicializarGaleria() {
       if (window.EVIDENCIAS_DATA && Array.isArray(window.EVIDENCIAS_DATA)) {
         listaEvidencias = window.EVIDENCIAS_DATA;
-        renderGallery(listaEvidencias);
+        actualizarContadoresGaleria();
+        filtrarYRenderizarGaleria();
         actualizarMetricasEvidencias();
       } else {
-        // Fallback dinámico vía fetch JSON
         fetch("docs/evidencias_data.json")
           .then(res => res.json())
           .then(data => {
             listaEvidencias = data;
-            renderGallery(listaEvidencias);
+            actualizarContadoresGaleria();
+            filtrarYRenderizarGaleria();
             actualizarMetricasEvidencias();
           })
           .catch(err => {
             console.error("Error al cargar evidencias_data:", err);
           });
       }
+    }
+
+    function actualizarContadoresGaleria() {
+      const kaizenCount = listaEvidencias.filter(e => (e.subcategoria || "kaizen") === "kaizen").length;
+      const diagCount = listaEvidencias.filter(e => e.subcategoria === "diagramas").length;
+      const transCount = listaEvidencias.filter(e => e.subcategoria === "transferencia").length;
+
+      const elK = document.getElementById("countKaizen");
+      const elD = document.getElementById("countDiagramas");
+      const elT = document.getElementById("countTransferencia");
+
+      if (elK) elK.textContent = kaizenCount;
+      if (elD) elD.textContent = diagCount;
+      if (elT) elT.textContent = transCount;
     }
 
     function actualizarMetricasEvidencias() {
@@ -2881,35 +3312,138 @@
       }
     }
 
-    function renderGallery(evidences) {
-      const galleryGrid = document.getElementById("galleryGrid");
-      galleryGrid.innerHTML = evidences.map(ev => `
-        <div class="gallery-card" onclick="abrirLightbox('${ev.id}')">
-          <div class="gallery-thumb-wrapper">
-            <img src="${ev.path}" alt="${ev.title}" class="gallery-thumb" loading="lazy">
-            <span class="severity-badge ${ev.sevClass}">${ev.severity}</span>
-          </div>
-          <div class="gallery-info">
-            <div>
-              <div class="gallery-title">${ev.title}</div>
-              <div class="gallery-loc">📍 ${ev.loc}</div>
-            </div>
-            <div class="gallery-desc">${ev.desc.substring(0, 95)}...</div>
-          </div>
-        </div>
-      `).join("");
+    function filtrarYRenderizarGaleria() {
+      const galleryFilterChips = document.getElementById("galleryFilterChips");
+      const gallerySubtitle = document.getElementById("gallerySubtitle");
+
+      // Visibilidad de chips de severidad: solo en Kaizen
+      if (galleryFilterChips) {
+        galleryFilterChips.style.display = (currentGallerySubcat === "kaizen") ? "flex" : "none";
+      }
+
+      if (gallerySubtitle) {
+        if (currentGallerySubcat === "kaizen") {
+          gallerySubtitle.textContent = "Inspección física de hardware: Discrepancias de cableado, problemas de seguridad y gestión Kaizen de soluciones.";
+        } else if (currentGallerySubcat === "diagramas") {
+          gallerySubtitle.textContent = "Diagramas de bloques funcionales, esquemas cinemáticos y vistas de conjunto general de la maqueta XK-335B.";
+        } else if (currentGallerySubcat === "transferencia") {
+          gallerySubtitle.textContent = "Modelado experimental (Fase 2 / Lab 4): Curvas de reacción de planta ante escalón y parámetros FOPDT.";
+        }
+      }
+
+      let filtradas = listaEvidencias.filter(e => {
+        const sub = e.subcategoria || (e.severity === "INFO" ? "diagramas" : "kaizen");
+        return sub === currentGallerySubcat;
+      });
+
+      if (currentGallerySubcat === "kaizen" && currentGallerySeverity !== "all") {
+        if (currentGallerySeverity === "SOLVED") {
+          filtradas = filtradas.filter(e => e.resuelto === true);
+        } else {
+          filtradas = filtradas.filter(e => e.severity === currentGallerySeverity);
+        }
+      }
+
+      renderGallery(filtradas);
     }
 
-    const galleryFilterChips = document.getElementById("galleryFilterChips");
-    galleryFilterChips.querySelectorAll(".pill-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        galleryFilterChips.querySelectorAll(".pill-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        const sev = btn.getAttribute("data-sev");
-        const filtradas = (sev === "all") ? listaEvidencias : listaEvidencias.filter(e => e.severity === sev);
-        renderGallery(filtradas);
+    function renderGallery(evidences) {
+      const galleryGrid = document.getElementById("galleryGrid");
+      if (!evidences || evidences.length === 0) {
+        galleryGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📷</div>
+            <p style="font-weight: 600;">No hay elementos para los filtros seleccionados.</p>
+          </div>
+        `;
+        return;
+      }
+
+      galleryGrid.innerHTML = evidences.map(ev => {
+        let resueltoBadgeHtml = "";
+        let solucionHtml = "";
+        let actionButtons = "";
+
+        if (ev.subcategoria === "kaizen") {
+          resueltoBadgeHtml = ev.resuelto 
+            ? `<span class="badge-resuelto">✅ Resuelto</span>` 
+            : `<span class="badge-pendiente">⚠️ Pendiente</span>`;
+
+          if (ev.resuelto && ev.solucion_nota) {
+            solucionHtml = `
+              <div class="card-solucion-box">
+                <strong>Acción Correctiva:</strong> ${ev.solucion_nota}
+              </div>
+            `;
+          }
+        } else if (ev.subcategoria === "transferencia") {
+          actionButtons = `
+            <div style="margin-top: 0.6rem; display: flex; gap: 0.5rem;">
+              <button class="btn-view" style="font-size: 0.75rem; padding: 0.35rem 0.6rem; background: #0284c7; color: #fff;" onclick="event.stopPropagation(); abrirAnalizadorCsv('Documentacion/transferencia/ensayo_escalon_estacion5_vfd.csv', 'Respuesta al Escalón VFD (Estación 5)')">
+                <span>📈</span> Analizar CSV
+              </button>
+              <a href="Documentacion/transferencia/ensayo_escalon_estacion5_vfd.csv" download class="btn-direct" style="padding: 0.35rem 0.5rem;" title="Descargar CSV" onclick="event.stopPropagation();">
+                <span>📥</span>
+              </a>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="gallery-card" onclick="abrirLightbox('${ev.id}')">
+            <div class="gallery-thumb-wrapper">
+              <img src="${ev.path}" alt="${ev.title}" class="gallery-thumb" loading="lazy">
+              <span class="severity-badge ${ev.sevClass}">${ev.severity}</span>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.3rem;">
+                  <div class="gallery-title">${ev.title}</div>
+                  ${resueltoBadgeHtml}
+                </div>
+                <div class="gallery-loc">📍 ${ev.loc}</div>
+              </div>
+              <div class="gallery-desc">${ev.desc.substring(0, 110)}...</div>
+              ${solucionHtml}
+              ${actionButtons}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Submenús de la galería (Kaizen / Diagramas / Transferencia)
+    const gallerySubnavTabs = document.getElementById("gallerySubnavTabs");
+    if (gallerySubnavTabs) {
+      gallerySubnavTabs.querySelectorAll(".gallery-tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          gallerySubnavTabs.querySelectorAll(".gallery-tab-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentGallerySubcat = btn.getAttribute("data-subcat");
+          currentGallerySeverity = "all";
+          const chips = document.getElementById("galleryFilterChips");
+          if (chips) {
+            chips.querySelectorAll(".pill-btn").forEach(c => c.classList.remove("active"));
+            const allBtn = chips.querySelector("[data-sev='all']");
+            if (allBtn) allBtn.classList.add("active");
+          }
+          filtrarYRenderizarGaleria();
+        });
       });
-    });
+    }
+
+    // Filtros de severidad para Kaizen
+    const galleryFilterChips = document.getElementById("galleryFilterChips");
+    if (galleryFilterChips) {
+      galleryFilterChips.querySelectorAll(".pill-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          galleryFilterChips.querySelectorAll(".pill-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentGallerySeverity = btn.getAttribute("data-sev");
+          filtrarYRenderizarGaleria();
+        });
+      });
+    }
 
     // =========================================================================
     // 5. VISOR INTERACTIVO DE BASE DE DATOS Y SCRIPTS SQL
@@ -2953,11 +3487,54 @@
     const docIframe = document.getElementById("docIframe");
     const codeViewer = document.getElementById("codeViewer");
 
+    // Función de escape y numeración de líneas con resaltado AWL / STL
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatCodeWithLineNumbers(rawText, lang) {
+      const lines = rawText.split(/\r?\n/);
+      const isAwl = lang === "awl";
+
+      const formattedLines = lines.map((line, idx) => {
+        let code = escapeHtml(line);
+        if (isAwl) {
+          if (code.trim().startsWith("//")) {
+            code = `<span style="color: #64748b; font-style: italic;">${code}</span>`;
+          } else {
+            code = code.replace(/\b(ORGANIZATION_BLOCK|SUBROUTINE_BLOCK|INTERRUPT_BLOCK|END_ORGANIZATION_BLOCK|END_SUBROUTINE_BLOCK|TITLE|NETWORK|BEGIN)\b/g, '<strong style="color: #38bdf8;">$1</strong>');
+            code = code.replace(/\b(LD|LDN|A|AN|O|ON|LPS|LRD|LPP|ALD|OLD|NOT|EU|ED|S|R|=|\+I|-I|\*I|\/I|CALL|CRET|TON|TOF|TONR|CTU|CTD|CTUD|MOVB|MOVW|MOVD|HDEF|HSC|PLS|XMT|RCV)\b/g, '<span style="color: #c084fc; font-weight: 700;">$1</span>');
+            code = code.replace(/\b([IQMV]([0-9]+)\.([0-7])|VB[0-9]+|VW[0-9]+|VD[0-9]+|SMB[0-9]+|SMD[0-9]+|SM[0-9]+\.[0-9]+|AQW[0-9]+|AIW[0-9]+|T[0-9]+|C[0-9]+|HC[0-9]+|AC[0-3])\b/g, '<span style="color: #34d399;">$1</span>');
+          }
+        }
+        return `
+          <div class="code-line">
+            <span class="line-num">${idx + 1}</span>
+            <span class="line-code">${code || "&nbsp;"}</span>
+          </div>
+        `;
+      }).join("");
+
+      return `<div class="code-editor-gutter">${formattedLines}</div>`;
+    }
+
     window.abrirVisorDoc = function(docId) {
-      const doc = bibliotecaDocs.find(d => d.id === docId);
+      const doc = bibliotecaDocs.find(d => d.id === docId) ||
+                  (window.CODIGOS_DATA && window.CODIGOS_DATA.find(d => d.id === docId));
       if (!doc) return;
 
-      // Si es formato binario o CAD, iniciar descarga directa inmediata en vez de abrir un iframe vacío
+      // Si es archivo CSV, abrir analizador dinámico de gráficas
+      if (doc.isCsv || (doc.archivo && doc.archivo.toLowerCase().endsWith(".csv"))) {
+        abrirAnalizadorCsv(doc.ruta, doc.titulo);
+        return;
+      }
+
+      // Si es formato binario o CAD, iniciar descarga directa inmediata
       if (doc.isDownloadOnly) {
         const link = document.createElement("a");
         link.href = doc.ruta;
@@ -2978,19 +3555,44 @@
         modalDocDownload.setAttribute("download", doc.archivo);
       }
 
-      if (doc.archivo.toLowerCase().endsWith(".pdf")) {
+      const isImage = /\.(png|jpe?g|webp|svg|gif|bmp)$/i.test(doc.archivo);
+      const isPdf = /\.pdf$/i.test(doc.archivo);
+
+      const modalImgDisplay = document.getElementById("modalImgDisplay");
+      const imageViewer = document.getElementById("imageViewer");
+
+      if (isImage) {
+        // CORRECCIÓN BUG 1: Visualización nativa de imágenes en modal sin texto binario
+        docIframe.style.display = "none";
+        codeViewer.style.display = "none";
+        if (imageViewer) imageViewer.style.display = "flex";
+        if (modalImgDisplay) {
+          modalImgDisplay.src = doc.ruta;
+          modalImgDisplay.alt = doc.titulo;
+        }
+      } else if (isPdf) {
+        if (imageViewer) imageViewer.style.display = "none";
         codeViewer.style.display = "none";
         docIframe.style.display = "block";
         docIframe.src = doc.ruta + "#toolbar=1&navpanes=1&zoom=page-width";
       } else {
-        // Cargar archivo de texto, SQL o Markdown legible
+        // Cargar archivo de código o texto (.awl, .sql, .py, .md, .txt)
+        if (imageViewer) imageViewer.style.display = "none";
         docIframe.style.display = "none";
         codeViewer.style.display = "block";
-        codeViewer.textContent = "Cargando archivo...";
+        codeViewer.innerHTML = `<div style="padding: 1.5rem; color: var(--text-muted);">Cargando archivo...</div>`;
         fetch(doc.ruta)
-          .then(res => res.text())
-          .then(txt => { codeViewer.textContent = txt; })
-          .catch(err => { codeViewer.textContent = `Error al leer el archivo: ${err}`; });
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.text();
+          })
+          .then(txt => {
+            const ext = doc.archivo.split(".").pop().toLowerCase();
+            codeViewer.innerHTML = formatCodeWithLineNumbers(txt, ext);
+          })
+          .catch(err => {
+            codeViewer.innerHTML = `<div style="padding: 1.5rem; color: #f43f5e;">Error al leer el archivo: ${err.message}</div>`;
+          });
       }
 
       docModal.classList.add("active");
@@ -3000,6 +3602,9 @@
     function cerrarVisorDoc() {
       docModal.classList.remove("active");
       docIframe.src = "";
+      const modalImgDisplay = document.getElementById("modalImgDisplay");
+      if (modalImgDisplay) modalImgDisplay.src = "";
+      codeViewer.innerHTML = "";
       document.body.style.overflow = "auto";
     }
 
@@ -3007,6 +3612,382 @@
     docModal.addEventListener("click", (e) => {
       if (e.target === docModal) cerrarVisorDoc();
     });
+
+    // =========================================================================
+    // 5. VISOR Y GRAFICADOR DINÁMICO DE ENSAYOS CSV (FUNCIONES DE TRANSFERENCIA)
+    // =========================================================================
+    let csvDataParsed = null;
+    let csvChartInstance = null;
+
+    const csvModal = document.getElementById("csvModal");
+    const csvModalTitle = document.getElementById("csvModalTitle");
+    const csvModalSub = document.getElementById("csvModalSub");
+    const csvModalDownload = document.getElementById("csvModalDownload");
+    const csvModalCloseBtn = document.getElementById("csvModalCloseBtn");
+    const csvAxisX = document.getElementById("csvAxisX");
+    const csvAxisY = document.getElementById("csvAxisY");
+    const csvAxisY2 = document.getElementById("csvAxisY2");
+    const csvStatsSummary = document.getElementById("csvStatsSummary");
+    const csvChartCanvas = document.getElementById("csvChartCanvas");
+
+    function parseCsvString(csvText) {
+      const lines = csvText.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+      if (lines.length < 2) return null;
+
+      const sep = lines[0].includes(";") ? ";" : lines[0].includes("\t") ? "\t" : ",";
+      const headers = lines[0].split(sep).map(h => h.trim().replace(/^["']|["']$/g, ""));
+
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split(sep).map(p => parseFloat(p.trim()));
+        if (parts.length === headers.length && !parts.some(isNaN)) {
+          rows.push(parts);
+        }
+      }
+
+      return { headers, rows };
+    }
+
+    window.abrirAnalizadorCsv = function(csvPath, docTitle) {
+      csvModalTitle.textContent = `📈 Analizador de Planta: ${docTitle || 'Ensayo Experimental'}`;
+      csvModalSub.textContent = `Archivo: ${csvPath}`;
+      csvModalDownload.href = csvPath;
+      csvModalDownload.setAttribute("download", csvPath.split("/").pop());
+
+      csvStatsSummary.innerHTML = `<span>Leyendo datos de ${csvPath}...</span>`;
+      csvModal.classList.add("active");
+      document.body.style.overflow = "hidden";
+
+      fetch(csvPath)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.text();
+        })
+        .then(text => {
+          const parsed = parseCsvString(text);
+          if (!parsed || parsed.rows.length === 0) {
+            csvStatsSummary.innerHTML = `<span style="color: #f43f5e;">Error: No se pudieron extraer datos numéricos del archivo CSV.</span>`;
+            return;
+          }
+          csvDataParsed = parsed;
+          configurarSelectoresCsv(parsed);
+          renderizarGraficoCsv();
+        })
+        .catch(err => {
+          csvStatsSummary.innerHTML = `<span style="color: #f43f5e;">Error al cargar CSV: ${err.message}</span>`;
+        });
+    };
+
+    function cerrarAnalizadorCsv() {
+      if (csvModal) csvModal.classList.remove("active");
+      if (csvChartInstance) {
+        csvChartInstance.destroy();
+        csvChartInstance = null;
+      }
+      document.body.style.overflow = "auto";
+    }
+
+    if (csvModalCloseBtn) csvModalCloseBtn.addEventListener("click", cerrarAnalizadorCsv);
+    if (csvModal) {
+      csvModal.addEventListener("click", (e) => {
+        if (e.target === csvModal) cerrarAnalizadorCsv();
+      });
+    }
+
+    function configurarSelectoresCsv(parsed) {
+      csvAxisX.innerHTML = "";
+      csvAxisY.innerHTML = "";
+      csvAxisY2.innerHTML = `<option value="">-- Ninguno (Eje Simple) --</option>`;
+
+      parsed.headers.forEach((h, idx) => {
+        const optX = document.createElement("option");
+        optX.value = idx;
+        optX.textContent = h;
+        csvAxisX.appendChild(optX);
+
+        const optY = document.createElement("option");
+        optY.value = idx;
+        optY.textContent = h;
+        csvAxisY.appendChild(optY);
+
+        const optY2 = document.createElement("option");
+        optY2.value = idx;
+        optY2.textContent = h;
+        csvAxisY2.appendChild(optY2);
+      });
+
+      let defX = 0;
+      const xIdx = parsed.headers.findIndex(h => /tiempo|time|^t_/i.test(h));
+      if (xIdx !== -1) defX = xIdx;
+      csvAxisX.value = defX;
+
+      let defY = parsed.headers.length > 1 ? 1 : 0;
+      const yIdx = parsed.headers.findIndex((h, i) => i !== defX && /velocidad|salida|rpm|out|sensor|temperatura/i.test(h));
+      if (yIdx !== -1) defY = yIdx;
+      csvAxisY.value = defY;
+
+      const y2Idx = parsed.headers.findIndex((h, i) => i !== defX && i !== defY && /entrada|escalon|input|consigna|volt/i.test(h));
+      if (y2Idx !== -1) csvAxisY2.value = y2Idx;
+    }
+
+    function renderizarGraficoCsv() {
+      if (!csvDataParsed) return;
+
+      const xIdx = parseInt(csvAxisX.value);
+      const yIdx = parseInt(csvAxisY.value);
+      const y2Val = csvAxisY2.value;
+      const hasY2 = y2Val !== "";
+      const y2Idx = hasY2 ? parseInt(y2Val) : null;
+
+      const labels = csvDataParsed.rows.map(r => r[xIdx]);
+      const dataY1 = csvDataParsed.rows.map(r => r[yIdx]);
+      const nameX = csvDataParsed.headers[xIdx];
+      const nameY1 = csvDataParsed.headers[yIdx];
+
+      const minY1 = Math.min(...dataY1);
+      const maxY1 = Math.max(...dataY1);
+      const dt = labels.length > 1 ? (labels[1] - labels[0]).toFixed(3) : "N/A";
+
+      let statsHtml = `
+        <span>📊 <strong>Muestras:</strong> ${labels.length} puntos</span>
+        <span>⏱️ <strong>Δt:</strong> ${dt} s</span>
+        <span>📈 <strong>${nameY1}:</strong> [${minY1.toFixed(1)} a ${maxY1.toFixed(1)}]</span>
+      `;
+      if (hasY2) {
+        const nameY2 = csvDataParsed.headers[y2Idx];
+        const dataY2 = csvDataParsed.rows.map(r => r[y2Idx]);
+        const minY2 = Math.min(...dataY2);
+        const maxY2 = Math.max(...dataY2);
+        statsHtml += `<span>🎯 <strong>${nameY2}:</strong> [${minY2.toFixed(1)} a ${maxY2.toFixed(1)}]</span>`;
+      }
+      csvStatsSummary.innerHTML = statsHtml;
+
+      if (csvChartInstance) {
+        csvChartInstance.destroy();
+        csvChartInstance = null;
+      }
+
+      if (typeof Chart !== "undefined") {
+        const datasets = [
+          {
+            label: nameY1,
+            data: dataY1,
+            borderColor: "#38bdf8",
+            backgroundColor: "rgba(56, 189, 248, 0.1)",
+            borderWidth: 2,
+            pointRadius: labels.length > 120 ? 0 : 2,
+            tension: 0.15,
+            yAxisID: "y"
+          }
+        ];
+
+        const scales = {
+          x: {
+            title: { display: true, text: nameX, color: "#94a3b8" },
+            grid: { color: "rgba(255, 255, 255, 0.06)" },
+            ticks: { color: "#94a3b8" }
+          },
+          y: {
+            type: "linear",
+            display: true,
+            position: "left",
+            title: { display: true, text: nameY1, color: "#38bdf8" },
+            grid: { color: "rgba(255, 255, 255, 0.08)" },
+            ticks: { color: "#38bdf8" }
+          }
+        };
+
+        if (hasY2) {
+          const nameY2 = csvDataParsed.headers[y2Idx];
+          const dataY2 = csvDataParsed.rows.map(r => r[y2Idx]);
+          datasets.push({
+            label: nameY2,
+            data: dataY2,
+            borderColor: "#f43f5e",
+            backgroundColor: "rgba(244, 63, 94, 0.1)",
+            borderWidth: 2,
+            pointRadius: labels.length > 120 ? 0 : 2,
+            borderDash: [5, 5],
+            stepped: true,
+            yAxisID: "y1"
+          });
+
+          scales.y1 = {
+            type: "linear",
+            display: true,
+            position: "right",
+            title: { display: true, text: nameY2, color: "#f43f5e" },
+            grid: { drawOnChartArea: false },
+            ticks: { color: "#f43f5e" }
+          };
+        }
+
+        const ctx = csvChartCanvas.getContext("2d");
+        csvChartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+              legend: {
+                labels: { color: "#e2e8f0", font: { family: "JetBrains Mono, monospace" } }
+              },
+              tooltip: {
+                backgroundColor: "#1e293b",
+                titleColor: "#f8fafc",
+                bodyColor: "#e2e8f0",
+                borderColor: "#334155",
+                borderWidth: 1
+              }
+            },
+            scales: scales
+          }
+        });
+      }
+    }
+
+    if (csvAxisX) csvAxisX.addEventListener("change", renderizarGraficoCsv);
+    if (csvAxisY) csvAxisY.addEventListener("change", renderizarGraficoCsv);
+    if (csvAxisY2) csvAxisY2.addEventListener("change", renderizarGraficoCsv);
+
+    // =========================================================================
+    // 6. CATÁLOGO DE CÓDIGOS, LÓGICA DE CONTROL Y FIRMWARE
+    // =========================================================================
+    let repositorioCodigos = [];
+    const codigosGrid = document.getElementById("codigosGrid");
+    const codigoSearchInput = document.getElementById("codigoSearchInput");
+    const codigoStationFilter = document.getElementById("codigoStationFilter");
+    const codigoTypePills = document.getElementById("codigoTypePills");
+    const codigoResultsCount = document.getElementById("codigoResultsCount");
+    let currentCodigoType = "all";
+
+    function inicializarCodigos() {
+      if (window.CODIGOS_DATA && Array.isArray(window.CODIGOS_DATA)) {
+        repositorioCodigos = window.CODIGOS_DATA;
+        renderCodigos(repositorioCodigos);
+      } else {
+        fetch("docs/codigos_data.json")
+          .then(res => res.json())
+          .then(data => {
+            repositorioCodigos = data;
+            renderCodigos(repositorioCodigos);
+          })
+          .catch(err => {
+            console.warn("Fallo lectura de codigos_data.json, filtrando catálogo general:", err);
+            repositorioCodigos = bibliotecaDocs.filter(d => d.categoria === "codigo");
+            renderCodigos(repositorioCodigos);
+          });
+      }
+    }
+
+    function renderCodigos(list) {
+      if (!codigosGrid) return;
+      if (list.length === 0) {
+        codigosGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💻</div>
+            <p style="font-weight: 600;">No se encontraron programas de código con los filtros seleccionados.</p>
+          </div>
+        `;
+        if (codigoResultsCount) codigoResultsCount.textContent = "Mostrando 0 programas";
+        return;
+      }
+
+      codigosGrid.innerHTML = list.map(item => {
+        const ext = item.archivo.split(".").pop().toUpperCase();
+        let actionBtn = "";
+
+        if (item.isDownloadOnly) {
+          actionBtn = `
+            <a href="${item.ruta}" download="${item.archivo}" class="btn-view" style="text-decoration: none; background: #059669; color: #ffffff;">
+              <span>📥</span> Descargar Proyecto ${ext}
+            </a>
+            <a href="${item.ruta}" target="_blank" class="btn-direct" title="Enlace directo">
+              <span>↗</span>
+            </a>
+          `;
+        } else {
+          actionBtn = `
+            <button class="btn-view" onclick="abrirVisorDoc('${item.id}')">
+              <span>👁️</span> Visualizar ${ext}
+            </button>
+            <a href="${item.ruta}" download="${item.archivo}" class="btn-direct" title="Descargar archivo fuente">
+              <span>📥</span>
+            </a>
+            <a href="${item.ruta}" target="_blank" class="btn-direct" title="Abrir en pestaña nueva">
+              <span>↗</span>
+            </a>
+          `;
+        }
+
+        const stationLabel = getEstacionesLabel(item.estaciones);
+
+        return `
+          <div class="doc-card">
+            <div class="card-top">
+              <div class="card-badges">
+                <span class="badge-cat ${item.badgeClass}">${item.badgeText || ext}</span>
+                <span class="badge-station-tag">${stationLabel}</span>
+              </div>
+              <div class="card-title">${item.titulo}</div>
+              <div class="card-filename">📁 ${item.archivo} · ${item.controlador || 'S7-200'}</div>
+              <div class="card-desc">${item.descripcion}</div>
+              <div style="margin-top: 0.6rem; font-size: 0.76rem; color: var(--text-muted); font-family: var(--font-mono);">
+                👤 <strong>Autor:</strong> ${item.autor || 'Equipo XK-335B'} · 🏷️ <strong>Versión:</strong> ${item.version || 'v1.0'}
+              </div>
+            </div>
+            <div class="card-actions">
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      if (codigoResultsCount) {
+        codigoResultsCount.textContent = `Mostrando ${list.length} de ${repositorioCodigos.length} programas y scripts`;
+      }
+    }
+
+    function filtrarCodigos() {
+      const q = codigoSearchInput.value.toLowerCase().trim();
+      const selStation = codigoStationFilter.value;
+
+      const filtrados = repositorioCodigos.filter(item => {
+        const matchText = !q ||
+          item.titulo.toLowerCase().includes(q) ||
+          item.archivo.toLowerCase().includes(q) ||
+          item.descripcion.toLowerCase().includes(q) ||
+          (item.autor && item.autor.toLowerCase().includes(q)) ||
+          (item.controlador && item.controlador.toLowerCase().includes(q));
+
+        const matchType = (currentCodigoType === "all") || (item.tipo === currentCodigoType);
+
+        const matchStation = (selStation === "all") ||
+          (item.estaciones && (item.estaciones.includes(selStation) || item.estaciones.includes("all")));
+
+        return matchText && matchType && matchStation;
+      });
+
+      renderCodigos(filtrados);
+    }
+
+    if (codigoSearchInput) codigoSearchInput.addEventListener("input", filtrarCodigos);
+    if (codigoStationFilter) codigoStationFilter.addEventListener("change", filtrarCodigos);
+    if (codigoTypePills) {
+      codigoTypePills.querySelectorAll(".pill-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          codigoTypePills.querySelectorAll(".pill-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentCodigoType = btn.getAttribute("data-type");
+          filtrarCodigos();
+        });
+      });
+    }
 
     // Lightbox Modal
     const lightboxModal = document.getElementById("lightboxModal");
@@ -3024,6 +4005,29 @@
       lightboxLoc.textContent = `📍 ${ev.loc} · Severidad: ${ev.severity}`;
       lightboxImg.src = ev.path;
       lightboxDesc.textContent = ev.desc;
+
+      const badgeEl = document.getElementById("lightboxResueltoBadge");
+      const solBox = document.getElementById("lightboxSolucionBox");
+      const solText = document.getElementById("lightboxSolucionText");
+
+      if (badgeEl) {
+        if (ev.subcategoria === "kaizen") {
+          badgeEl.innerHTML = ev.resuelto 
+            ? `<span class="badge-resuelto">✅ Solución Aplicada</span>` 
+            : `<span class="badge-pendiente">⚠️ Pendiente de Corrección</span>`;
+        } else {
+          badgeEl.innerHTML = "";
+        }
+      }
+
+      if (solBox && solText) {
+        if (ev.resuelto && ev.solucion_nota) {
+          solText.textContent = ev.solucion_nota;
+          solBox.style.display = "block";
+        } else {
+          solBox.style.display = "none";
+        }
+      }
 
       lightboxModal.classList.add("active");
       document.body.style.overflow = "hidden";
@@ -3044,6 +4048,7 @@
       if (e.key === "Escape") {
         cerrarVisorDoc();
         cerrarLightbox();
+        cerrarAnalizadorCsv();
         cerrarMobileDrawer();
       }
     });
@@ -3068,6 +4073,7 @@
     renderStations();
     inicializarCatalogo();
     inicializarGaleria();
+    inicializarCodigos();
   </script>
 </body>
 </html>

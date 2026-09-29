@@ -1,0 +1,102 @@
+[
+  {
+    "id": "code-s7200-est1-awl",
+    "orden_prioridad": 10,
+    "titulo": "Programa Maestro S7-200: Unidad de Transporte (AWL/STL)",
+    "archivo": "estacion1_transporte_maestro.awl",
+    "ruta": "Documentacion/codigos/estacion1_transporte_maestro.awl",
+    "categoria": "codigo",
+    "estaciones": [
+      "1"
+    ],
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "awl",
+    "autor": "Univ. Wilson Huanca / Univ. Miguel Ángel López",
+    "version": "v1.2.0 (Fase 1)",
+    "badgeClass": "badge-codigo",
+    "badgeText": "Siemens S7-200 (AWL)",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Lógica de control para carro de transferencia cartesiano, finales de carrera ópticos y maestro de sondeo en red RS-485."
+  },
+  {
+    "id": "code-s7200-est1-mwp",
+    "orden_prioridad": 11,
+    "titulo": "Proyecto STEP 7-Micro/WIN: Unidad de Transporte (.MWP)",
+    "archivo": "estacion1_transporte.mwp",
+    "ruta": "Documentacion/codigos/estacion1_transporte.mwp",
+    "categoria": "codigo",
+    "estaciones": [
+      "1"
+    ],
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "plc",
+    "autor": "Univ. Wilson Huanca",
+    "version": "v1.2.0",
+    "badgeClass": "badge-codigo",
+    "badgeText": "Proyecto Micro/WIN",
+    "isDownloadOnly": true,
+    "isCsv": false,
+    "descripcion": "Archivo binario fuente listo para apertura y edición en STEP 7-Micro/WIN v4.0 SP9 con tabla de símbolos de E/S."
+  },
+  {
+    "id": "code-s7200-est5-awl",
+    "orden_prioridad": 20,
+    "titulo": "Control VFD y Clasificación: Unidad de Selección (AWL/STL)",
+    "archivo": "estacion5_seleccion_vfd.awl",
+    "ruta": "Documentacion/codigos/estacion5_seleccion_vfd.awl",
+    "categoria": "codigo",
+    "estaciones": [
+      "5"
+    ],
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "awl",
+    "autor": "Univ. Juan Carlos Siñani",
+    "version": "v1.3.1 (Fase 1)",
+    "badgeClass": "badge-codigo",
+    "badgeText": "Siemens S7-200 (AWL)",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Consigna analógica por AQW0 hacia variador POWTRAN PT9100A, conteo de alta velocidad HSC0 y discriminación dieléctrica inductiva/capacitiva."
+  },
+  {
+    "id": "code-s7200-est5-mwp",
+    "orden_prioridad": 21,
+    "titulo": "Proyecto STEP 7-Micro/WIN: Unidad de Selección (.MWP)",
+    "archivo": "estacion5_seleccion.mwp",
+    "ruta": "Documentacion/codigos/estacion5_seleccion.mwp",
+    "categoria": "codigo",
+    "estaciones": [
+      "5"
+    ],
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "plc",
+    "autor": "Univ. Juan Carlos Siñani",
+    "version": "v1.3.1",
+    "badgeClass": "badge-codigo",
+    "badgeText": "Proyecto Micro/WIN",
+    "isDownloadOnly": true,
+    "isCsv": false,
+    "descripcion": "Proyecto completo de ingeniería para Micro/WIN v4.0 con bloques de interrupción y configuración de rampa de aceleración/desaceleración."
+  },
+  {
+    "id": "code-py-telemetria",
+    "orden_prioridad": 30,
+    "titulo": "Driver de Telemetría: Sondeo Modbus-RTU y Base de Datos (Python)",
+    "archivo": "telemetria_modbus_rtu.py",
+    "ruta": "Documentacion/codigos/telemetria_modbus_rtu.py",
+    "categoria": "codigo",
+    "estaciones": [
+      "all"
+    ],
+    "controlador": "Gateway Linux / PC Industrial",
+    "tipo": "script",
+    "autor": "Univ. Mauricio Cuevas",
+    "version": "v1.0.4 (ETN-1000)",
+    "badgeClass": "badge-sql",
+    "badgeText": "Script Python",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Script de adquisición serial concurrente sobre RS-485 para inyección de series temporales en el esquema 3FN de PostgreSQL."
+  }
+]

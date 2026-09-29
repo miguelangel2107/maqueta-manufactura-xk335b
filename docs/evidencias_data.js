@@ -1,7 +1,7 @@
 /**
  * =============================================================================
- * BANCO DE EVIDENCIAS KAIZEN - PLANTA XK-335B (GENERADO AUTOMÁTICAMENTE)
- * Generado el: 2026-09-29T21:45:02.140Z
+ * BANCO DE EVIDENCIAS KAIZEN Y DIAGRAMAS - PLANTA XK-335B (GENERADO AUTOMÁTICAMENTE)
+ * Generado el: 2026-09-29T23:11:12.470Z
  * =============================================================================
  */
 
@@ -14,6 +14,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig01_portada_maqueta_xk335b.png",
     "severity": "INFO",
     "sevClass": "sev-info",
+    "subcategoria": "diagramas",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Disposición espacial y secuencial de la línea de manufactura flexible en el laboratorio de control."
   },
   {
@@ -24,6 +27,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig02_sensores_capacitivos_motor_trifasico.png",
     "severity": "MEDIUM",
     "sevClass": "sev-medium",
+    "subcategoria": "kaizen",
+    "resuelto": true,
+    "solucion_nota": "Actualizado esquema unifilar y reprogramado parámetro de torque en variador POWTRAN PT9100A.",
     "desc": "Rectificación física: El accionamiento es un motor asíncrono trifásico alimentado por VFD y cuenta con sensor capacitivo para discriminar plásticos, desmintiendo reportes legados."
   },
   {
@@ -34,6 +40,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig03_borneras_conexiones_cables_expuestos.png",
     "severity": "HIGH",
     "sevClass": "sev-high",
+    "subcategoria": "kaizen",
+    "resuelto": true,
+    "solucion_nota": "Reengastado con terminales puntera tipo ferrul y colocado termocontraíble con tag normalizado.",
     "desc": "Deficiente ensamblaje en borneras con hilos de cobre vivos fuera del conector y pérdida de identificación de hilos."
   },
   {
@@ -44,6 +53,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig04_carcasa_fracturada_plc_s7200.png",
     "severity": "MEDIUM",
     "sevClass": "sev-medium",
+    "subcategoria": "kaizen",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Fractura mecánica en el plástico de sujeción de bornes por torque excesivo durante mantenimientos anteriores."
   },
   {
@@ -54,6 +66,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig05_sensores_fijados_silicona_cinta.png",
     "severity": "CRITICAL",
     "sevClass": "sev-critical",
+    "subcategoria": "kaizen",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Peligro Kaizen crítico: Los sensores magnéticos SMC carecen de abrazaderas rígidas. Su desprendimiento causa pérdida total de observabilidad (C = [0 0]) y colisión mecánica."
   },
   {
@@ -64,6 +79,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig06_desalineacion_piston_pinza.png",
     "severity": "HIGH",
     "sevClass": "sev-high",
+    "subcategoria": "kaizen",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Desfase angular entre el cilindro vertical de prensa y la mordaza lateral, originando atascamiento de piezas y desgaste asimétrico."
   },
   {
@@ -74,6 +92,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig07_conexion_no_documentada_vfd_giro.png",
     "severity": "HIGH",
     "sevClass": "sev-high",
+    "subcategoria": "kaizen",
+    "resuelto": true,
+    "solucion_nota": "Incorporado lazo de inversión de giro al plano P&ID y esquema multifilar IEC de Estación 5.",
     "desc": "Conductor físico no registrado en los esquemas originales conectando una salida digital del PLC al terminal REV del VFD POWTRAN."
   },
   {
@@ -84,6 +105,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig08_cable_sensor_aislamiento_danado.png",
     "severity": "CRITICAL",
     "sevClass": "sev-critical",
+    "subcategoria": "kaizen",
+    "resuelto": true,
+    "solucion_nota": "Aislamiento renovado con manga espiral protectora y sujeción dentro de canaleta ranurada.",
     "desc": "Riesgo inminente de cortocircuito a masa de 24 VDC por pérdida del aislamiento externo en contacto directo con la bancada metálica."
   },
   {
@@ -94,6 +118,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig09_diagrama_bloques_alimentacion.jpg",
     "severity": "INFO",
     "sevClass": "sev-info",
+    "subcategoria": "diagramas",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Diagrama de bloques funcionales y relación entrada/salida para la eyección de piezas en la tolva de alimentación."
   },
   {
@@ -104,6 +131,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig10_diagrama_bloques_procesamiento.jpg",
     "severity": "INFO",
     "sevClass": "sev-info",
+    "subcategoria": "diagramas",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Modelado fenomenológico y lazos de enclavamiento de la prensa de punzonado y mordaza."
   },
   {
@@ -114,6 +144,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig11_diagrama_bloques_ensamblaje.jpg",
     "severity": "INFO",
     "sevClass": "sev-info",
+    "subcategoria": "diagramas",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Secuencia temporal del actuador rotativo 0-180° y pinza angular neumática."
   },
   {
@@ -124,6 +157,9 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig12_diagrama_bloques_seleccion.jpg",
     "severity": "INFO",
     "sevClass": "sev-info",
+    "subcategoria": "diagramas",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Lazo cerrado continuo de velocidad (consigna analógica VFD y lectura de encoder óptico incremental)."
   },
   {
@@ -134,7 +170,10 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig13_diagrama_bloques_transporte.jpg",
     "severity": "INFO",
     "sevClass": "sev-info",
-    "desc": "Diagrama de bloques de control de posición del carro cartesiano gobernado por servomotor Panasonic."
+    "subcategoria": "diagramas",
+    "resuelto": false,
+    "solucion_nota": "",
+    "desc": "Cadena cinemática del servomotor AC y husillo de bolas para el carro de transferencia."
   },
   {
     "id": "ev-14",
@@ -144,7 +183,23 @@ const EVIDENCIAS_DATA = [
     "path": "Documentacion/evidencias/assets/fig14_plc_s7200_comunicacion_rs485.jpg",
     "severity": "INFO",
     "sevClass": "sev-info",
+    "subcategoria": "diagramas",
+    "resuelto": false,
+    "solucion_nota": "",
     "desc": "Conexión del cable bifilar apantallado en los puertos de comunicación serial de las CPUs."
+  },
+  {
+    "id": "ev-15",
+    "title": "Respuesta al Escalón en Cinta de Selección (FOPDT)",
+    "loc": "Estación 5 (ETN-902)",
+    "file": "curva_escalon_estacion5_vfd.png",
+    "path": "Documentacion/transferencia/curva_escalon_estacion5_vfd.png",
+    "severity": "INFO",
+    "sevClass": "sev-info",
+    "subcategoria": "transferencia",
+    "resuelto": false,
+    "solucion_nota": "",
+    "desc": "Registro experimental de velocidad en RPM ante escalón 0-5V en salida analógica AQW0. Modelo identificado: K=290 RPM/V, theta=0.36 s, tau=0.92 s."
   }
 ];
 

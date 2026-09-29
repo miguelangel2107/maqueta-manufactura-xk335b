@@ -1,7 +1,7 @@
 /**
  * =============================================================================
  * CATÁLOGO GENERAL DE DOCUMENTOS TÉCNICOS - PLANTA XK-335B (GENERADO AUTOMÁTICAMENTE)
- * Generado el: 2026-09-29T21:45:02.133Z
+ * Generado el: 2026-09-29T23:11:12.459Z
  * =============================================================================
  */
 
@@ -23,6 +23,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-informe",
     "badgeText": "Informe Oficial",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Memoria técnica completa de 40 páginas: inspección estática cable por cable, inventario real de activos, mapeo I/O de las 5 CPUs Siemens y demostración analítica de pérdida de observabilidad."
   },
   {
@@ -38,6 +39,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-pid",
     "badgeText": "Plano CAD (DWG)",
     "isDownloadOnly": true,
+    "isCsv": false,
     "descripcion": "Plano original de instrumentación y lazos de control de la Unidad de Transporte en formato nativo AutoCAD (.dwg)."
   },
   {
@@ -53,6 +55,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-pid",
     "badgeText": "Plano P&ID (ISA)",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Diagrama funcional de instrumentación para el lazo horizontal y manipulador cartesiano de la Estación 1 exportado a PDF."
   },
   {
@@ -68,6 +71,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-electrico",
     "badgeText": "Plano CAD (IEC)",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Esquema unifilar y multifilar oficial para la Estación 2: electroválvula eyectora 24 VDC, sensor fotoeléctrico Omron y regleta de bornes."
   },
   {
@@ -83,7 +87,8 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-electrico",
     "badgeText": "Plano CAD (IEC)",
     "isDownloadOnly": false,
-    "descripcion": "Esquema eléctrico de potencia y mando para la Estación 4: actuador rotativo oscilante 0–180°, pinza angular y bornes."
+    "isCsv": false,
+    "descripcion": "Esquema eléctrico de la Estación 4: actuador rotativo oscilante 0-180°, pinza angular SMC MHC2 y bornes de interconexión."
   },
   {
     "id": "plano-elec-est3-pdf",
@@ -98,6 +103,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-electrico",
     "badgeText": "Plano CAD (IEC)",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Esquema de mando para prensa neumática vertical, cilindro guiado MGPM y enclavamientos de seguridad."
   },
   {
@@ -113,7 +119,28 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-electrico",
     "badgeText": "Plano CAD (IEC)",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Circuito trifásico de potencia: variador de frecuencia POWTRAN PT9100A, motor asíncrono y retroalimentación de encoder HSC0."
+  },
+  {
+    "id": "code-s7200-est1-awl",
+    "orden_prioridad": 10,
+    "titulo": "Programa Maestro S7-200: Unidad de Transporte (AWL/STL)",
+    "archivo": "estacion1_transporte_maestro.awl",
+    "ruta": "Documentacion/codigos/estacion1_transporte_maestro.awl",
+    "categoria": "codigo",
+    "estaciones": [
+      "1"
+    ],
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "awl",
+    "autor": "Univ. Wilson Huanca / Univ. Miguel Ángel López",
+    "version": "v1.2.0 (Fase 1)",
+    "badgeClass": "badge-codigo",
+    "badgeText": "Siemens S7-200 (AWL)",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Lógica de control para carro de transferencia cartesiano, finales de carrera ópticos y maestro de sondeo en red RS-485."
   },
   {
     "id": "norma-electrica-master",
@@ -132,7 +159,28 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-electrico",
     "badgeText": "Normativa IEC",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Manual de estandarización eléctrica: distribución de 220 VAC y 24 VDC, código normalizado de colores de conductores y diseño de tableros según IEC 60617 / 81346."
+  },
+  {
+    "id": "code-s7200-est1-mwp",
+    "orden_prioridad": 11,
+    "titulo": "Proyecto STEP 7-Micro/WIN: Unidad de Transporte (.MWP)",
+    "archivo": "estacion1_transporte.mwp",
+    "ruta": "Documentacion/codigos/estacion1_transporte.mwp",
+    "categoria": "codigo",
+    "estaciones": [
+      "1"
+    ],
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "plc",
+    "autor": "Univ. Wilson Huanca",
+    "version": "v1.2.0",
+    "badgeClass": "badge-codigo",
+    "badgeText": "Proyecto Micro/WIN",
+    "isDownloadOnly": true,
+    "isCsv": false,
+    "descripcion": "Archivo binario fuente listo para apertura y edición en STEP 7-Micro/WIN v4.0 SP9 con tabla de símbolos de E/S."
   },
   {
     "id": "norma-pid-master",
@@ -151,7 +199,408 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-pid",
     "badgeText": "Normativa ISA",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Estandarización de tags de instrumentos (PV, MV, DV), reglas de numeración de lazos, tipos de burbujas en campo/panel/PLC y codificación de líneas."
+  },
+  {
+    "id": "documentacion-planos-mockups-erp-02-kpis-del-turno-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Erp 02 Kpis Del Turno",
+    "archivo": "erp-02-kpis-del-turno.pdf",
+    "ruta": "Documentacion/Planos/mockups/erp-02-kpis-del-turno.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/erp-02-kpis-del-turno.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-erp-03-tendencias-historicas-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Erp 03 Tendencias Historicas",
+    "archivo": "erp-03-tendencias-historicas.pdf",
+    "ruta": "Documentacion/Planos/mockups/erp-03-tendencias-historicas.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/erp-03-tendencias-historicas.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-erp-04-alarmas-pareto-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Erp 04 Alarmas Pareto",
+    "archivo": "erp-04-alarmas-pareto.pdf",
+    "ruta": "Documentacion/Planos/mockups/erp-04-alarmas-pareto.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/erp-04-alarmas-pareto.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-erp-05-trazabilidad-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Erp 05 Trazabilidad",
+    "archivo": "erp-05-trazabilidad.pdf",
+    "ruta": "Documentacion/Planos/mockups/erp-05-trazabilidad.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/erp-05-trazabilidad.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-erp-06-piezas-con-problema-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Erp 06 Piezas Con Problema",
+    "archivo": "erp-06-piezas-con-problema.pdf",
+    "ruta": "Documentacion/Planos/mockups/erp-06-piezas-con-problema.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/erp-06-piezas-con-problema.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-erp-07-detalle-pieza-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Erp 07 Detalle Pieza",
+    "archivo": "erp-07-detalle-pieza.pdf",
+    "ruta": "Documentacion/Planos/mockups/erp-07-detalle-pieza.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/erp-07-detalle-pieza.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-erp-09-sem-forodelsupervisor-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Erp 09 Semáforodelsupervisor",
+    "archivo": "erp-09_Semáforodelsupervisor.pdf",
+    "ruta": "Documentacion/Planos/mockups/erp-09_Semáforodelsupervisor.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/erp-09_Semáforodelsupervisor.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-login-screen-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Login Screen",
+    "archivo": "login-screen.pdf",
+    "ruta": "Documentacion/Planos/mockups/login-screen.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/login-screen.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-overview-dashboard-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Overview Dashboard",
+    "archivo": "overview-dashboard.pdf",
+    "ruta": "Documentacion/Planos/mockups/overview-dashboard.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/overview-dashboard.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla0-login-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla0 Login",
+    "archivo": "Pantalla0_Login.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla0_Login.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla0_Login.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla10-configuraci-nyusuarios-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla10 Configuraciónyusuarios",
+    "archivo": "Pantalla10_Configuraciónyusuarios.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla10_Configuraciónyusuarios.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla10_Configuraciónyusuarios.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla1-vista-de-planta-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla1 Vista De Planta",
+    "archivo": "Pantalla1_Vista_de_planta.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla1_Vista_de_planta.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla1_Vista_de_planta.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla2-alimentaci-n-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla2 Alimentación",
+    "archivo": "Pantalla2_Alimentación.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla2_Alimentación.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla2_Alimentación.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla3-transporte-1-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla3 Transporte 1",
+    "archivo": "Pantalla3_Transporte 1.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla3_Transporte 1.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla3_Transporte 1.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla4-transporte-2-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla4 Transporte 2",
+    "archivo": "Pantalla4_Transporte 2.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla4_Transporte 2.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla4_Transporte 2.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla5-procesamiento-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla5 Procesamiento",
+    "archivo": "Pantalla5__Procesamiento.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla5__Procesamiento.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "3"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla5__Procesamiento.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla6-selecci-n-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla6 Selección",
+    "archivo": "Pantalla6_Selección.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla6_Selección.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla6_Selección.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla7-variadorymotor-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla7 VariadoryMotor",
+    "archivo": "Pantalla7_VariadoryMotor.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla7_VariadoryMotor.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla7_VariadoryMotor.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla8-ensamblaje-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla8 Ensamblaje",
+    "archivo": "Pantalla8_Ensamblaje.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla8_Ensamblaje.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "4"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla8_Ensamblaje.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla9-alarmasyeventos-pdf",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla9 Alarmasyeventos",
+    "archivo": "Pantalla9_Alarmasyeventos.pdf",
+    "ruta": "Documentacion/Planos/mockups/Pantalla9_Alarmasyeventos.pdf",
+    "categoria": "mockup",
+    "estaciones": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup ISA-101",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla9_Alarmasyeventos.pdf."
+  },
+  {
+    "id": "documentacion-planos-mockups-pantalla-6-seleccion-png",
+    "orden_prioridad": 15,
+    "titulo": "Pantalla 6 Seleccion",
+    "archivo": "Pantalla_6_seleccion.png",
+    "ruta": "Documentacion/Planos/mockups/Pantalla_6_seleccion.png",
+    "categoria": "mockup",
+    "estaciones": [
+      "5"
+    ],
+    "badgeClass": "badge-mockup",
+    "badgeText": "Mockup PNG",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Archivo técnico detectado automáticamente en Documentacion/Planos/mockups/Pantalla_6_seleccion.png."
   },
   {
     "id": "mockup-ui-spec",
@@ -170,7 +619,80 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-mockup",
     "badgeText": "Norma ISA-101",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Wireframes interactivos y diseño de alto desempeño (ISA-101) para pantalla táctil de celda y Dashboard SCADA/ERP web de monitoreo centralizado."
+  },
+  {
+    "id": "ensayo-escalon-est5-csv",
+    "orden_prioridad": 18,
+    "titulo": "Registro Experimental: Respuesta Temporal al Escalón VFD (CSV)",
+    "archivo": "ensayo_escalon_estacion5_vfd.csv",
+    "ruta": "Documentacion/transferencia/ensayo_escalon_estacion5_vfd.csv",
+    "categoria": "transferencia",
+    "estaciones": [
+      "5"
+    ],
+    "badgeClass": "badge-transferencia",
+    "badgeText": "Ensayo CSV",
+    "isDownloadOnly": false,
+    "isCsv": true,
+    "descripcion": "Dataset de 251 muestras con registro de tensión analógica AQW0 (0-5V), velocidad en RPM por encoder HSC0 y frecuencia en Hz para identificación de función de transferencia FOPDT."
+  },
+  {
+    "id": "curva-fopdt-est5-png",
+    "orden_prioridad": 19,
+    "titulo": "Gráfica FOPDT: Respuesta al Escalón en Cinta de Selección (PNG)",
+    "archivo": "curva_escalon_estacion5_vfd.png",
+    "ruta": "Documentacion/transferencia/curva_escalon_estacion5_vfd.png",
+    "categoria": "transferencia",
+    "estaciones": [
+      "5"
+    ],
+    "badgeClass": "badge-transferencia",
+    "badgeText": "Gráfica FOPDT",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Ajuste del modelo de primer orden con retardo puro: K = 290 RPM/V, theta = 0.36 s, tau = 0.92 s ante escalón de 5V."
+  },
+  {
+    "id": "code-s7200-est5-awl",
+    "orden_prioridad": 20,
+    "titulo": "Control VFD y Clasificación: Unidad de Selección (AWL/STL)",
+    "archivo": "estacion5_seleccion_vfd.awl",
+    "ruta": "Documentacion/codigos/estacion5_seleccion_vfd.awl",
+    "categoria": "codigo",
+    "estaciones": [
+      "5"
+    ],
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "awl",
+    "autor": "Univ. Juan Carlos Siñani",
+    "version": "v1.3.1 (Fase 1)",
+    "badgeClass": "badge-codigo",
+    "badgeText": "Siemens S7-200 (AWL)",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Consigna analógica por AQW0 hacia variador POWTRAN PT9100A, conteo de alta velocidad HSC0 y discriminación dieléctrica inductiva/capacitiva."
+  },
+  {
+    "id": "code-s7200-est5-mwp",
+    "orden_prioridad": 21,
+    "titulo": "Proyecto STEP 7-Micro/WIN: Unidad de Selección (.MWP)",
+    "archivo": "estacion5_seleccion.mwp",
+    "ruta": "Documentacion/codigos/estacion5_seleccion.mwp",
+    "categoria": "codigo",
+    "estaciones": [
+      "5"
+    ],
+    "controlador": "Siemens SIMATIC S7-224XP CN",
+    "tipo": "plc",
+    "autor": "Univ. Juan Carlos Siñani",
+    "version": "v1.3.1",
+    "badgeClass": "badge-codigo",
+    "badgeText": "Proyecto Micro/WIN",
+    "isDownloadOnly": true,
+    "isCsv": false,
+    "descripcion": "Proyecto completo de ingeniería para Micro/WIN v4.0 con bloques de interrupción y configuración de rampa de aceleración/desaceleración."
   },
   {
     "id": "ds-documentacion-ingenieria-inversa-datasheets-s7200-system-manual-es-es-pdf",
@@ -189,7 +711,28 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Manual de Sistema",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Manual de 486 páginas: mapeo de memoria I/Q/V, especificaciones eléctricas de entradas/salidas digitales a transistor y relé, y configuración de contadores de alta velocidad (HSC)."
+  },
+  {
+    "id": "code-py-telemetria",
+    "orden_prioridad": 30,
+    "titulo": "Driver de Telemetría: Sondeo Modbus-RTU y Base de Datos (Python)",
+    "archivo": "telemetria_modbus_rtu.py",
+    "ruta": "Documentacion/codigos/telemetria_modbus_rtu.py",
+    "categoria": "codigo",
+    "estaciones": [
+      "all"
+    ],
+    "controlador": "Gateway Linux / PC Industrial",
+    "tipo": "script",
+    "autor": "Univ. Mauricio Cuevas",
+    "version": "v1.0.4 (ETN-1000)",
+    "badgeClass": "badge-sql",
+    "badgeText": "Script Python",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Script de adquisición serial concurrente sobre RS-485 para inyección de series temporales en el esquema 3FN de PostgreSQL."
   },
   {
     "id": "ds-documentacion-ingenieria-inversa-datasheets-technical-reference-ac-servo-motor-driver-minas-a4-series-pdf",
@@ -204,6 +747,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Servodriver AC",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Conexionado del conector CN X4 para tren de pulsos rápido (PTO) generado por la CPU 226 CN de la Estación 1 (Transporte) y ajuste de ganancias proporcionales de posición."
   },
   {
@@ -219,6 +763,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Manual Operativo",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Guía de parámetros de usuario, códigos de alarma del display y calibración del freno electromecánico del carro de transporte."
   },
   {
@@ -234,6 +779,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Movimiento / Servo",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Cálculo de momentos de inercia y curvas características par-velocidad para el manipulador cartesiano de 3 GDL."
   },
   {
@@ -249,6 +795,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Variador VFD",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Inversor para el motor trifásico de la cinta transportadora. Mapeo de la entrada analógica AI1 (0–10 VDC desde CPU 224XP CN) y terminales de marcha FWD/REV."
   },
   {
@@ -266,6 +813,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Sensor Óptico",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Sensor con ajuste micrométrico de distancia (20 a 200 mm), salida NPN y tensión de alimentación 12–24 VDC. Instalado en tolva de alimentación y zona de clasificación."
   },
   {
@@ -285,6 +833,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Reed Switch",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Sensores de proximidad magnéticos para detección de final de carrera de cilindros neumáticos. Conexión a dos hilos a 24 VDC con indicador LED integrado."
   },
   {
@@ -300,6 +849,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Cilindro Compacto",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Actuador de eyección de piezas en la Estación de Alimentación. Diseño optimizado de carrera corta y alta frecuencia de conmutación."
   },
   {
@@ -315,6 +865,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Cilindro Guiado",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Cilindro de la prensa de estampado y mordaza de sujeción en la Estación de Procesamiento. Soporta elevados momentos torsores y cargas excéntricas."
   },
   {
@@ -331,6 +882,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Pinza Angular",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Mecanismo de sujeción mecánica angular para montaje de tapas/pasadores (Ensamblaje) y agarre de piezas cilíndricas en el carro de transporte."
   },
   {
@@ -350,6 +902,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Red Modbus RTU",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Manual de integración de rutinas MBUS_CTRL y MBUS_MSG para comunicación industrial multipunto sobre el bus RS-485 bifilar apantallado."
   },
   {
@@ -369,6 +922,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Manual Maqueta",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Planos mecánicos, despiece, tolerancias de montaje de la cinta transportadora y presión neumática de servicio (0.4 – 0.6 MPa)."
   },
   {
@@ -388,6 +942,7 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Borneras RTB",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Capacidad de corriente admisible, tensión de aislamiento y dimensiones mecánicas para el recableado seguro de tableros de control."
   },
   {
@@ -407,7 +962,24 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-datasheet",
     "badgeText": "Válvulas 5/2",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Datos de caudal neumático, tiempos de conmutación de solenoide y bobinas de 24 VDC para automatización de actuadores."
+  },
+  {
+    "id": "ds-auto-documentacion-ingenieria-inversa-datasheets-s7-200-224xpcn-pdf",
+    "orden_prioridad": 65,
+    "titulo": "S7 200 224xpCN",
+    "archivo": "s7_200_224xpCN.pdf",
+    "ruta": "Documentacion/ingenieria-inversa/datasheets/s7_200_224xpCN.pdf",
+    "categoria": "datasheet",
+    "estaciones": [
+      "all"
+    ],
+    "badgeClass": "badge-datasheet",
+    "badgeText": "General / Sin asignar",
+    "isDownloadOnly": false,
+    "isCsv": false,
+    "descripcion": "Ficha técnica detectada automáticamente en datasheets/. Para asignar estaciones específicas, edite docs/datasheets_config.json."
   },
   {
     "id": "sql-ddl-3fn",
@@ -426,12 +998,13 @@ const CATALOGO_DOCUMENTOS = [
     "badgeClass": "badge-sql",
     "badgeText": "PostgreSQL DDL",
     "isDownloadOnly": false,
+    "isCsv": false,
     "descripcion": "Definición DDL normalizada en Tercera Forma Normal (estaciones, instrumentos, variables PV/MV/DV, telemetría histórica, alarmas y logs de operadores)."
   },
   {
-    "id": "sql-seed-activos",
+    "id": "sql-dml-seed",
     "orden_prioridad": 71,
-    "titulo": "Script DML: Población de Datos Auditados y Tags ISA-S5.1",
+    "titulo": "Script DML: Semilla de Datos e Inventario Auditado",
     "archivo": "02_seed_data_xk335b.sql",
     "ruta": "database/scripts/02_seed_data_xk335b.sql",
     "categoria": "sql",
@@ -443,14 +1016,15 @@ const CATALOGO_DOCUMENTOS = [
       "5"
     ],
     "badgeClass": "badge-sql",
-    "badgeText": "Datos Semilla SQL",
+    "badgeText": "PostgreSQL DML",
     "isDownloadOnly": false,
-    "descripcion": "Población de datos de las 5 estaciones, 20 instrumentos auditados en campo, variables clasificadas para control y usuarios operadores de la escuadra."
+    "isCsv": false,
+    "descripcion": "Carga de datos maestros del inventario Kaizen real: 5 estaciones, 5 PLCs S7-200, 18 sensores, 12 actuadores, alarmas críticas y usuarios."
   },
   {
-    "id": "sql-indices-triggers",
+    "id": "sql-opt-triggers",
     "orden_prioridad": 72,
-    "titulo": "Script SQL: Índices de Optimización B-Tree y Disparadores",
+    "titulo": "Script SQL: Índices B-Tree, BRIN y Triggers de Auditoría",
     "archivo": "03_indices_optimizacion.sql",
     "ruta": "database/scripts/03_indices_optimizacion.sql",
     "categoria": "sql",
@@ -462,9 +1036,10 @@ const CATALOGO_DOCUMENTOS = [
       "5"
     ],
     "badgeClass": "badge-sql",
-    "badgeText": "Triggers & Índices",
+    "badgeText": "PostgreSQL Opt",
     "isDownloadOnly": false,
-    "descripcion": "Índices B-Tree compuestos para acelerar consultas temporales de telemetría y función trigger para registrar eventos de alarma automáticamente."
+    "isCsv": false,
+    "descripcion": "Estrategias de optimización para series temporales: índices compuestos, BRIN para telemetría histórica y disparadores automáticos para registro de auditoría."
   }
 ];
 
