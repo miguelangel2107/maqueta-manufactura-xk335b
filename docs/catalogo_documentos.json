@@ -16,13 +16,40 @@
     "orden_prioridad": 10,
     "titulo": "Plano Eléctrico CAD: Unidad de Alimentación (IEC 60617)",
     "archivo": "AlimentacionCAD.pdf",
-    "ruta": "Documentacion/Planos/Diagrama_Electrico/2_Alimentacion/AlimentacionCAD.pdf",
+    "ruta": "Documentacion/Planos/Diagrama_Electrico/2_Alimentacion/Unidad_de_Alimentacion.pdf",
     "categoria": "electrico",
     "estaciones": ["2"],
     "badgeClass": "badge-electrico",
     "badgeText": "Plano CAD (IEC)",
     "descripcion": "Esquema unifilar y multifilar oficial exportado desde AutoCAD Electrical para la Estación 2: conexionado de electroválvulas Airtac, sensor fotoeléctrico Omron y regleta de bornes."
   },
+
+  {
+    "id": "plano-elec-est4-cad",
+    "orden_prioridad": 9,
+    "titulo": "Plano Eléctrico CAD: Unidad de Procesamiento (IEC 60617)",
+    "archivo": "AlimentacionCAD.pdf",
+    "ruta": "Documentacion/Planos/Diagrama_Electrico/4_Procesamiento/Unidad_de_Procesamiento.pdf",
+    "categoria": "electrico",
+    "estaciones": ["2"],
+    "badgeClass": "badge-electrico",
+    "badgeText": "Plano CAD (IEC)",
+    "descripcion": "Esquema unifilar y multifilar oficial exportado desde AutoCAD Electrical para la Estación 4: conexionado de electroválvulas Airtac, sensor fotoeléctrico Omron y regleta de bornes."
+  },
+
+  {
+    "id": "plano-elec-est3-cad",
+    "orden_prioridad": 9,
+    "titulo": "Plano Eléctrico CAD: Unidad de Ensamblaje (IEC 60617)",
+    "archivo": "AlimentacionCAD.pdf",
+    "ruta": "Documentacion/Planos/Diagrama_Electrico/3_Ensamblaje/Unidad_de_Ensamblaje.pdf",
+    "categoria": "electrico",
+    "estaciones": ["2"],
+    "badgeClass": "badge-electrico",
+    "badgeText": "Plano CAD (IEC)",
+    "descripcion": "Esquema unifilar y multifilar oficial exportado desde AutoCAD Electrical para la Estación 3: conexionado de electroválvulas Airtac, sensor fotoeléctrico Omron y regleta de bornes."
+  },
+
   {
     "id": "norma-electrica-master",
     "orden_prioridad": 11,
