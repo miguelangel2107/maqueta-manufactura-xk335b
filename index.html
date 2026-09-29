@@ -115,20 +115,27 @@
     .navbar {
       position: sticky;
       top: 0;
-      z-index: 100;
-      background: rgba(30, 41, 59, 0.88);
+      z-index: 850;
+      background: rgba(30, 41, 59, 0.92);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-color);
+      padding: 0;
+    }
+
+    [data-theme="light"] .navbar {
+      background: rgba(255, 255, 255, 0.94);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
       padding: 0.75rem 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-    }
-
-    [data-theme="light"] .navbar {
-      background: rgba(255, 255, 255, 0.92);
+      width: 100%;
     }
 
     .nav-brand {
@@ -212,6 +219,18 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+    }
+
+    .mobile-drawer {
+      display: none;
+    }
+
+    .mobile-bottom-nav {
+      display: none;
     }
 
     .badge-status {
@@ -497,6 +516,29 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.75rem;
+    }
+
+    .terminal-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    .terminal-header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .terminal-status-badge {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent-emerald);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
     }
 
     .terminal-dots {
@@ -1284,10 +1326,618 @@
       font-family: var(--font-mono);
     }
 
+    /* =========================================================================
+       10. REGLAS RESPONSIVAS MOBILE-FIRST (< 768px & < 480px)
+       ========================================================================= */
     @media (max-width: 768px) {
-      .nav-links { overflow-x: auto; max-width: 100%; }
-      .hero-header h2 { font-size: 1.65rem; }
-      .metrics-bar { grid-template-columns: 1fr 1fr; }
+      body {
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .nav-container {
+        padding: 0.65rem 1rem;
+        gap: 0.5rem;
+      }
+
+      .nav-brand {
+        gap: 0.6rem;
+        max-width: calc(100vw - 145px);
+      }
+
+      .brand-logo-img {
+        height: 36px;
+        max-width: 40px;
+      }
+
+      .brand-info h1 {
+        font-size: 0.92rem;
+        max-width: 170px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .brand-info span {
+        font-size: 0.66rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 170px;
+      }
+
+      #desktopNavLinks {
+        display: none !important;
+      }
+
+      .nav-actions {
+        gap: 0.4rem;
+        flex-shrink: 0;
+      }
+
+      .badge-status {
+        display: none !important;
+      }
+
+      .mobile-menu-toggle {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        min-width: 40px;
+        min-height: 40px;
+        padding: 0;
+      }
+
+      /* Cajón de Navegación Móvil */
+      .mobile-drawer {
+        display: block;
+        background: var(--bg-surface);
+        border-top: 1px solid var(--border-color);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease;
+        padding: 0 1rem;
+      }
+
+      .mobile-drawer.active {
+        max-height: 480px;
+        padding: 1rem 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .mobile-drawer-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .mobile-drawer-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+        margin-bottom: 0.2rem;
+      }
+
+      .mobile-drawer-links {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+
+      .mobile-drawer-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.85rem;
+        background: var(--bg-base);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-main);
+        text-align: left;
+        font-family: inherit;
+        cursor: pointer;
+        transition: var(--transition);
+        min-height: 46px;
+      }
+
+      .mobile-drawer-btn:hover {
+        background: var(--bg-card-hover);
+        border-color: var(--accent-blue);
+      }
+
+      .mobile-drawer-btn.active {
+        background: rgba(96, 165, 250, 0.15);
+        border-color: var(--accent-blue);
+        color: var(--accent-blue);
+        box-shadow: none;
+      }
+
+      [data-theme="light"] .mobile-drawer-btn.active {
+        background: rgba(37, 99, 235, 0.1);
+        border-color: #2563eb;
+        color: #2563eb;
+      }
+
+      .mobile-drawer-btn .btn-icon-wrap {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+
+      .mobile-drawer-btn .btn-text-wrap {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+      }
+
+      .mobile-drawer-btn .btn-text-wrap strong {
+        font-size: 0.88rem;
+      }
+
+      .mobile-drawer-btn .btn-text-wrap small {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: normal;
+      }
+
+      .mobile-drawer-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 0.75rem;
+        margin-top: 0.25rem;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      .mobile-badge-cf {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .mobile-gh-link {
+        color: var(--accent-blue);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      /* Barra de Navegación Inferior Móvil (Bottom Navigation) */
+      .mobile-bottom-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: calc(58px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: var(--bg-surface);
+        border-top: 1px solid var(--border-color);
+        z-index: 800;
+        justify-content: space-around;
+        align-items: center;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      [data-theme="light"] .mobile-bottom-nav {
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .mobile-nav-btn {
+        flex: 1;
+        height: 100%;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 0.3rem 0.2rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition: var(--transition);
+        position: relative;
+      }
+
+      .mobile-nav-btn:hover {
+        color: var(--text-main);
+        background: transparent;
+      }
+
+      .mobile-nav-btn.active {
+        color: var(--accent-blue);
+        font-weight: 700;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      [data-theme="light"] .mobile-nav-btn.active {
+        color: #2563eb;
+        background: transparent;
+      }
+
+      .mobile-nav-btn.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 20%;
+        right: 20%;
+        height: 3px;
+        background: var(--accent-blue);
+        border-radius: 0 0 3px 3px;
+      }
+
+      [data-theme="light"] .mobile-nav-btn.active::before {
+        background: #2563eb;
+      }
+
+      .mobile-nav-icon {
+        font-size: 1.2rem;
+        line-height: 1;
+      }
+
+      .mobile-nav-label {
+        font-size: 0.68rem;
+        letter-spacing: -0.01em;
+      }
+
+      /* Adaptabilidad de Filtros y Paneles */
+      .filter-panel {
+        padding: 1rem;
+      }
+
+      .filter-top-row {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .search-wrapper {
+        min-width: 100% !important;
+        width: 100%;
+      }
+
+      .search-input {
+        min-height: 46px;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        font-size: 0.92rem;
+      }
+
+      .station-select {
+        width: 100% !important;
+        min-height: 46px;
+        font-size: 0.92rem;
+        padding: 0.75rem 1rem;
+        box-sizing: border-box;
+      }
+
+      .category-pills, .gallery-filter-chips {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.6rem;
+        gap: 0.5rem;
+        scrollbar-width: thin;
+      }
+
+      .category-pills::-webkit-scrollbar, .gallery-filter-chips::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      .category-pills::-webkit-scrollbar-thumb, .gallery-filter-chips::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 2px;
+      }
+
+      .pill-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+        min-height: 40px;
+        padding: 0.45rem 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.82rem;
+      }
+
+      /* Grillas a Una Sola Columna */
+      .spa-view {
+        padding: 1.25rem 1rem 2.5rem;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      .hero-header {
+        margin-bottom: 1.5rem;
+      }
+
+      .hero-header h2 {
+        font-size: 1.55rem;
+        line-height: 1.25;
+      }
+
+      .hero-header p {
+        font-size: 0.9rem;
+      }
+
+      .metrics-bar {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1.75rem;
+      }
+
+      .metric-card {
+        padding: 0.9rem;
+      }
+
+      .metric-val {
+        font-size: 1.5rem;
+      }
+
+      .stations-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem;
+      }
+
+      .station-node {
+        padding: 1rem;
+      }
+
+      .docs-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+      }
+
+      .doc-card {
+        padding: 1.15rem;
+      }
+
+      .card-actions {
+        flex-direction: row;
+        gap: 0.5rem;
+      }
+
+      .btn-view, .btn-direct {
+        min-height: 44px;
+      }
+
+      .gallery-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+      }
+
+      .db-layers-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem;
+      }
+
+      .sql-tabs-bar {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.5rem;
+        gap: 0.4rem;
+        scrollbar-width: thin;
+      }
+
+      .sql-tab-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+        min-height: 38px;
+        font-size: 0.74rem;
+        padding: 0.35rem 0.65rem;
+      }
+
+      .sql-content-display {
+        padding: 0.85rem;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        max-height: 380px;
+        overflow-x: auto;
+      }
+
+      /* Vista de Terminal / Consola */
+      .terminal-card {
+        margin-top: 1.75rem;
+        max-width: 100%;
+        border-radius: var(--radius-md);
+        box-sizing: border-box;
+      }
+
+      .terminal-header {
+        padding: 0.65rem 0.75rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+
+      .terminal-header-left {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .terminal-title {
+        font-size: 0.72rem;
+        max-width: 65vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .terminal-header-right {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+
+      .terminal-nav {
+        width: 100%;
+        display: flex;
+        gap: 0.4rem;
+      }
+
+      .terminal-tab-btn {
+        flex: 1;
+        min-height: 38px;
+        text-align: center;
+        justify-content: center;
+        font-size: 0.74rem;
+        padding: 0.35rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .terminal-status-badge {
+        display: none !important;
+      }
+
+      .terminal-content {
+        padding: 1rem 0.75rem !important;
+        max-width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
+      }
+
+      .terminal-content code {
+        font-size: 0.72rem !important;
+        line-height: 1.55 !important;
+      }
+
+      /* Modales y Visores en Pantalla Completa para Celular */
+      .modal-overlay {
+        padding: 0.5rem;
+      }
+
+      .modal-container {
+        width: 98% !important;
+        max-width: 100vw !important;
+        height: 94vh !important;
+        height: 94dvh !important;
+        border-radius: var(--radius-md);
+      }
+
+      .modal-header {
+        padding: 0.65rem 0.85rem;
+        gap: 0.5rem;
+      }
+
+      .modal-header-info {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .modal-header-info h4 {
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 58vw;
+      }
+
+      .modal-header-info span {
+        font-size: 0.68rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 58vw;
+        display: block;
+      }
+
+      .modal-header-actions {
+        flex-shrink: 0;
+        gap: 0.35rem;
+      }
+
+      .modal-header-actions .btn-icon, #lightboxCloseBtn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+      }
+
+      .code-viewer-content {
+        padding: 1rem 0.75rem;
+        font-size: 0.76rem;
+      }
+
+      .lightbox-container {
+        max-height: 94vh !important;
+        max-height: 94dvh !important;
+      }
+
+      .lightbox-body {
+        padding: 0.75rem;
+      }
+
+      .lightbox-img {
+        max-height: 45vh;
+        margin-bottom: 0.75rem;
+      }
+
+      .lightbox-details {
+        padding: 0.75rem;
+      }
+
+      .lightbox-details h5 {
+        font-size: 0.92rem;
+      }
+
+      .lightbox-details p {
+        font-size: 0.8rem;
+      }
+
+      /* Pie de página */
+      footer {
+        padding: 2rem 1rem calc(80px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .metrics-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-header h2 {
+        font-size: 1.35rem;
+      }
+
+      .brand-info h1 {
+        font-size: 0.85rem;
+        max-width: 130px;
+      }
+
+      .brand-info span {
+        font-size: 0.62rem;
+        max-width: 130px;
+      }
+
+      .nav-brand {
+        max-width: calc(100vw - 130px);
+      }
     }
   </style>
 </head>
@@ -1297,49 +1947,103 @@
        BARRA DE NAVEGACIÓN SUPERIOR (SPA HEADER CON LOGO UMSA)
        ======================================================================= -->
   <nav class="navbar">
-    <div class="nav-brand" onclick="cambiarVista('sinoptico')">
-      <!-- Logo Institucional UMSA -->
-      <img src="docs/logo_umsa.png" alt="Logo Universidad Mayor de San Andrés" class="brand-logo-img">
-      <div class="brand-info">
-        <h1>XK-335B Manufactura Flexible</h1>
-        <span>UMSA · INGENIERÍA ELECTRÓNICA · II/2026</span>
+    <div class="nav-container">
+      <div class="nav-brand" onclick="cambiarVista('sinoptico')">
+        <!-- Logo Institucional UMSA -->
+        <img src="docs/logo_umsa.png" alt="Logo Universidad Mayor de San Andrés" class="brand-logo-img">
+        <div class="brand-info">
+          <h1>XK-335B Manufactura Flexible</h1>
+          <span>UMSA · INGENIERÍA ELECTRÓNICA · II/2026</span>
+        </div>
+      </div>
+
+      <!-- Navegación por Vistas Independientes SPA (Desktop) -->
+      <ul class="nav-links" id="desktopNavLinks">
+        <li>
+          <button class="nav-tab-btn active" data-view="sinoptico">
+            <span>🏭</span> Sinóptico
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-view="documentacion">
+            <span>📚</span> Documentación
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-view="evidencias">
+            <span>📸</span> Galería Kaizen
+          </button>
+        </li>
+        <li>
+          <button class="nav-tab-btn" data-view="database">
+            <span>🗄️</span> Base de Datos
+          </button>
+        </li>
+      </ul>
+
+      <div class="nav-actions">
+        <div class="badge-status">
+          <span class="dot"></span> <span class="badge-status-text">CLOUDFLARE EDGE</span>
+        </div>
+        <button class="btn-icon" id="themeToggle" title="Cambiar tema día/noche">🌓</button>
+        <a href="https://github.com/miguelangel2107/maqueta-manufactura-xk335b" target="_blank" class="btn-icon" title="Ver repositorio en GitHub">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </a>
+        <button class="btn-icon mobile-menu-toggle" id="mobileMenuBtn" aria-label="Abrir menú de navegación" title="Menú de navegación" aria-expanded="false">☰</button>
       </div>
     </div>
 
-    <!-- Navegación por Vistas Independientes SPA -->
-    <ul class="nav-links">
-      <li>
-        <button class="nav-tab-btn active" data-view="sinoptico">
-          <span>🏭</span> Sinóptico
-        </button>
-      </li>
-      <li>
-        <button class="nav-tab-btn" data-view="documentacion">
-          <span>📚</span> Documentación
-        </button>
-      </li>
-      <li>
-        <button class="nav-tab-btn" data-view="evidencias">
-          <span>📸</span> Galería Kaizen
-        </button>
-      </li>
-      <li>
-        <button class="nav-tab-btn" data-view="database">
-          <span>🗄️</span> Base de Datos
-        </button>
-      </li>
-    </ul>
-
-    <div class="nav-actions">
-      <div class="badge-status">
-        <span class="dot"></span> CLOUDFLARE EDGE
+    <!-- Menú Desplegable Móvil -->
+    <div class="mobile-drawer" id="mobileDrawer">
+      <div class="mobile-drawer-inner">
+        <div class="mobile-drawer-title">Vistas de la Plataforma</div>
+        <ul class="mobile-drawer-links">
+          <li>
+            <button class="nav-tab-btn mobile-drawer-btn active" data-view="sinoptico">
+              <span class="btn-icon-wrap">🏭</span>
+              <div class="btn-text-wrap">
+                <strong>Sinóptico General</strong>
+                <small>Monitoreo 5 estaciones y arquitectura</small>
+              </div>
+            </button>
+          </li>
+          <li>
+            <button class="nav-tab-btn mobile-drawer-btn" data-view="documentacion">
+              <span class="btn-icon-wrap">📚</span>
+              <div class="btn-text-wrap">
+                <strong>Biblioteca Técnica</strong>
+                <small>Planos CAD, normativas y datasheets</small>
+              </div>
+            </button>
+          </li>
+          <li>
+            <button class="nav-tab-btn mobile-drawer-btn" data-view="evidencias">
+              <span class="btn-icon-wrap">📸</span>
+              <div class="btn-text-wrap">
+                <strong>Galería Kaizen</strong>
+                <small>16 evidencias de inspección física</small>
+              </div>
+            </button>
+          </li>
+          <li>
+            <button class="nav-tab-btn mobile-drawer-btn" data-view="database">
+              <span class="btn-icon-wrap">🗄️</span>
+              <div class="btn-text-wrap">
+                <strong>Base de Datos 3FN</strong>
+                <small>Scripts SQL y modelo relacional ETN-1000</small>
+              </div>
+            </button>
+          </li>
+        </ul>
+        <div class="mobile-drawer-footer">
+          <span class="mobile-badge-cf"><span class="dot"></span> Cloudflare Pages Edge</span>
+          <a href="https://github.com/miguelangel2107/maqueta-manufactura-xk335b" target="_blank" class="mobile-gh-link">
+            GitHub Repository ↗
+          </a>
+        </div>
       </div>
-      <button class="btn-icon" id="themeToggle" title="Cambiar tema día/noche">🌓</button>
-      <a href="https://github.com/miguelangel2107/maqueta-manufactura-xk335b" target="_blank" class="btn-icon" title="Ver repositorio en GitHub">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-        </svg>
-      </a>
     </div>
   </nav>
 
@@ -1397,7 +2101,7 @@
     <!-- ESTRUCTURA ARQUITECTÓNICA DEL REPOSITORIO (TERMINAL / ASCII TREE CARD) -->
     <div class="terminal-card">
       <div class="terminal-header">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="terminal-header-left">
           <div class="terminal-dots">
             <span class="terminal-dot dot-red" title="Cerrar"></span>
             <span class="terminal-dot dot-yellow" title="Minimizar"></span>
@@ -1407,12 +2111,12 @@
             <span>bash —</span> repo-architecture: maqueta-manufactura-xk335b (Fase 1 / II-2026)
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div class="terminal-header-right">
           <div class="terminal-nav">
             <button type="button" class="terminal-tab-btn active" id="tabTreeBtn" onclick="toggleTerminalTab('tree')">📁 Árbol de Directorios</button>
             <button type="button" class="terminal-tab-btn" id="tabFlowBtn" onclick="toggleTerminalTab('flow')">🔀 Flujo Arquitectónico</button>
           </div>
-          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-emerald); display: flex; align-items: center; gap: 0.35rem;">
+          <div class="terminal-status-badge">
             <span style="background: var(--accent-emerald); width: 7px; height: 7px; border-radius: 50%; display: inline-block;"></span>
             STATUS: VERIFIED
           </div>
@@ -1724,6 +2428,28 @@
     </div>
   </footer>
 
+  <!-- =======================================================================
+       BARRA DE NAVEGACIÓN INFERIOR PARA MÓVILES (THUMB-FRIENDLY SPA TABS)
+       ======================================================================= -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navegación móvil inferior">
+    <button class="mobile-nav-btn nav-tab-btn active" data-view="sinoptico" aria-label="Vista Sinóptico">
+      <span class="mobile-nav-icon">🏭</span>
+      <span class="mobile-nav-label">Sinóptico</span>
+    </button>
+    <button class="mobile-nav-btn nav-tab-btn" data-view="documentacion" aria-label="Vista Documentación">
+      <span class="mobile-nav-icon">📚</span>
+      <span class="mobile-nav-label">Documentos</span>
+    </button>
+    <button class="mobile-nav-btn nav-tab-btn" data-view="evidencias" aria-label="Vista Galería Kaizen">
+      <span class="mobile-nav-icon">📸</span>
+      <span class="mobile-nav-label">Kaizen</span>
+    </button>
+    <button class="mobile-nav-btn nav-tab-btn" data-view="database" aria-label="Vista Base de Datos">
+      <span class="mobile-nav-icon">🗄️</span>
+      <span class="mobile-nav-label">Base Datos</span>
+    </button>
+  </nav>
+
   <!-- Carga del catálogo de documentos externo desacoplado -->
   <script src="docs/catalogo_documentos.js"></script>
 
@@ -1740,6 +2466,35 @@
       database: document.getElementById("vista-database")
     };
 
+    // Control del Cajón de Navegación Móvil (Drawer)
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const mobileDrawer = document.getElementById("mobileDrawer");
+
+    function cerrarMobileDrawer() {
+      if (mobileDrawer && mobileDrawer.classList.contains("active")) {
+        mobileDrawer.classList.remove("active");
+        if (mobileMenuBtn) {
+          mobileMenuBtn.innerHTML = "☰";
+          mobileMenuBtn.setAttribute("aria-expanded", "false");
+        }
+      }
+    }
+
+    if (mobileMenuBtn && mobileDrawer) {
+      mobileMenuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = mobileDrawer.classList.toggle("active");
+        mobileMenuBtn.innerHTML = isOpen ? "✕" : "☰";
+        mobileMenuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!mobileDrawer.contains(e.target) && e.target !== mobileMenuBtn) {
+          cerrarMobileDrawer();
+        }
+      });
+    }
+
     function cambiarVista(vistaNombre) {
       if (!spaViews[vistaNombre]) return;
 
@@ -1748,7 +2503,7 @@
         spaViews[k].style.display = (k === vistaNombre) ? "block" : "none";
       });
 
-      // Actualizar dinámicamente la clase .active en el navbar
+      // Actualizar dinámicamente la clase .active en todos los botones (desktop, drawer, bottom nav)
       navButtons.forEach(btn => {
         if (btn.getAttribute("data-view") === vistaNombre) {
           btn.classList.add("active");
@@ -1756,6 +2511,9 @@
           btn.classList.remove("active");
         }
       });
+
+      // Cerrar menú móvil si estuviera abierto
+      cerrarMobileDrawer();
 
       // Si se cambia a la vista de base de datos, cargar el primer script
       if (vistaNombre === "database") {
@@ -2311,6 +3069,7 @@
       if (e.key === "Escape") {
         cerrarVisorDoc();
         cerrarLightbox();
+        cerrarMobileDrawer();
       }
     });
 
