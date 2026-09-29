@@ -31,7 +31,7 @@
     "archivo": "AlimentacionCAD.pdf",
     "ruta": "Documentacion/Planos/Diagrama_Electrico/3_Ensamblaje/Unidad_de_Ensamblaje.pdf",
     "categoria": "electrico",
-    "estaciones": ["2"],
+    "estaciones": ["3"],
     "badgeClass": "badge-electrico",
     "badgeText": "Plano CAD (IEC)",
     "descripcion": "Esquema unifilar y multifilar oficial exportado desde AutoCAD Electrical para la Estación 3: conexionado de electroválvulas Airtac, sensor fotoeléctrico Omron y regleta de bornes."
