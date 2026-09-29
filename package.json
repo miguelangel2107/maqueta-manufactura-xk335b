@@ -1,0 +1,11 @@
+{
+  "name": "maqueta-manufactura-xk335b",
+  "version": "1.1.0",
+  "description": "Plataforma Web SPA y Acervo Técnico de la Maqueta XK-335B (UMSA II-2026)",
+  "scripts": {
+    "build": "node scripts/build-catalog.js",
+    "prestart": "node scripts/build-catalog.js"
+  },
+  "author": "Laboratorio de Control - UMSA",
+  "license": "MIT"
+}

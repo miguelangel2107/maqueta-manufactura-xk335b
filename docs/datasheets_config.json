@@ -1,0 +1,100 @@
+{
+  "s7200_system_manual_es-ES.pdf": {
+    "title": "Manual del Sistema SIMATIC S7-200 (Siemens AG)",
+    "stations": ["1", "2", "3", "4", "5"],
+    "badgeText": "Manual de Sistema",
+    "priority": 30,
+    "description": "Manual de 486 páginas: mapeo de memoria I/Q/V, especificaciones eléctricas de entradas/salidas digitales a transistor y relé, y configuración de contadores de alta velocidad (HSC)."
+  },
+  "Technical reference_AC Servo Motor & Driver_MINAS A4-series.pdf": {
+    "title": "Referencia Técnica: Servomotor y Servodriver MINAS A4",
+    "stations": ["1"],
+    "badgeText": "Servodriver AC",
+    "priority": 31,
+    "description": "Conexionado del conector CN X4 para tren de pulsos rápido (PTO) generado por la CPU 226 CN de la Estación 1 (Transporte) y ajuste de ganancias proporcionales de posición."
+  },
+  "minas_a4_e.pdf": {
+    "title": "Manual de Operación Rápida y Parámetros: MINAS A4",
+    "stations": ["1"],
+    "badgeText": "Manual Operativo",
+    "priority": 32,
+    "description": "Guía de parámetros de usuario, códigos de alarma del display y calibración del freno electromecánico del carro de transporte."
+  },
+  "map_serv_e.pdf": {
+    "title": "Guía de Aplicación de Control de Movimiento Panasonic",
+    "stations": ["1"],
+    "badgeText": "Movimiento / Servo",
+    "priority": 33,
+    "description": "Cálculo de momentos de inercia y curvas características par-velocidad para el manipulador cartesiano de 3 GDL."
+  },
+  "PI9000_English_Manual_V17.0.pdf": {
+    "title": "Manual de Usuario: Inversor de Frecuencia POWTRAN PT9100 / PI9000",
+    "stations": ["5"],
+    "badgeText": "Variador VFD",
+    "priority": 35,
+    "description": "Inversor para el motor trifásico de la cinta transportadora. Mapeo de la entrada analógica AI1 (0–10 VDC desde CPU 224XP CN) y terminales de marcha FWD/REV."
+  },
+  "sensor_e3z-ls.pdf": {
+    "title": "Sensor Fotoeléctrico con Supresión de Fondo Omron E3Z-LS",
+    "stations": ["2", "3", "5"],
+    "badgeText": "Sensor Óptico",
+    "priority": 40,
+    "description": "Sensor con ajuste micrométrico de distancia (20 a 200 mm), salida NPN y tensión de alimentación 12–24 VDC. Instalado en tolva de alimentación y zona de clasificación."
+  },
+  "SERSOR_MAGNETICO_-Z80.pdf": {
+    "title": "Sensores Magnéticos de Posición SMC Reed Switch (D-Z80 / D-C73)",
+    "stations": ["1", "2", "3", "4", "5"],
+    "badgeText": "Reed Switch",
+    "priority": 42,
+    "description": "Sensores de proximidad magnéticos para detección de final de carrera de cilindros neumáticos. Conexión a dos hilos a 24 VDC con indicador LED integrado."
+  },
+  "CQ2_Z.pdf": {
+    "title": "Cilindro Neumático Compacto de Doble Efecto SMC Serie CQ2",
+    "stations": ["2"],
+    "badgeText": "Cilindro Compacto",
+    "priority": 45,
+    "description": "Actuador de eyección de piezas en la Estación de Alimentación. Diseño optimizado de carrera corta y alta frecuencia de conmutación."
+  },
+  "MGPM-Z,_cilindro_guiado_estandar,_cojinete_deslizante.pdf": {
+    "title": "Cilindro Guiado con Cojinetes Deslizantes SMC Serie MGPM",
+    "stations": ["3"],
+    "badgeText": "Cilindro Guiado",
+    "priority": 46,
+    "description": "Cilindro de la prensa de estampado y mordaza de sujeción en la Estación de Procesamiento. Soporta elevados momentos torsores y cargas excéntricas."
+  },
+  "MHC.pdf": {
+    "title": "Pinza Neumática Angular SMC Serie MHC2",
+    "stations": ["1", "4"],
+    "badgeText": "Pinza Angular",
+    "priority": 47,
+    "description": "Mecanismo de sujeción mecánica angular para montaje de tapas/pasadores (Ensamblaje) y agarre de piezas cilíndricas en el carro de transporte."
+  },
+  "Using_Modbus_Library_Step7_MW_4.0.pdf": {
+    "title": "Librería y Rutinas Modbus RTU para STEP 7-Micro/WIN",
+    "stations": ["1", "2", "3", "4", "5"],
+    "badgeText": "Red Modbus RTU",
+    "priority": 50,
+    "description": "Manual de integración de rutinas MBUS_CTRL y MBUS_MSG para comunicación industrial multipunto sobre el bus RS-485 bifilar apantallado."
+  },
+  "YL_335_B_instruction_book_Mitsubishi_FX_3_U_8a2db1348a.pdf": {
+    "title": "Manual Estructural y Mecánico de la Maqueta YL-335B / XK-335B",
+    "stations": ["1", "2", "3", "4", "5"],
+    "badgeText": "Manual Maqueta",
+    "priority": 52,
+    "description": "Planos mecánicos, despiece, tolerancias de montaje de la cinta transportadora y presión neumática de servicio (0.4 – 0.6 MPa)."
+  },
+  "RTB-E.pdf": {
+    "title": "Especificaciones de Borneras y Conectores Industriales RTB",
+    "stations": ["1", "2", "3", "4", "5"],
+    "badgeText": "Borneras RTB",
+    "priority": 55,
+    "description": "Capacidad de corriente admisible, tensión de aislamiento y dimensiones mecánicas para el recableado seguro de tableros de control."
+  },
+  "medien_62289.pdf": {
+    "title": "Documentación Complementaria de Electroválvulas Neumáticas",
+    "stations": ["1", "2", "3", "4", "5"],
+    "badgeText": "Válvulas 5/2",
+    "priority": 58,
+    "description": "Datos de caudal neumático, tiempos de conmutación de solenoide y bobinas de 24 VDC para automatización de actuadores."
+  }
+}

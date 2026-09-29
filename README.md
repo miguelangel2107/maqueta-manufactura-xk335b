@@ -85,9 +85,21 @@ maqueta-manufactura-xk335b/
 │
 ├── .nojekyll                                  # Previene omisiones de directorios en despliegues estáticos
 ├── .gitignore                                 # Exclusión de temporales Python, SO y logs locales
+├── package.json                               # Configuración de scripts para CI/CD (npm run build)
 ├── README.md                                  # Manual maestro general de la Fase 1 (este documento)
 ├── _sidebar.md                                # Estructura de navegación para motores de documentación
 ├── index.html                                 # Plataforma Web SPA optimizada para Cloudflare Pages
+│
+├── docs/                                      # CATÁLOGOS AUTOMATIZADOS Y RECURSOS WEB
+│   ├── logo_umsa.png                          # Escudo oficial de la Universidad Mayor de San Andrés
+│   ├── catalogo_documentos.js                 # Catálogo indexado de documentos y planos (JS)
+│   ├── catalogo_documentos.json               # Catálogo indexado para interoperabilidad REST (JSON)
+│   ├── datasheets_config.json                 # Metadatos y asociación de estaciones para datasheets
+│   ├── evidencias_data.js                     # Banco de evidencias fotográficas Kaizen (JS)
+│   └── evidencias_data.json                   # Banco de evidencias fotográficas Kaizen (JSON)
+│
+├── scripts/                                   # SCRIPTS DE CONSTRUCCIÓN Y AUTOMATIZACIÓN
+│   └── build-catalog.js                       # Generador dinámico de catálogos e indexador recursivo
 │
 ├── database/                                  # PERSISTENCIA Y MODELADO DE DATOS (ETN-1000)
 │   ├── README.md                              # Guía técnica: Arquitectura 3 capas, 1FN/2FN/3FN y diccionarios
@@ -200,3 +212,28 @@ El equipo aplica estándares profesionales de control de versiones y flujo colab
 * 🗄️ **[Base de Datos y Scripts SQL](database/):** Esquema DDL en 3FN, datos semilla y triggers de telemetría.
 * 📸 **[Galería de Evidencias Kaizen](Documentacion/evidencias/):** Fotografías de auditoría estática y diagnósticos de campo.
 * 🖥️ **[Mockups HMI & SCADA](Documentacion/Planos/mockups/):** Prototipos visuales de paneles de operador bajo norma ISA-101.
+
+---
+
+## ⚙️ 9. Automatización y Construcción de Catálogos (Cloudflare Pages CI/CD)
+
+El repositorio cuenta con un pipeline automatizado de descubrimiento y catalogación de recursos técnicos para garantizar que cualquier nuevo plano, informe, script SQL o ficha técnica se incorpore al portal web sin intervención manual.
+
+### Comando de Construcción
+```bash
+# Ejecución vía NPM
+npm run build
+
+# O ejecución directa con Node.js
+node scripts/build-catalog.js
+```
+
+### Flujo de Indexación Automática
+1. **Escaneo Recursivo:** Recorre directorios de planos P&ID, esquemas eléctricos IEC, mockups ISA-101, informes de auditoría, scripts SQL y evidencias fotográficas.
+2. **Detección Automática de Estación:** Deduce la celda de manufactura a partir de la jerarquía de carpetas (`1_Transporte/` $\to$ Estación 1, `2_Alimentacion/` $\to$ Estación 2, etc.) o palabras clave.
+3. **Mapeo Flexible de Datasheets (`docs/datasheets_config.json`):** Permite configurar fichas técnicas compartidas o multilínea (`["1", "5"]`, `"all"`). Si se agrega un nuevo PDF a `datasheets/` sin previa configuración, el motor lo asigna automáticamente como `General / Sin asignar` con prioridad 65 y visibilidad en `Todas las Estaciones`, evitando que quede oculto.
+4. **Manejo de Formatos CAD y Binarios:** Archivos `.dwg`, `.dxf` o `.zip` se marcan con `isDownloadOnly: true`, habilitando botones de descarga directa con el atributo `download` para evitar visualizadores rotos dentro de iframes.
+5. **Configuración en Cloudflare Pages:**
+   - **Build command:** `node scripts/build-catalog.js` (o `npm run build`)
+   - **Build output directory:** `/` (raíz del repositorio)
+   - **Root directory:** `/`

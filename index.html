@@ -2072,7 +2072,7 @@
         <div class="metric-label">Fichas Técnicas Oficiales</div>
       </div>
       <div class="metric-card">
-        <div class="metric-val">16</div>
+        <div class="metric-val" id="metricEvidenciasCount">14</div>
         <div class="metric-label">Evidencias Fotográficas</div>
       </div>
       <div class="metric-card">
@@ -2351,6 +2351,7 @@
           <span id="modalDocSub">Ruta del archivo</span>
         </div>
         <div class="modal-header-actions">
+          <a href="#" id="modalDocDownload" download class="btn-icon" title="Descargar archivo">📥</a>
           <a href="#" id="modalOpenExternal" target="_blank" class="btn-icon" title="Abrir en pestaña nueva">↗</a>
           <button class="btn-icon" id="modalCloseBtn" title="Cerrar visor">✕</button>
         </div>
@@ -2450,8 +2451,9 @@
     </button>
   </nav>
 
-  <!-- Carga del catálogo de documentos externo desacoplado -->
+  <!-- Carga de catálogos y datos externos desacoplados -->
   <script src="docs/catalogo_documentos.js"></script>
+  <script src="docs/evidencias_data.js"></script>
 
   <!-- LÓGICA DE LA APLICACIÓN SPA -->
   <script>
@@ -2664,10 +2666,73 @@
             ordenarYRenderizar(bibliotecaDocs);
           })
           .catch(err => {
-            console.error("Error al cargar catalogo_documentos:", err);
-            resultsCount.textContent = "Error al cargar catálogo de documentos.";
+            console.warn("Fallo fetch local de catalogo_documentos.json, intentando fallback GitHub API...", err);
+            cargarCatalogoDesdeGitHubAPI();
           });
       }
+    }
+
+    function cargarCatalogoDesdeGitHubAPI() {
+      fetch("https://api.github.com/repos/miguelangel2107/maqueta-manufactura-xk335b/git/trees/main?recursive=1")
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then(treeData => {
+          if (!treeData.tree || !Array.isArray(treeData.tree)) throw new Error("Árbol GitHub inválido");
+          const docs = [];
+          treeData.tree.forEach(item => {
+            const p = item.path;
+            if (item.type !== "blob") return;
+            const ext = "." + p.split('.').pop().toLowerCase();
+            const allowedExts = [".pdf", ".dwg", ".dxf", ".sql", ".md", ".zip"];
+            if (!allowedExts.includes(ext)) return;
+            if (!p.startsWith("Documentacion/") && !p.startsWith("database/scripts/")) return;
+            if (p.toLowerCase().endsWith("readme.md") && !p.includes("Planos/Diagrama")) return;
+
+            const filename = p.split('/').pop();
+            const isCAD = [".dwg", ".dxf", ".step", ".stp", ".zip"].includes(ext);
+            let cat = "informe";
+            if (p.includes("Diagrama_P&ID")) cat = "pid";
+            else if (p.includes("Diagrama_Electrico")) cat = "electrico";
+            else if (p.includes("mockups")) cat = "mockup";
+            else if (p.includes("database/scripts")) cat = "sql";
+            else if (p.includes("datasheets")) cat = "datasheet";
+
+            let estaciones = ["all"];
+            if (p.includes("1_Transporte")) estaciones = ["1"];
+            else if (p.includes("2_Alimentacion")) estaciones = ["2"];
+            else if (p.includes("3_Ensamblaje") || p.includes("3_Procesamiento")) {
+              estaciones = p.includes("3_Ensamblaje") ? ["4"] : ["3"];
+            } else if (p.includes("4_Procesamiento")) estaciones = ["3"];
+            else if (p.includes("5_Seleccion")) estaciones = ["5"];
+
+            docs.push({
+              id: p.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase(),
+              orden_prioridad: cat === 'informe' ? 5 : cat === 'pid' ? 8 : cat === 'electrico' ? 10 : 35,
+              titulo: filename.replace(/_/g, ' ').replace(/\.[^/.]+$/, ""),
+              archivo: filename,
+              ruta: p,
+              categoria: cat,
+              estaciones: estaciones,
+              badgeClass: `badge-${cat}`,
+              badgeText: isCAD ? "Plano CAD (DWG)" : (cat === "datasheet" ? "Ficha Técnica" : "Documento"),
+              isDownloadOnly: isCAD,
+              descripcion: `Archivo técnico detectado dinámicamente desde el repositorio (${p}).`
+            });
+          });
+
+          if (docs.length > 0) {
+            bibliotecaDocs = docs;
+            ordenarYRenderizar(bibliotecaDocs);
+          } else {
+            resultsCount.textContent = "Error al cargar catálogo de documentos.";
+          }
+        })
+        .catch(err => {
+          console.error("Error en fallback GitHub API:", err);
+          resultsCount.textContent = "Error al cargar catálogo de documentos.";
+        });
     }
 
     function ordenarYRenderizar(docs) {
@@ -2689,7 +2754,36 @@
         return;
       }
 
-      docsGrid.innerHTML = docs.map(doc => `
+      docsGrid.innerHTML = docs.map(doc => {
+        const ext = doc.archivo.includes(".") ? doc.archivo.split(".").pop().toUpperCase() : "DOC";
+        let actionButtons = "";
+
+        if (doc.isDownloadOnly) {
+          // Archivos CAD o binarios propietarios (.dwg, .zip, etc.): descarga directa como acción principal
+          actionButtons = `
+            <a href="${doc.ruta}" download="${doc.archivo}" class="btn-view" style="text-decoration: none; background: #059669; color: #ffffff;" title="Descargar archivo directamente">
+              <span>📥</span> Descargar ${ext}
+            </a>
+            <a href="${doc.ruta}" target="_blank" class="btn-direct" title="Enlace directo al archivo">
+              <span>↗</span>
+            </a>
+          `;
+        } else {
+          // Archivos previsualizables en web (PDF, SQL, MD): Visualizar en visor + Descarga universal directa
+          actionButtons = `
+            <button class="btn-view" onclick="abrirVisorDoc('${doc.id}')">
+              <span>👁️</span> Visualizar
+            </button>
+            <a href="${doc.ruta}" download="${doc.archivo}" class="btn-direct" title="Descargar archivo directamente">
+              <span>📥</span>
+            </a>
+            <a href="${doc.ruta}" target="_blank" class="btn-direct" title="Abrir en pestaña nueva">
+              <span>↗</span>
+            </a>
+          `;
+        }
+
+        return `
         <div class="doc-card">
           <div class="card-top">
             <div class="card-badges">
@@ -2701,21 +2795,19 @@
             <div class="card-desc">${doc.descripcion}</div>
           </div>
           <div class="card-actions">
-            <button class="btn-view" onclick="abrirVisorDoc('${doc.id}')">
-              <span>👁️</span> Visualizar
-            </button>
-            <a href="${doc.ruta}" target="_blank" class="btn-direct" title="Abrir / Descargar">
-              <span>↗</span>
-            </a>
+            ${actionButtons}
           </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
 
       resultsCount.textContent = `Mostrando ${docs.length} de ${bibliotecaDocs.length} documentos (ordenados por prioridad)`;
     }
 
     function getEstacionesLabel(estaciones) {
-      if (!estaciones || estaciones.length === 0) return "General";
+      if (!estaciones || estaciones.length === 0 || estaciones.includes("all")) {
+        return "General / Sin asignar";
+      }
       if (estaciones.length >= 5) return "Todas las Estaciones (1 a 5)";
       return "Estaciones: " + estaciones.join(", ");
     }
@@ -2730,14 +2822,14 @@
           doc.titulo.toLowerCase().includes(query) ||
           doc.archivo.toLowerCase().includes(query) ||
           doc.descripcion.toLowerCase().includes(query) ||
-          doc.badgeText.toLowerCase().includes(query);
+          (doc.badgeText && doc.badgeText.toLowerCase().includes(query));
 
         // Coincidencia por categoría
         const matchCat = (currentCategory === "all") || (doc.categoria === currentCategory);
 
-        // Soporte multi-estación
+        // Soporte multi-estación con inclusión de archivos generales / sin asignar ("all")
         const matchStation = (selectedStation === "all") ||
-          (doc.estaciones && doc.estaciones.includes(selectedStation));
+          (doc.estaciones && (doc.estaciones.includes(selectedStation) || doc.estaciones.includes("all")));
 
         return matchText && matchCat && matchStation;
       });
@@ -2758,170 +2850,36 @@
     });
 
     // =========================================================================
-    // 4. GALERÍA DE EVIDENCIAS KAIZEN (16 IMÁGENES)
+    // 4. GALERÍA DE EVIDENCIAS KAIZEN (DESACOPLADA Y GENERADA AUTOMÁTICAMENTE)
     // =========================================================================
-    const EVIDENCIAS_DATA = [
-      {
-        id: "ev-01",
-        title: "Vista General de la Maqueta XK-335B",
-        loc: "Planta Completa (5 Estaciones)",
-        file: "fig01_portada_maqueta_xk335b.png",
-        path: "Documentacion/evidencias/assets/fig01_portada_maqueta_xk335b.png",
-        severity: "INFO",
-        sevClass: "sev-info",
-        desc: "Disposición espacial y secuencial de la línea de manufactura flexible en el laboratorio de control."
-      },
-      {
-        id: "ev-02",
-        title: "Motor Trifásico y Sensor Capacitivo Winston CM18",
-        loc: "Estación 5: Unidad de Selección",
-        file: "fig02_sensores_capacitivos_motor_trifasico.png",
-        path: "Documentacion/evidencias/assets/fig02_sensores_capacitivos_motor_trifasico.png",
-        severity: "MEDIUM",
-        sevClass: "sev-medium",
-        desc: "Rectificación física: El accionamiento es un motor asíncrono trifásico alimentado por VFD y cuenta con sensor capacitivo para discriminar plásticos, desmintiendo reportes legados."
-      },
-      {
-        id: "ev-03",
-        title: "Cables con Cobre Expuesto y Señalización Desprendida",
-        loc: "Borneras de Conexión de Sensores",
-        file: "fig03_borneras_conexiones_cables_expuestos.png",
-        path: "Documentacion/evidencias/assets/fig03_borneras_conexiones_cables_expuestos.png",
-        severity: "HIGH",
-        sevClass: "sev-high",
-        desc: "Deficiente ensamblaje en borneras con hilos de cobre vivos fuera del conector y pérdida de identificación de hilos."
-      },
-      {
-        id: "ev-04",
-        title: "Carcasa Plástica Fracturada en Módulo PLC",
-        loc: "Controladores Siemens S7-200",
-        file: "fig04_carcasa_fracturada_plc_s7200.png",
-        path: "Documentacion/evidencias/assets/fig04_carcasa_fracturada_plc_s7200.png",
-        severity: "MEDIUM",
-        sevClass: "sev-medium",
-        desc: "Fractura mecánica en el plástico de sujeción de bornes por torque excesivo durante mantenimientos anteriores."
-      },
-      {
-        id: "ev-05",
-        title: "Sensores Fijados con Silicona Caliente y Cinta Adhesiva",
-        loc: "Estación 3: Unidad de Procesamiento",
-        file: "fig05_sensores_fijados_silicona_cinta.png",
-        path: "Documentacion/evidencias/assets/fig05_sensores_fijados_silicona_cinta.png",
-        severity: "CRITICAL",
-        sevClass: "sev-critical",
-        desc: "Peligro Kaizen crítico: Los sensores magnéticos SMC carecen de abrazaderas rígidas. Su desprendimiento causa pérdida total de observabilidad (C = [0 0]) y colisión mecánica."
-      },
-      {
-        id: "ev-06",
-        title: "Desalineación Mecánica en Pistón y Pinza",
-        loc: "Estación 3: Unidad de Procesamiento",
-        file: "fig06_desalineacion_piston_pinza.png",
-        path: "Documentacion/evidencias/assets/fig06_desalineacion_piston_pinza.png",
-        severity: "HIGH",
-        sevClass: "sev-high",
-        desc: "Desfase angular entre el cilindro vertical de prensa y la mordaza lateral, originando atascamiento de piezas y desgaste asimétrico."
-      },
-      {
-        id: "ev-07",
-        title: "Cableado No Documentado para Inversión de Giro en VFD",
-        loc: "Estación 5: Unidad de Selección",
-        file: "fig07_conexion_no_documentada_vfd_giro.png",
-        path: "Documentacion/evidencias/assets/fig07_conexion_no_documentada_vfd_giro.png",
-        severity: "HIGH",
-        sevClass: "sev-high",
-        desc: "Conductor físico no registrado en los esquemas originales conectando una salida digital del PLC al terminal REV del VFD POWTRAN."
-      },
-      {
-        id: "ev-08",
-        title: "Cable Pelado con Cobre Rozando Perfil de Aluminio",
-        loc: "Estación 4: Unidad de Ensamblaje",
-        file: "fig08_cable_sensor_aislamiento_danado.png",
-        path: "Documentacion/evidencias/assets/fig08_cable_sensor_aislamiento_danado.png",
-        severity: "CRITICAL",
-        sevClass: "sev-critical",
-        desc: "Riesgo inminente de cortocircuito a masa de 24 VDC por pérdida del aislamiento externo en contacto directo con la bancada metálica."
-      },
-      {
-        id: "ev-09",
-        title: "Diagrama de Causalidad: Unidad de Alimentación",
-        loc: "Estación 2 (ETN-902)",
-        file: "fig09_diagrama_bloques_alimentacion.png",
-        path: "Documentacion/evidencias/assets/fig09_diagrama_bloques_alimentacion.png",
-        severity: "INFO",
-        sevClass: "sev-info",
-        desc: "Diagrama de bloques funcionales y relación entrada/salida para la eyección de piezas en la tolva de alimentación."
-      },
-      {
-        id: "ev-10",
-        title: "Diagrama de Causalidad: Unidad de Procesamiento",
-        loc: "Estación 3 (ETN-902)",
-        file: "fig10_diagrama_bloques_procesamiento.png",
-        path: "Documentacion/evidencias/assets/fig10_diagrama_bloques_procesamiento.png",
-        severity: "INFO",
-        sevClass: "sev-info",
-        desc: "Modelado fenomenológico y lazos de enclavamiento de la prensa de punzonado y mordaza."
-      },
-      {
-        id: "ev-11",
-        title: "Diagrama de Causalidad: Unidad de Ensamblaje",
-        loc: "Estación 4 (ETN-902)",
-        file: "fig11_diagrama_bloques_ensamblaje.jpg",
-        path: "Documentacion/evidencias/assets/fig11_diagrama_bloques_ensamblaje.jpg",
-        severity: "INFO",
-        sevClass: "sev-info",
-        desc: "Secuencia temporal del actuador rotativo 0-180° y pinza angular neumática."
-      },
-      {
-        id: "ev-12",
-        title: "Diagrama de Causalidad: Unidad de Selección",
-        loc: "Estación 5 (ETN-902)",
-        file: "fig12_diagrama_bloques_seleccion.jpg",
-        path: "Documentacion/evidencias/assets/fig12_diagrama_bloques_seleccion.jpg",
-        severity: "INFO",
-        sevClass: "sev-info",
-        desc: "Lazo cerrado continuo de velocidad (consigna analógica VFD y lectura de encoder óptico incremental)."
-      },
-      {
-        id: "ev-13",
-        title: "Diagrama Cinemático: Unidad de Transporte",
-        loc: "Estación 1 (ETN-902)",
-        file: "fig13_diagrama_bloques_transporte.jpg",
-        path: "Documentacion/evidencias/assets/fig13_diagrama_bloques_transporte.jpg",
-        severity: "INFO",
-        sevClass: "sev-info",
-        desc: "Diagrama de bloques de control de posición del carro cartesiano gobernado por servomotor Panasonic."
-      },
-      {
-        id: "ev-14",
-        title: "Controlador S7-200 y Cableado del Bus RS-485",
-        loc: "Red Industrial",
-        file: "fig14_plc_s7200_comunicacion_rs485.jpg",
-        path: "Documentacion/evidencias/assets/fig14_plc_s7200_comunicacion_rs485.jpg",
-        severity: "INFO",
-        sevClass: "sev-info",
-        desc: "Conexión del cable bifilar apantallado en los puertos de comunicación serial de las CPUs."
-      },
-      {
-        id: "ev-15",
-        title: "Enrutamiento de Cableado en Tableros de Control",
-        loc: "Tableros Eléctricos",
-        file: "fig15_cableado_industrial_paneles.jpg",
-        path: "Documentacion/evidencias/assets/fig15_cableado_industrial_paneles.jpg",
-        severity: "MEDIUM",
-        sevClass: "sev-medium",
-        desc: "Disposición interna de borneras y canaletas para evitar interferencia electromagnética."
-      },
-      {
-        id: "ev-16",
-        title: "Módulo de Potencia del Variador POWTRAN",
-        loc: "Tablero de Fuerza (Estación 5)",
-        file: "fig16_modulo_potencia_vfd_motor.jpg",
-        path: "Documentacion/evidencias/assets/fig16_modulo_potencia_vfd_motor.jpg",
-        severity: "MEDIUM",
-        sevClass: "sev-medium",
-        desc: "Conexión de la etapa inversora trifásica y conductor de puesta a tierra (PE) de protección."
+    let listaEvidencias = [];
+
+    function inicializarGaleria() {
+      if (window.EVIDENCIAS_DATA && Array.isArray(window.EVIDENCIAS_DATA)) {
+        listaEvidencias = window.EVIDENCIAS_DATA;
+        renderGallery(listaEvidencias);
+        actualizarMetricasEvidencias();
+      } else {
+        // Fallback dinámico vía fetch JSON
+        fetch("docs/evidencias_data.json")
+          .then(res => res.json())
+          .then(data => {
+            listaEvidencias = data;
+            renderGallery(listaEvidencias);
+            actualizarMetricasEvidencias();
+          })
+          .catch(err => {
+            console.error("Error al cargar evidencias_data:", err);
+          });
       }
-    ];
+    }
+
+    function actualizarMetricasEvidencias() {
+      const metricEl = document.getElementById("metricEvidenciasCount");
+      if (metricEl) {
+        metricEl.textContent = listaEvidencias.length;
+      }
+    }
 
     function renderGallery(evidences) {
       const galleryGrid = document.getElementById("galleryGrid");
@@ -2948,7 +2906,7 @@
         galleryFilterChips.querySelectorAll(".pill-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         const sev = btn.getAttribute("data-sev");
-        const filtradas = (sev === "all") ? EVIDENCIAS_DATA : EVIDENCIAS_DATA.filter(e => e.severity === sev);
+        const filtradas = (sev === "all") ? listaEvidencias : listaEvidencias.filter(e => e.severity === sev);
         renderGallery(filtradas);
       });
     });
@@ -2999,11 +2957,28 @@
       const doc = bibliotecaDocs.find(d => d.id === docId);
       if (!doc) return;
 
+      // Si es formato binario o CAD, iniciar descarga directa inmediata en vez de abrir un iframe vacío
+      if (doc.isDownloadOnly) {
+        const link = document.createElement("a");
+        link.href = doc.ruta;
+        link.download = doc.archivo;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
       modalDocTitle.textContent = doc.titulo;
       modalDocSub.textContent = doc.ruta;
       modalOpenExternal.href = doc.ruta;
 
-      if (doc.archivo.endsWith(".pdf")) {
+      const modalDocDownload = document.getElementById("modalDocDownload");
+      if (modalDocDownload) {
+        modalDocDownload.href = doc.ruta;
+        modalDocDownload.setAttribute("download", doc.archivo);
+      }
+
+      if (doc.archivo.toLowerCase().endsWith(".pdf")) {
         codeViewer.style.display = "none";
         docIframe.style.display = "block";
         docIframe.src = doc.ruta + "#toolbar=1&navpanes=1&zoom=page-width";
@@ -3042,7 +3017,7 @@
     const lightboxCloseBtn = document.getElementById("lightboxCloseBtn");
 
     window.abrirLightbox = function(evId) {
-      const ev = EVIDENCIAS_DATA.find(e => e.id === evId);
+      const ev = listaEvidencias.find(e => e.id === evId);
       if (!ev) return;
 
       lightboxTitle.textContent = ev.title;
@@ -3092,7 +3067,7 @@
     // Inicialización del Portal
     renderStations();
     inicializarCatalogo();
-    renderGallery(EVIDENCIAS_DATA);
+    inicializarGaleria();
   </script>
 </body>
 </html>
