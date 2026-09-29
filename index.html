@@ -495,6 +495,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
 
     .terminal-dots {
@@ -521,13 +523,80 @@
       gap: 0.4rem;
     }
 
-    .terminal-content {
-      padding: 1.5rem;
+    .terminal-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .terminal-tab-btn {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
       font-family: var(--font-mono);
-      font-size: 0.82rem;
-      line-height: 1.7;
+      font-size: 0.72rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .terminal-tab-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent-blue);
+    }
+
+    .terminal-tab-btn.active {
+      background: #0f172a;
+      border-color: var(--accent-blue);
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    .terminal-content {
+      padding: 1.25rem 1.5rem;
+      background: var(--bg-terminal);
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .terminal-content::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .terminal-content::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    .terminal-content::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+
+    .terminal-content::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    .terminal-content pre {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      white-space: pre !important;
+      word-break: normal !important;
+      word-wrap: normal !important;
+      overflow-x: visible !important;
+    }
+
+    .terminal-content code {
+      font-family: var(--font-mono) !important;
+      font-size: 0.82rem !important;
+      line-height: 1.65 !important;
       color: #cbd5e1;
-      overflow-x: auto;
+      white-space: pre !important;
+      word-break: normal !important;
+      word-wrap: normal !important;
+      display: block !important;
     }
 
     .tree-folder {
@@ -1328,20 +1397,30 @@
     <!-- ESTRUCTURA ARQUITECTÓNICA DEL REPOSITORIO (TERMINAL / ASCII TREE CARD) -->
     <div class="terminal-card">
       <div class="terminal-header">
-        <div class="terminal-dots">
-          <span class="terminal-dot dot-red"></span>
-          <span class="terminal-dot dot-yellow"></span>
-          <span class="terminal-dot dot-green"></span>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="terminal-dots">
+            <span class="terminal-dot dot-red" title="Cerrar"></span>
+            <span class="terminal-dot dot-yellow" title="Minimizar"></span>
+            <span class="terminal-dot dot-green" title="Maximizar"></span>
+          </div>
+          <div class="terminal-title">
+            <span>bash —</span> repo-architecture: maqueta-manufactura-xk335b (Fase 1 / II-2026)
+          </div>
         </div>
-        <div class="terminal-title">
-          <span>bash —</span> repo-architecture: maqueta-manufactura-xk335b (Fase 1 / II-2026)
-        </div>
-        <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-emerald);">
-          STATUS: VERIFIED
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div class="terminal-nav">
+            <button type="button" class="terminal-tab-btn active" id="tabTreeBtn" onclick="toggleTerminalTab('tree')">📁 Árbol de Directorios</button>
+            <button type="button" class="terminal-tab-btn" id="tabFlowBtn" onclick="toggleTerminalTab('flow')">🔀 Flujo Arquitectónico</button>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-emerald); display: flex; align-items: center; gap: 0.35rem;">
+            <span style="background: var(--accent-emerald); width: 7px; height: 7px; border-radius: 50%; display: inline-block;"></span>
+            STATUS: VERIFIED
+          </div>
         </div>
       </div>
       <div class="terminal-content">
-<span class="tree-folder">maqueta-manufactura-xk335b/</span>
+        <!-- VISTA 1: ÁRBOL DE DIRECTORIOS -->
+        <pre id="terminalTree"><code class="terminal-code"><span class="tree-folder">maqueta-manufactura-xk335b/</span>
 ├── <span class="tree-file">README.md</span>                         <span class="tree-comment"># Portada general y Manual Maestro de Ingeniería (Fase 1)</span>
 ├── <span class="tree-file">index.html</span>                        <span class="tree-comment"># Portal Web SPA optimizado para Cloudflare Pages</span>
 ├── <span class="tree-file">_sidebar.md</span>                       <span class="tree-comment"># Navegación lateral de retrocompatibilidad</span>
@@ -1389,7 +1468,42 @@
             ├── <span class="tree-file">fig05_sensores_fijados_silicona_cinta.png</span>
             ├── <span class="tree-file">fig07_conexion_no_documentada_vfd_giro.png</span>
             ├── <span class="tree-file">fig08_cable_sensor_aislamiento_danado.png</span>
-            └── <span class="tree-file">... (11 diagramas de causalidad y cableados)</span>
+            └── <span class="tree-file">... (11 diagramas de causalidad y cableados)</span></code></pre>
+
+        <!-- VISTA 2: FLUJO ARQUITECTÓNICO CONCURRENTE -->
+        <pre id="terminalFlow" style="display: none;"><code class="terminal-code"><span class="tree-folder">========================================================================================================</span>
+<span class="tree-folder">                      FLUJO DE INGENIERÍA CONCURRENTE — FASE 1 (II/2026)</span>
+<span class="tree-folder">========================================================================================================</span>
+
+  <span class="tree-badge badge-norma-iec" style="font-size:0.75rem;">ETN-902 / ETN-1034 (CONTROL Y AUTOMATIZACIÓN)</span>           <span class="tree-badge badge-norma-sql" style="font-size:0.75rem;">ETN-1000 (INFORMÁTICA Y SISTEMAS)</span>
+  ┌──────────────────────────────────────────────┐          ┌──────────────────────────────────────────┐
+  │ <span class="tree-file">LAB 1: Auditoría Cable a Cable &amp; Fenómenos</span>   │          │ <span class="tree-file">LAB 1: Protocolos &amp; Latencias Serie</span>      │
+  │ • Mapeo Físico 5 CPUs Siemens S7-200         │          │ • Ensayos RS-485 Daisy Chain (PPI/Free)  │
+  │ • Demostración C = [0  0] (Observabilidad)   │          │ • Benchmark Adquisición vs. PC Servidor  │
+  └──────────────────────┬───────────────────────┘          └────────────────────┬─────────────────────┘
+                         │                                                       │
+                         ▼                                                       ▼
+  ┌──────────────────────────────────────────────┐          ┌──────────────────────────────────────────┐
+  │ <span class="tree-file">LAB 2: Normalización ISA/IEC &amp; Mockups</span>       │          │ <span class="tree-file">LAB 2: Diseño UI/UX HMI &amp; Dashboard</span>      │
+  │ • P&amp;ID ANSI/ISA-S5.1-2009 (5 Unidades)        │          │ • Wireframes ISA-101 para pantalla táctil│
+  │ • Esquemas Eléctricos IEC 60617 / 81346      │          │ • Arquitectura HMI Celda &amp; ERP Web       │
+  │ • Plano AlimentacionCAD.pdf (AutoCAD Elect.) │          │                                          │
+  └──────────────────────┬───────────────────────┘          └────────────────────┬─────────────────────┘
+                         │                                                       │
+                         └───────────────────────────┬───────────────────────────┘
+                                                     ▼
+  <span class="tree-badge badge-norma-isa" style="font-size:0.75rem;">INTEGRACIÓN CONCURRENTE (LABORATORIO 3)</span>
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ <span class="tree-file">GOBIERNO DE CÓDIGO GIT &amp; PERSISTENCIA RELACIONAL POSTGRESQL (3FN)</span>                                   │
+  │                                                                                                    │
+  │   [Git Feature Branches] ──► [Pull Requests Auditados] ──► [Rama main / Cloudflare Pages SPA]      │
+  │                                           │                                                        │
+  │                                           ▼                                                        │
+  │             [Esquema DDL 3FN: telemetria, estaciones, tags_instrumentos, alarmas]                  │
+  │             [Indices B-Tree (timestamp, id_estacion) &amp; Triggers de Auditoría Automática]           │
+  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  <span class="tree-comment"># Trazabilidad total: Cada variable física mapeada en planos corresponde a una tupla en BD 3FN</span></code></pre>
       </div>
     </div>
   </section>
@@ -1657,6 +1771,28 @@
         cambiarVista(targetView);
       });
     });
+
+    // =========================================================================
+    // 1.1 ALTERNANCIA DE PESTAÑAS EN LA CONSOLA ARQUITECTÓNICA
+    // =========================================================================
+    window.toggleTerminalTab = function(tab) {
+      const tree = document.getElementById("terminalTree");
+      const flow = document.getElementById("terminalFlow");
+      const treeBtn = document.getElementById("tabTreeBtn");
+      const flowBtn = document.getElementById("tabFlowBtn");
+
+      if (tab === "tree") {
+        if (tree) tree.style.display = "block";
+        if (flow) flow.style.display = "none";
+        if (treeBtn) treeBtn.classList.add("active");
+        if (flowBtn) flowBtn.classList.remove("active");
+      } else {
+        if (tree) tree.style.display = "none";
+        if (flow) flow.style.display = "block";
+        if (treeBtn) treeBtn.classList.remove("active");
+        if (flowBtn) flowBtn.classList.add("active");
+      }
+    };
 
     // =========================================================================
     // 2. DATOS DE ESTACIONES Y SINÓPTICO
