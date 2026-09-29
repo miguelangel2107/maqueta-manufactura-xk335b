@@ -39,7 +39,7 @@
 
   {
     "id": "plano-elec-est3-cad",
-    "orden_prioridad": 9,
+    "orden_prioridad": 8,
     "titulo": "Plano Eléctrico CAD: Unidad de Ensamblaje (IEC 60617)",
     "archivo": "AlimentacionCAD.pdf",
     "ruta": "Documentacion/Planos/Diagrama_Electrico/3_Ensamblaje/Unidad_de_Ensamblaje.pdf",
