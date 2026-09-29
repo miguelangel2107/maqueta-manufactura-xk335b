@@ -1,0 +1,21 @@
+# Entornos y temporales de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Archivos de análisis temporal
+scratch_*.txt
+*.tmp
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs y trazas locales
+*.log

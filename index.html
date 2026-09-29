@@ -1,65 +1,1934 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <title>Planta de Manufactura Flexible XK-335B - UMSA</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="Laboratorio de Manufactura y Control Industrial UMSA - Gestión II/2026">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planta de Manufactura Flexible XK-335B | UMSA II/2026</title>
+  <meta name="description" content="Plataforma de Ingeniería Inversa, Planos ISA/IEC, Base de Datos 3FN y Auditoría Kaizen para la maqueta XK-335B (ETN-902, ETN-1034, ETN-1000).">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --theme-color: #0d47a1;
+      /* Tema Oscuro Industrial (Default) */
+      --bg-base: #0c1017;
+      --bg-surface: #141b24;
+      --bg-card: #1c2533;
+      --bg-card-hover: #222d3e;
+      --border-color: #2b394e;
+      --border-focus: #3b82f6;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-sub: #cbd5e1;
+      
+      /* Acentos Industriales */
+      --accent-blue: #38bdf8;
+      --accent-blue-rgb: 56, 189, 248;
+      --accent-indigo: #6366f1;
+      --accent-cyan: #06b6d4;
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+      
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .markdown-section {
-      max-width: 90%;
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-card: #f1f5f9;
+      --bg-card-hover: #e2e8f0;
+      --border-color: #cbd5e1;
+      --border-focus: #2563eb;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-sub: #334155;
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
     }
-    .mermaid {
-      background: #f8f9fa;
-      padding: 16px;
-      border-radius: 8px;
-      border: 1px solid #e0e0e0;
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* =====================================================================
+       NAVBAR SUPERIOR
+       ===================================================================== */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(20, 27, 36, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    [data-theme="light"] .navbar {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #0284c7, #3b82f6);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.15rem;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+    }
+
+    .brand-info h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand-info span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      display: block;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      padding: 0.4rem 0.65rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent-blue);
+      background: rgba(var(--accent-blue-rgb), 0.1);
+      text-decoration: none;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn-icon {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.5rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .btn-icon:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-blue);
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+    }
+
+    .badge-status .dot {
+      width: 6px;
+      height: 6px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* =====================================================================
+       HERO & PLANT OVERVIEW
+       ===================================================================== */
+    .hero {
+      padding: 2.5rem 1.5rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .hero-header .subtitle-top {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .hero-header h2 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, var(--text-main) 40%, var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-header p {
+      color: var(--text-muted);
+      max-width: 820px;
+      margin: 0 auto;
+      font-size: 1rem;
+    }
+
+    /* Tarjetas de Métricas */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-blue);
+      box-shadow: var(--shadow-md);
+    }
+
+    .metric-val {
+      font-size: 1.85rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--accent-blue);
+      line-height: 1.1;
+      margin-bottom: 0.2rem;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Diagrama Sinóptico de la Planta */
+    .synoptic-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 3rem;
+    }
+
+    .synoptic-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    .synoptic-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .synoptic-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .stations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      position: relative;
+    }
+
+    .station-node {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .station-node::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--border-color);
+      transition: var(--transition);
+    }
+
+    .station-node:hover, .station-node.active-station {
+      background: var(--bg-card-hover);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .station-node.master::before { background: var(--accent-rose); }
+    .station-node.feeding::before { background: var(--accent-cyan); }
+    .station-node.processing::before { background: var(--accent-amber); }
+    .station-node.assembly::before { background: var(--accent-indigo); }
+    .station-node.sorting::before { background: var(--accent-emerald); }
+
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+
+    .node-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: var(--bg-surface);
+      color: var(--text-muted);
+    }
+
+    .node-role-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+    }
+
+    .badge-master { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+    .badge-slave { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+
+    .node-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .node-plc {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent-blue);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .node-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* =====================================================================
+       PANEL PRINCIPAL DE DOCUMENTOS (FILTROS Y GRILLA)
+       ===================================================================== */
+    .doc-section {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem 3rem;
+      width: 100%;
+    }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .section-title p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Barra de Búsqueda y Filtros */
+    .filter-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .filter-top-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .search-wrapper {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 0.7rem 1rem 0.7rem 2.5rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .station-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      padding: 0.7rem 1.2rem;
+      font-size: 0.88rem;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .station-select:focus {
+      border-color: var(--accent-blue);
+    }
+
+    /* Píldoras de Categorías */
+    .category-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .pill-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .pill-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+    }
+
+    .pill-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #0c1017;
+      font-weight: 700;
+    }
+
+    .results-info {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      font-family: var(--font-mono);
+    }
+
+    /* Cuadrícula de Tarjetas de Documentos */
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .doc-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .doc-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent-blue);
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-top {
+      margin-bottom: 1rem;
+    }
+
+    .card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .badge-cat {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .badge-cat.pdf-doc { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+    .badge-cat.datasheet { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    .badge-cat.electrical { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .badge-cat.pid { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .badge-cat.sql { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+    .badge-cat.mockup { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+    .badge-station-tag {
+      font-size: 0.7rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      line-height: 1.3;
+    }
+
+    .card-filename {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      word-break: break-all;
+    }
+
+    .card-desc {
+      font-size: 0.83rem;
+      color: var(--text-sub);
+      line-height: 1.45;
+    }
+
+    .card-actions {
+      border-top: 1px solid var(--border-color);
+      padding-top: 0.85rem;
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .btn-view {
+      flex: 1;
+      background: var(--accent-blue);
+      color: #0c1017;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 0.55rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: var(--transition);
+    }
+
+    .btn-view:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-direct {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      font-size: 0.82rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .btn-direct:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    /* =====================================================================
+       GALERÍA DE EVIDENCIAS KAIZEN
+       ===================================================================== */
+    .gallery-section {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem 3.5rem;
+      width: 100%;
+    }
+
+    .gallery-filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .gallery-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gallery-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-blue);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .gallery-thumb-wrapper {
+      position: relative;
+      width: 100%;
+      height: 190px;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .gallery-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .gallery-card:hover .gallery-thumb {
+      transform: scale(1.05);
+    }
+
+    .severity-badge {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+    }
+
+    .sev-critical { background: rgba(244, 63, 94, 0.85); color: white; }
+    .sev-high { background: rgba(245, 158, 11, 0.85); color: black; }
+    .sev-medium { background: rgba(56, 189, 248, 0.85); color: black; }
+    .sev-info { background: rgba(16, 185, 129, 0.85); color: white; }
+
+    .gallery-info {
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .gallery-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      line-height: 1.3;
+    }
+
+    .gallery-loc {
+      font-size: 0.75rem;
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
+      margin-bottom: 0.4rem;
+    }
+
+    .gallery-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* =====================================================================
+       MODALES (VISOR PDF / CODE & LIGHTBOX)
+       ===================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(8, 11, 16, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      width: 95%;
+      max-width: 1100px;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      animation: modalSlide 0.3s ease;
+    }
+
+    @keyframes modalSlide {
+      from { transform: scale(0.96) translateY(10px); }
+      to { transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+    }
+
+    .modal-header-info h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .modal-header-info span {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .modal-header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .modal-body {
+      flex: 1;
+      width: 100%;
+      height: calc(100% - 60px);
+      background: var(--bg-base);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .modal-body iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .code-viewer-content {
+      width: 100%;
+      height: 100%;
+      padding: 1.5rem;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      background: #090d13;
+      color: #38bdf8;
+      white-space: pre-wrap;
+    }
+
+    /* Lightbox Modal */
+    .lightbox-container {
+      max-width: 900px;
+      height: auto;
+      max-height: 92vh;
+    }
+
+    .lightbox-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 58vh;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+    }
+
+    .lightbox-details {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+    }
+
+    .lightbox-details h5 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .lightbox-details p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* =====================================================================
+       FOOTER
+       ===================================================================== */
+    footer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+      padding: 2.5rem 1.5rem;
+      margin-top: auto;
+    }
+
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .footer-col h5 {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 0.4rem;
+    }
+
+    .footer-col ul li a {
+      color: var(--text-muted);
+    }
+
+    .footer-col ul li a:hover {
+      color: var(--accent-blue);
+    }
+
+    .footer-bottom {
+      max-width: 1400px;
+      margin: 2rem auto 0;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero-header h2 { font-size: 1.6rem; }
+      .metrics-bar { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 <body>
-  <div id="app">Cargando documentación técnica...</div>
+
+  <!-- BARRA DE NAVEGACIÓN -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <div class="brand-logo">XK</div>
+      <div class="brand-info">
+        <h1>XK-335B Manufactura Flexible</h1>
+        <span>UMSA · INGENIERÍA ELECTRÓNICA · II/2026</span>
+      </div>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="#sinoptico" class="active">Sinóptico</a></li>
+      <li><a href="#documentos">Documentación</a></li>
+      <li><a href="#evidencias">Galería Kaizen</a></li>
+      <li><a href="database/">Base de Datos</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <div class="badge-status">
+        <span class="dot"></span> CLOUDFLARE EDGE
+      </div>
+      <button class="btn-icon" id="themeToggle" title="Cambiar tema">🌓</button>
+      <a href="https://github.com/miguelangel2107/maqueta-manufactura-xk335b" target="_blank" class="btn-icon" title="Ver en GitHub">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ENCABEZADO Y HERO -->
+  <header class="hero">
+    <div class="hero-header">
+      <span class="subtitle-top">Plataforma de Integración Inter-Asignaturas</span>
+      <h2>Fase 1: Auditoría Kaizen, Planos ISA/IEC y Gestión de Datos</h2>
+      <p>Portal técnico unificado para el levantamiento de activos, normalización esquemática en AutoCAD y modelado relacional 3FN para las materias <strong>ETN-902</strong>, <strong>ETN-1034</strong> y <strong>ETN-1000</strong>.</p>
+    </div>
+
+    <!-- BARRA DE MÉTRICAS -->
+    <div class="metrics-bar">
+      <div class="metric-card">
+        <div class="metric-val">5</div>
+        <div class="metric-label">Estaciones de Trabajo</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">5x</div>
+        <div class="metric-label">Siemens SIMATIC S7-200</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">13</div>
+        <div class="metric-label">Fichas Técnicas Oficiales</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">16</div>
+        <div class="metric-label">Evidencias Fotográficas</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">3FN</div>
+        <div class="metric-label">Base de Datos PostgreSQL</div>
+      </div>
+    </div>
+
+    <!-- SINÓPTICO DE LA PLANTA -->
+    <section class="synoptic-container" id="sinoptico">
+      <div class="synoptic-header">
+        <div>
+          <div class="synoptic-title">
+            <span>🏭</span> Topología Industrial de la Maqueta XK-335B
+          </div>
+          <div class="synoptic-subtitle">Red en Cascada Daisy-Chain RS-485 (Nodo Maestro: Estación 1)</div>
+        </div>
+        <span class="badge-status"><span class="dot"></span> Nodos 1 a 5 Online</span>
+      </div>
+
+      <div class="stations-grid" id="stationsGrid">
+        <!-- Renderizado dinámico de estaciones -->
+      </div>
+    </section>
+  </header>
+
+  <!-- EXPLORADOR DE DOCUMENTOS Y PLANOS -->
+  <main class="doc-section" id="documentos">
+    <div class="section-header">
+      <div class="section-title">
+        <h3>📚 Biblioteca Técnica y Visor Documental</h3>
+        <p>Consulte planos normalizados, hojas de datos oficiales y reportes técnicos sin descargas forzadas.</p>
+      </div>
+    </div>
+
+    <!-- PANEL DE FILTRADO EN TIEMPO REAL -->
+    <div class="filter-panel">
+      <div class="filter-top-row">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input" placeholder="Buscar por palabra clave, norma, PLC, sensor...">
+        </div>
+        <select id="stationFilter" class="station-select">
+          <option value="all">Todas las Estaciones</option>
+          <option value="1">Estación 1: Transporte (Master)</option>
+          <option value="2">Estación 2: Alimentación</option>
+          <option value="3">Estación 3: Procesamiento</option>
+          <option value="4">Estación 4: Ensamblaje</option>
+          <option value="5">Estación 5: Selección</option>
+          <option value="general">General / Sistema Completo</option>
+        </select>
+      </div>
+
+      <div class="category-pills" id="categoryPills">
+        <button class="pill-btn active" data-cat="all">Todos los Documentos</button>
+        <button class="pill-btn" data-cat="informe">Informes Técnicos</button>
+        <button class="pill-btn" data-cat="pid">Planos P&ID (ISA-S5.1)</button>
+        <button class="pill-btn" data-cat="electrico">Planos Eléctricos (IEC)</button>
+        <button class="pill-btn" data-cat="datasheet">Fichas Técnicas (Datasheets)</button>
+        <button class="pill-btn" data-cat="sql">Base de Datos (SQL)</button>
+        <button class="pill-btn" data-cat="mockup">Mockups UI/UX</button>
+      </div>
+
+      <div class="results-info" id="resultsCount">Mostrando 0 documentos</div>
+    </div>
+
+    <!-- CUADRÍCULA DE DOCUMENTOS -->
+    <div class="docs-grid" id="docsGrid">
+      <!-- Se puebla mediante JavaScript -->
+    </div>
+  </main>
+
+  <!-- GALERÍA DINÁMICA DE EVIDENCIAS KAIZEN -->
+  <section class="gallery-section" id="evidencias">
+    <div class="section-header">
+      <div class="section-title">
+        <h3>📸 Banco de Evidencias Fotográficas y Diagnóstico Kaizen</h3>
+        <p>Inspección estática de campo: Registro de fallas de seguridad, montajes con silicona y discrepancias de cableado.</p>
+      </div>
+    </div>
+
+    <div class="gallery-filter-chips" id="galleryFilterChips">
+      <button class="pill-btn active" data-sev="all">Todas las Evidencias (16)</button>
+      <button class="pill-btn" data-sev="CRITICAL">🔴 Crítica</button>
+      <button class="pill-btn" data-sev="HIGH">🟠 Alta</button>
+      <button class="pill-btn" data-sev="MEDIUM">🟡 Media</button>
+      <button class="pill-btn" data-sev="INFO">🔵 Referencia / Diagramas</button>
+    </div>
+
+    <div class="gallery-grid" id="galleryGrid">
+      <!-- Se puebla mediante JavaScript -->
+    </div>
+  </section>
+
+  <!-- MODAL VISOR DE DOCUMENTOS EMBEBIDO -->
+  <div class="modal-overlay" id="docModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <h4 id="modalDocTitle">Título del Documento</h4>
+          <span id="modalDocSub">Ruta del archivo</span>
+        </div>
+        <div class="modal-header-actions">
+          <a href="#" id="modalOpenExternal" target="_blank" class="btn-icon" title="Abrir en pestaña nueva">↗</a>
+          <button class="btn-icon" id="modalCloseBtn" title="Cerrar">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <iframe id="docIframe" src="" loading="lazy"></iframe>
+        <div id="codeViewer" class="code-viewer-content" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LIGHTBOX PARA FOTOGRAFÍAS -->
+  <div class="modal-overlay" id="lightboxModal">
+    <div class="modal-container lightbox-container">
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <h4 id="lightboxTitle">Evidencia Kaizen</h4>
+          <span id="lightboxLoc">Estación</span>
+        </div>
+        <button class="btn-icon" id="lightboxCloseBtn" title="Cerrar">✕</button>
+      </div>
+      <div class="lightbox-body">
+        <img src="" alt="" id="lightboxImg" class="lightbox-img">
+        <div class="lightbox-details">
+          <h5>Diagnóstico y Acción Correctiva</h5>
+          <p id="lightboxDesc">Descripción técnica detallada...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIE DE PÁGINA -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-col">
+        <h5>Planta Manufactura XK-335B</h5>
+        <p>Proyecto multidisciplinario para el Laboratorio de Control de la Carrera de Ingeniería Electrónica (UMSA).</p>
+        <p style="margin-top: 0.5rem; font-family: var(--font-mono); font-size: 0.75rem;">Docente: Ing. Jorge Antonio Nava Amador</p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Asignaturas Concurrentes</h5>
+        <ul>
+          <li><strong>ETN-902:</strong> Sistemas de Control II</li>
+          <li><strong>ETN-1034:</strong> Aplicación de Técnicas de Control</li>
+          <li><strong>ETN-1000:</strong> Bases de Datos</li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Navegación Rápida</h5>
+        <ul>
+          <li><a href="README.md">Manual Maestro (README.md)</a></li>
+          <li><a href="Documentacion/ingenieria-inversa/Informe_Laboratorio_1.pdf" target="_blank">Informe Oficial Lab 1 (PDF)</a></li>
+          <li><a href="Documentacion/Planos/Diagrama_P&ID/">Diagramas P&ID (ISA 5.1)</a></li>
+          <li><a href="Documentacion/Planos/Diagrama_Electrico/">Esquemas Eléctricos (IEC)</a></li>
+          <li><a href="database/scripts/">Scripts PostgreSQL 3FN</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Escuadra de Trabajo</h5>
+        <p style="font-size: 0.8rem; line-height: 1.5;">
+          M. López (Líder Hardware) · W. Huanca · J. Siñani · H. Torrez · V. Gandarillas · P. Quisbert · M. Cuevas.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      &copy; 2026 Universidad Mayor de San Andrés · Facultad de Ingeniería · Cloudflare Pages Deployment
+    </div>
+  </footer>
+
+  <!-- SCRIPT CLIENTE DE INTERACCIÓN -->
   <script>
-    window.$docsify = {
-      name: 'Manufactura Flexible XK-335B',
-      repo: 'https://github.com/miguelangel2107/maqueta-manufactura-xk335b',
-      homepage: 'README.md',
-      loadSidebar: true, /* Lee _sidebar.md de la raíz automáticamente */
-      subMaxLevel: 3,
-      auto2top: true,
-      search: {
-        placeholder: 'Buscar en la documentación...',
-        noData: 'Sin resultados',
-        depth: 3
+    // =========================================================================
+    // 1. BASE DE DATOS LOCAL DE DOCUMENTOS Y ACTIVOS
+    // =========================================================================
+    const STATIONS_DATA = [
+      {
+        id: "1",
+        num: "01",
+        name: "Unidad de Transporte",
+        role: "Nodo Maestro RS-485",
+        plc: "CPU 226 CN (DC/DC/DC)",
+        cssClass: "master",
+        desc: "Servomotor Panasonic MINAS A4, cinemática cartesiana 3 GDL y orquestación general.",
+        badge: "badge-master"
       },
-      copyCode: {
-        buttonText: 'Copiar',
-        errorText: 'Error',
-        successText: 'Copiado'
+      {
+        id: "2",
+        num: "02",
+        name: "Unidad de Alimentación",
+        role: "Esclavo (Nodo 2)",
+        plc: "CPU 224 CN (Relé)",
+        cssClass: "feeding",
+        desc: "Tolva vertical por gravedad, sensor óptico E3Z-LS61 y cilindro empujador CQ2.",
+        badge: "badge-slave"
+      },
+      {
+        id: "3",
+        num: "03",
+        name: "Unidad de Procesamiento",
+        role: "Esclavo (Nodo 3)",
+        plc: "CPU 224 CN (Relé)",
+        cssClass: "processing",
+        desc: "Prensa de estampado vertical con cilindro guiado MGPM y mordaza neumática.",
+        badge: "badge-slave"
+      },
+      {
+        id: "4",
+        num: "04",
+        name: "Unidad de Ensamblaje",
+        role: "Esclavo (Nodo 4)",
+        plc: "CPU 226 CN (Relé)",
+        cssClass: "assembly",
+        desc: "Actuador rotativo oscilante 0°–180° y pinza angular neumática SMC MHC2.",
+        badge: "badge-slave"
+      },
+      {
+        id: "5",
+        num: "05",
+        name: "Unidad de Selección",
+        role: "Esclavo (Nodo 5)",
+        plc: "CPU 224XP CN (DC/DC/DC)",
+        cssClass: "sorting",
+        desc: "Cinta con VFD POWTRAN trifásico (0–10V), encoder HSC0 y discriminación de materiales.",
+        badge: "badge-slave"
       }
+    ];
+
+    const DOCUMENTS_DATA = [
+      {
+        id: "doc-inf-01",
+        title: "Informe Oficial de Auditoría y Ruptura de Causalidad (Lab 1)",
+        filename: "Informe_Laboratorio_1.pdf",
+        path: "Documentacion/ingenieria-inversa/Informe_Laboratorio_1.pdf",
+        station: "general",
+        category: "informe",
+        badgeClass: "pdf-doc",
+        badgeText: "Informe Técnico",
+        desc: "Memoria técnica oficial de 40 páginas: auditoría estática cable a cable, inventario real, mapeo de memoria I/O y demostración analítica de ruptura de lazo de control."
+      },
+      {
+        id: "ds-s7200",
+        title: "Manual del Sistema SIMATIC S7-200 (Siemens AG)",
+        filename: "s7200_system_manual_es-ES.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/s7200_system_manual_es-ES.pdf",
+        station: "general",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Datasheet PLC",
+        desc: "Manual completo de especificaciones técnicas, direccionamiento I/Q/V, contadores de alta velocidad (HSC) y generador PTO de pulsos rápidos."
+      },
+      {
+        id: "ds-panasonic-tech",
+        title: "Referencia Técnica Servomotor y Servodriver MINAS A4",
+        filename: "Technical reference_AC Servo Motor & Driver_MINAS A4-series.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/Technical%20reference_AC%20Servo%20Motor%20%26%20Driver_MINAS%20A4-series.pdf",
+        station: "1",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Datasheet Servo",
+        desc: "Diagrama de conexionado CN X4 para tren de pulsos (PULS/SIGN) a 24V y parámetros de ganancia de posición para la Estación de Transporte."
+      },
+      {
+        id: "ds-panasonic-user",
+        title: "Manual de Operación Servodriver MINAS A4",
+        filename: "minas_a4_e.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/minas_a4_e.pdf",
+        station: "1",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Manual de Operación",
+        desc: "Guía de códigos de error y parametrización de servo-enable y control de torque."
+      },
+      {
+        id: "ds-powtran",
+        title: "Manual de Usuario Variador de Frecuencia PT9100 / PI9000",
+        filename: "PI9000_English_Manual_V17.0.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/PI9000_English_Manual_V17.0.pdf",
+        station: "5",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Datasheet VFD",
+        desc: "Configuración de entrada analógica 0–10V para consigna de velocidad desde CPU 224XP CN y bornes de control FWD/REV para motor trifásico."
+      },
+      {
+        id: "ds-omron",
+        title: "Sensor Fotoeléctrico Compacto de Supresión de Fondo Omron",
+        filename: "sensor_e3z-ls.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/sensor_e3z-ls.pdf",
+        station: "2",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Datasheet Sensor",
+        desc: "Sensor fotoeléctrico serie E3Z-LS con rango de detección 20–200 mm, salida NPN a 24 VDC para tolvas de alimentación y clasificación."
+      },
+      {
+        id: "ds-reed",
+        title: "Sensores Magnéticos de Posición SMC Reed Switch",
+        filename: "SERSOR_MAGNETICO_-Z80.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/SERSOR_MAGNETICO_-Z80.pdf",
+        station: "3",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Datasheet Sensor",
+        desc: "Sensores magnéticos de ranura modelos D-Z80 y D-C73 para confirmación de fin de carrera en cilindros neumáticos."
+      },
+      {
+        id: "ds-cq2",
+        title: "Cilindro Neumático Compacto Doble Efecto SMC Serie CQ2",
+        filename: "CQ2_Z.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/CQ2_Z.pdf",
+        station: "2",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Datasheet Neumática",
+        desc: "Actuador eyector de la tolva de alimentación. Carrera corta y montaje directo para empuje de piezas."
+      },
+      {
+        id: "ds-mgpm",
+        title: "Cilindro Guiado Estándar SMC Serie MGPM con Cojinetes",
+        filename: "MGPM-Z,_cilindro_guiado_estandar,_cojinete_deslizante.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/MGPM-Z%2C_cilindro_guiado_estandar%2C_cojinete_deslizante.pdf",
+        station: "3",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Datasheet Neumática",
+        desc: "Prensa vertical de estampado y punzonado. Gran resistencia a pares de torsión lateral y repetibilidad."
+      },
+      {
+        id: "ds-mhc",
+        title: "Pinza Neumática Angular SMC Serie MHC2",
+        filename: "MHC.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/MHC.pdf",
+        station: "4",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Datasheet Neumática",
+        desc: "Pinza angular de sujeción para montaje de componentes en la estación de ensamblaje y cabezal de transporte."
+      },
+      {
+        id: "ds-modbus",
+        title: "Librería y Protocolo Modbus RTU para STEP 7-Micro/WIN",
+        filename: "Using_Modbus_Library_Step7_MW_4.0.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/Using_Modbus_Library_Step7_MW_4.0.pdf",
+        station: "general",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Manual Comunicaciones",
+        desc: "Instrucciones de comunicación Modbus Maestro/Esclavo sobre el bus multipunto RS-485 para telemetría industrial."
+      },
+      {
+        id: "ds-borneras",
+        title: "Especificación de Regletas y Borneras Industriales RTB",
+        filename: "RTB-E.pdf",
+        path: "Documentacion/ingenieria-inversa/datasheets/RTB-E.pdf",
+        station: "general",
+        category: "datasheet",
+        badgeClass: "datasheet",
+        badgeText: "Ficha Conectores",
+        desc: "Dimensionamiento de terminales de apriete, aislamiento dieléctrico y secciones de conductor recomendadas."
+      },
+      {
+        id: "plano-elec-master",
+        title: "Normativa de Esquemas Eléctricos IEC 60617 / 81346",
+        filename: "Diagrama_Electrico/README.md",
+        path: "Documentacion/Planos/Diagrama_Electrico/README.md",
+        station: "general",
+        category: "electrico",
+        badgeClass: "electrical",
+        badgeText: "Norma Eléctrica",
+        desc: "Manual maestro de circuitos de potencia 220 VAC, distribución de 24 VDC, tableros de control y código de colores normalizado."
+      },
+      {
+        id: "plano-pid-master",
+        title: "Guía de Diagramas P&ID bajo Norma ANSI/ISA-S5.1-2009",
+        filename: "Diagrama_P&ID/README.md",
+        path: "Documentacion/Planos/Diagrama_P&ID/README.md",
+        station: "general",
+        category: "pid",
+        badgeClass: "pid",
+        badgeText: "Norma ISA",
+        desc: "Estandarización de tags (PV, MV, DV), simbología de burbujas en campo/panel/PLC y líneas de transmisión neumática y eléctrica."
+      },
+      {
+        id: "sql-ddl",
+        title: "Script DDL: Esquema Relacional de Telemetría en 3FN",
+        filename: "01_schema_telemetria_3fn.sql",
+        path: "database/scripts/01_schema_telemetria_3fn.sql",
+        station: "general",
+        category: "sql",
+        badgeClass: "sql",
+        badgeText: "PostgreSQL DDL",
+        desc: "Definición DDL en Tercera Forma Normal (estaciones, instrumentos, variables de proceso, telemetría histórica, alarmas y logs)."
+      },
+      {
+        id: "sql-seed",
+        title: "Script DML: Catálogo Auditado de Activos y Tags ISA",
+        filename: "02_seed_data_xk335b.sql",
+        path: "database/scripts/02_seed_data_xk335b.sql",
+        station: "general",
+        category: "sql",
+        badgeClass: "sql",
+        badgeText: "Datos Semilla SQL",
+        desc: "Población de datos de las 5 estaciones, sensores reales (inductivos, capacitivos, reed), VFD POWTRAN, servodriver y alarmas de seguridad."
+      },
+      {
+        id: "sql-indices",
+        title: "Script SQL: Índices B-Tree y Disparadores Automáticos",
+        filename: "03_indices_optimizacion.sql",
+        path: "database/scripts/03_indices_optimizacion.sql",
+        station: "general",
+        category: "sql",
+        badgeClass: "sql",
+        badgeText: "Optimización SQL",
+        desc: "Índices B-Tree compuestos para consultas temporales masivas y triggers automáticos de disparo de alertas ante violaciones de umbral."
+      },
+      {
+        id: "mockup-spec",
+        title: "Especificación de Mockups UI/UX para HMI y Dashboard ERP",
+        filename: "mockups/README.md",
+        path: "Documentacion/Planos/mockups/README.md",
+        station: "general",
+        category: "mockup",
+        badgeClass: "mockup",
+        badgeText: "Norma ISA-101",
+        desc: "Wireframes en bloques formateados para pantalla de operador táctil local y panel de supervisión SCADA/ERP web centralizado."
+      }
+    ];
+
+    const EVIDENCES_DATA = [
+      {
+        id: "ev-01",
+        title: "Vista General de la Maqueta XK-335B",
+        loc: "Planta Completa (5 Estaciones)",
+        file: "fig01_portada_maqueta_xk335b.png",
+        path: "Documentacion/evidencias/assets/fig01_portada_maqueta_xk335b.png",
+        severity: "INFO",
+        sevClass: "sev-info",
+        desc: "Disposición espacial y secuencial de la línea de manufactura flexible en el laboratorio de control."
+      },
+      {
+        id: "ev-02",
+        title: "Motor Trifásico y Sensor Capacitivo Winston CM18",
+        loc: "Estación 5: Unidad de Selección",
+        file: "fig02_sensores_capacitivos_motor_trifasico.png",
+        path: "Documentacion/evidencias/assets/fig02_sensores_capacitivos_motor_trifasico.png",
+        severity: "MEDIUM",
+        sevClass: "sev-medium",
+        desc: "Rectificación física: El accionamiento es un motor asíncrono trifásico y cuenta con sensor capacitivo para discriminar plásticos, desmintiendo reportes legados."
+      },
+      {
+        id: "ev-03",
+        title: "Cables con Cobre Expuesto y Señalización Desprendida",
+        loc: "Borneras de Conexión de Sensores",
+        file: "fig03_borneras_conexiones_cables_expuestos.png",
+        path: "Documentacion/evidencias/assets/fig03_borneras_conexiones_cables_expuestos.png",
+        severity: "HIGH",
+        sevClass: "sev-high",
+        desc: "Deficiente ensamblaje en borneras con hilos de cobre vivos fuera del conector y pérdida de identificación de hilos."
+      },
+      {
+        id: "ev-04",
+        title: "Carcasa Plástica Fracturada en Módulo PLC",
+        loc: "Controladores Siemens S7-200",
+        file: "fig04_carcasa_fracturada_plc_s7200.png",
+        path: "Documentacion/evidencias/assets/fig04_carcasa_fracturada_plc_s7200.png",
+        severity: "MEDIUM",
+        sevClass: "sev-medium",
+        desc: "Fractura mecánica en el plástico de sujeción de bornes por torque excesivo durante mantenimientos anteriores."
+      },
+      {
+        id: "ev-05",
+        title: "Sensores Fijados con Silicona Caliente y Cinta Adhesiva",
+        loc: "Estación 3: Unidad de Procesamiento",
+        file: "fig05_sensores_fijados_silicona_cinta.png",
+        path: "Documentacion/evidencias/assets/fig05_sensores_fijados_silicona_cinta.png",
+        severity: "CRITICAL",
+        sevClass: "sev-critical",
+        desc: "Peligro Kaizen crítico: Los sensores magnéticos SMC carecen de abrazaderas rígidas. Su desprendimiento causa pérdida total de observabilidad (C = [0 0])."
+      },
+      {
+        id: "ev-06",
+        title: "Desalineación Mecánica en Pistón y Pinza",
+        loc: "Estación 3: Unidad de Procesamiento",
+        file: "fig06_desalineacion_piston_pinza.png",
+        path: "Documentacion/evidencias/assets/fig06_desalineacion_piston_pinza.png",
+        severity: "HIGH",
+        sevClass: "sev-high",
+        desc: "Desfase angular entre el cilindro vertical de prensa y la mordaza lateral, originando atascamiento de piezas y desgaste asimétrico."
+      },
+      {
+        id: "ev-07",
+        title: "Cableado No Documentado para Inversión de Giro en VFD",
+        loc: "Estación 5: Unidad de Selección",
+        file: "fig07_conexion_no_documentada_vfd_giro.png",
+        path: "Documentacion/evidencias/assets/fig07_conexion_no_documentada_vfd_giro.png",
+        severity: "HIGH",
+        sevClass: "sev-high",
+        desc: "Conductor físico no registrado en los esquemas originales conectando una salida digital del PLC al terminal REV del VFD POWTRAN."
+      },
+      {
+        id: "ev-08",
+        title: "Cable Pelado con Cobre Rozando Perfil de Aluminio",
+        loc: "Estación 4: Unidad de Ensamblaje",
+        file: "fig08_cable_sensor_aislamiento_danado.png",
+        path: "Documentacion/evidencias/assets/fig08_cable_sensor_aislamiento_danado.png",
+        severity: "CRITICAL",
+        sevClass: "sev-critical",
+        desc: "Riesgo inminente de cortocircuito a masa de 24 VDC por pérdida del aislamiento externo en contacto directo con la bancada metálica."
+      },
+      {
+        id: "ev-09",
+        title: "Diagrama de Causalidad: Unidad de Alimentación",
+        loc: "Estación 2 (ETN-902)",
+        file: "fig09_diagrama_bloques_alimentacion.png",
+        path: "Documentacion/evidencias/assets/fig09_diagrama_bloques_alimentacion.png",
+        severity: "INFO",
+        sevClass: "sev-info",
+        desc: "Diagrama de bloques funcionales y relación entrada/salida para la eyección de piezas en la tolva de alimentación."
+      },
+      {
+        id: "ev-10",
+        title: "Diagrama de Causalidad: Unidad de Procesamiento",
+        loc: "Estación 3 (ETN-902)",
+        file: "fig10_diagrama_bloques_procesamiento.png",
+        path: "Documentacion/evidencias/assets/fig10_diagrama_bloques_procesamiento.png",
+        severity: "INFO",
+        sevClass: "sev-info",
+        desc: "Modelado fenomenológico y lazos de enclavamiento de la prensa de punzonado y mordaza."
+      },
+      {
+        id: "ev-11",
+        title: "Diagrama de Causalidad: Unidad de Ensamblaje",
+        loc: "Estación 4 (ETN-902)",
+        file: "fig11_diagrama_bloques_ensamblaje.jpg",
+        path: "Documentacion/evidencias/assets/fig11_diagrama_bloques_ensamblaje.jpg",
+        severity: "INFO",
+        sevClass: "sev-info",
+        desc: "Secuencia temporal del actuador rotativo 0-180° y pinza angular neumática."
+      },
+      {
+        id: "ev-12",
+        title: "Diagrama de Causalidad: Unidad de Selección",
+        loc: "Estación 5 (ETN-902)",
+        file: "fig12_diagrama_bloques_seleccion.jpg",
+        path: "Documentacion/evidencias/assets/fig12_diagrama_bloques_seleccion.jpg",
+        severity: "INFO",
+        sevClass: "sev-info",
+        desc: "Lazo cerrado continuo de velocidad (consigna analógica VFD y lectura de encoder óptico incremental)."
+      },
+      {
+        id: "ev-13",
+        title: "Diagrama Cinemático: Unidad de Transporte",
+        loc: "Estación 1 (ETN-902)",
+        file: "fig13_diagrama_bloques_transporte.jpg",
+        path: "Documentacion/evidencias/assets/fig13_diagrama_bloques_transporte.jpg",
+        severity: "INFO",
+        sevClass: "sev-info",
+        desc: "Diagrama de bloques de control de posición del carro cartesiano gobernado por servomotor Panasonic."
+      },
+      {
+        id: "ev-14",
+        title: "Controlador S7-200 y Cableado del Bus RS-485",
+        loc: "Red Industrial",
+        file: "fig14_plc_s7200_comunicacion_rs485.jpg",
+        path: "Documentacion/evidencias/assets/fig14_plc_s7200_comunicacion_rs485.jpg",
+        severity: "INFO",
+        sevClass: "sev-info",
+        desc: "Conexión del cable bifilar apantallado en los puertos de comunicación serial de las CPUs."
+      },
+      {
+        id: "ev-15",
+        title: "Enrutamiento de Cableado en Tableros de Control",
+        loc: "Tableros Eléctricos",
+        file: "fig15_cableado_industrial_paneles.jpg",
+        path: "Documentacion/evidencias/assets/fig15_cableado_industrial_paneles.jpg",
+        severity: "MEDIUM",
+        sevClass: "sev-medium",
+        desc: "Disposición interna de borneras y canaletas para evitar interferencia electromagnética."
+      },
+      {
+        id: "ev-16",
+        title: "Módulo de Potencia del Variador POWTRAN",
+        loc: "Tablero de Fuerza (Estación 5)",
+        file: "fig16_modulo_potencia_vfd_motor.jpg",
+        path: "Documentacion/evidencias/assets/fig16_modulo_potencia_vfd_motor.jpg",
+        severity: "MEDIUM",
+        sevClass: "sev-medium",
+        desc: "Conexión de la etapa inversora trifásica y conductor de puesta a tierra (PE) de protección."
+      }
+    ];
+
+    // =========================================================================
+    // 2. RENDERIZADO DEL SINÓPTICO DE ESTACIONES
+    // =========================================================================
+    const stationsGrid = document.getElementById("stationsGrid");
+    const stationFilter = document.getElementById("stationFilter");
+
+    function renderStations() {
+      stationsGrid.innerHTML = STATIONS_DATA.map(st => `
+        <div class="station-node ${st.cssClass}" data-station-id="${st.id}">
+          <div class="node-header">
+            <span class="node-num">EST-${st.num}</span>
+            <span class="node-role-badge ${st.badge}">${st.role}</span>
+          </div>
+          <div class="node-title">${st.name}</div>
+          <div class="node-plc"><span>⚡</span> ${st.plc}</div>
+          <div class="node-desc">${st.desc}</div>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".station-node").forEach(node => {
+        node.addEventListener("click", () => {
+          const stId = node.getAttribute("data-station-id");
+          document.querySelectorAll(".station-node").forEach(n => n.classList.remove("active-station"));
+          node.classList.add("active-station");
+          stationFilter.value = stId;
+          filterDocuments();
+          document.getElementById("documentos").scrollIntoView({ behavior: 'smooth' });
+        });
+      });
     }
-  </script>
-  <!-- Motor Docsify -->
-  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
 
-  <!-- Soporte Mermaid.js -->
-  <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-    mermaid.initialize({ startOnLoad: true, theme: 'default' });
-    window.mermaid = mermaid;
-  </script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
+    // =========================================================================
+    // 3. RENDERIZADO Y FILTRADO DE DOCUMENTOS
+    // =========================================================================
+    const docsGrid = document.getElementById("docsGrid");
+    const searchInput = document.getElementById("searchInput");
+    const categoryPills = document.getElementById("categoryPills");
+    const resultsCount = document.getElementById("resultsCount");
 
-  <!-- Resaltado de código -->
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+    let currentCategory = "all";
+
+    function renderDocuments(docs) {
+      if (docs.length === 0) {
+        docsGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
+            <p style="font-weight: 600;">No se encontraron documentos para los filtros seleccionados.</p>
+            <p style="font-size: 0.85rem;">Pruebe ajustando el término de búsqueda o cambiando la categoría.</p>
+          </div>
+        `;
+        resultsCount.textContent = "Mostrando 0 documentos";
+        return;
+      }
+
+      docsGrid.innerHTML = docs.map(doc => {
+        const isPdf = doc.filename.endsWith('.pdf');
+        const isSql = doc.filename.endsWith('.sql');
+        return `
+          <div class="doc-card">
+            <div class="card-top">
+              <div class="card-badges">
+                <span class="badge-cat ${doc.badgeClass}">${doc.badgeText}</span>
+                <span class="badge-station-tag">${getStationLabel(doc.station)}</span>
+              </div>
+              <div class="card-title">${doc.title}</div>
+              <div class="card-filename">📁 ${doc.filename}</div>
+              <div class="card-desc">${doc.desc}</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-view" onclick="openDocModal('${doc.id}')">
+                <span>👁️</span> Visualizar
+              </button>
+              <a href="${doc.path}" target="_blank" class="btn-direct" title="Descargar / Enlace directo">
+                <span>⬇</span>
+              </a>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      resultsCount.textContent = `Mostrando ${docs.length} de ${DOCUMENTS_DATA.length} documentos`;
+    }
+
+    function getStationLabel(stId) {
+      if (stId === "general") return "General / Planta";
+      const st = STATIONS_DATA.find(s => s.id === stId);
+      return st ? `Estación ${st.num}` : "Planta";
+    }
+
+    function filterDocuments() {
+      const query = searchInput.value.toLowerCase().trim();
+      const selectedStation = stationFilter.value;
+
+      const filtered = DOCUMENTS_DATA.filter(doc => {
+        const matchesQuery = !query || 
+          doc.title.toLowerCase().includes(query) ||
+          doc.filename.toLowerCase().includes(query) ||
+          doc.desc.toLowerCase().includes(query) ||
+          doc.badgeText.toLowerCase().includes(query);
+
+        const matchesCategory = (currentCategory === "all") || (doc.category === currentCategory);
+
+        const matchesStation = (selectedStation === "all") || (doc.station === selectedStation);
+
+        return matchesQuery && matchesCategory && matchesStation;
+      });
+
+      renderDocuments(filtered);
+    }
+
+    // Manejadores de eventos de filtro
+    searchInput.addEventListener("input", filterDocuments);
+    stationFilter.addEventListener("change", () => {
+      document.querySelectorAll(".station-node").forEach(n => {
+        if (n.getAttribute("data-station-id") === stationFilter.value) {
+          n.classList.add("active-station");
+        } else {
+          n.classList.remove("active-station");
+        }
+      });
+      filterDocuments();
+    });
+
+    categoryPills.querySelectorAll(".pill-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        categoryPills.querySelectorAll(".pill-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentCategory = btn.getAttribute("data-cat");
+        filterDocuments();
+      });
+    });
+
+    // =========================================================================
+    // 4. RENDERIZADO Y FILTRADO DE EVIDENCIAS KAIZEN
+    // =========================================================================
+    const galleryGrid = document.getElementById("galleryGrid");
+    const galleryFilterChips = document.getElementById("galleryFilterChips");
+    let currentSeverity = "all";
+
+    function renderGallery(evidences) {
+      galleryGrid.innerHTML = evidences.map(ev => `
+        <div class="gallery-card" onclick="openLightbox('${ev.id}')">
+          <div class="gallery-thumb-wrapper">
+            <img src="${ev.path}" alt="${ev.title}" class="gallery-thumb" loading="lazy">
+            <span class="severity-badge ${ev.sevClass}">${ev.severity}</span>
+          </div>
+          <div class="gallery-info">
+            <div>
+              <div class="gallery-title">${ev.title}</div>
+              <div class="gallery-loc">📍 ${ev.loc}</div>
+            </div>
+            <div class="gallery-desc">${ev.desc.substring(0, 95)}...</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    galleryFilterChips.querySelectorAll(".pill-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        galleryFilterChips.querySelectorAll(".pill-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentSeverity = btn.getAttribute("data-sev");
+        const filtered = (currentSeverity === "all") 
+          ? EVIDENCES_DATA 
+          : EVIDENCES_DATA.filter(e => e.severity === currentSeverity);
+        renderGallery(filtered);
+      });
+    });
+
+    // =========================================================================
+    // 5. MODALES INTERACTIVOS (PDF VIEWER Y LIGHTBOX)
+    // =========================================================================
+    const docModal = document.getElementById("docModal");
+    const modalDocTitle = document.getElementById("modalDocTitle");
+    const modalDocSub = document.getElementById("modalDocSub");
+    const modalOpenExternal = document.getElementById("modalOpenExternal");
+    const modalCloseBtn = document.getElementById("modalCloseBtn");
+    const docIframe = document.getElementById("docIframe");
+    const codeViewer = document.getElementById("codeViewer");
+
+    window.openDocModal = function(docId) {
+      const doc = DOCUMENTS_DATA.find(d => d.id === docId);
+      if (!doc) return;
+
+      modalDocTitle.textContent = doc.title;
+      modalDocSub.textContent = doc.path;
+      modalOpenExternal.href = doc.path;
+
+      if (doc.filename.endsWith('.pdf')) {
+        codeViewer.style.display = "none";
+        docIframe.style.display = "block";
+        docIframe.src = doc.path + "#toolbar=1&navpanes=1&zoom=page-width";
+      } else {
+        // Cargar archivo de texto / SQL / MD vía fetch local
+        docIframe.style.display = "none";
+        codeViewer.style.display = "block";
+        codeViewer.textContent = "Cargando código fuente...";
+        fetch(doc.path)
+          .then(res => res.text())
+          .then(txt => { codeViewer.textContent = txt; })
+          .catch(err => { codeViewer.textContent = "Error al leer el archivo: " + err; });
+      }
+
+      docModal.classList.add("active");
+      document.body.style.overflow = "hidden";
+    };
+
+    function closeDocModal() {
+      docModal.classList.remove("active");
+      docIframe.src = "";
+      document.body.style.overflow = "auto";
+    }
+
+    modalCloseBtn.addEventListener("click", closeDocModal);
+    docModal.addEventListener("click", (e) => {
+      if (e.target === docModal) closeDocModal();
+    });
+
+    // Lightbox Modal
+    const lightboxModal = document.getElementById("lightboxModal");
+    const lightboxTitle = document.getElementById("lightboxTitle");
+    const lightboxLoc = document.getElementById("lightboxLoc");
+    const lightboxImg = document.getElementById("lightboxImg");
+    const lightboxDesc = document.getElementById("lightboxDesc");
+    const lightboxCloseBtn = document.getElementById("lightboxCloseBtn");
+
+    window.openLightbox = function(evId) {
+      const ev = EVIDENCES_DATA.find(e => e.id === evId);
+      if (!ev) return;
+
+      lightboxTitle.textContent = ev.title;
+      lightboxLoc.textContent = "📍 " + ev.loc + " · Severidad: " + ev.severity;
+      lightboxImg.src = ev.path;
+      lightboxDesc.textContent = ev.desc;
+
+      lightboxModal.classList.add("active");
+      document.body.style.overflow = "hidden";
+    };
+
+    function closeLightbox() {
+      lightboxModal.classList.remove("active");
+      lightboxImg.src = "";
+      document.body.style.overflow = "auto";
+    }
+
+    lightboxCloseBtn.addEventListener("click", closeLightbox);
+    lightboxModal.addEventListener("click", (e) => {
+      if (e.target === lightboxModal) closeLightbox();
+    });
+
+    // Tecla Escape para cerrar modales
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeDocModal();
+        closeLightbox();
+      }
+    });
+
+    // =========================================================================
+    // 6. TOGGLE TEMA INDUSTRIAL / CLARO
+    // =========================================================================
+    const themeToggle = document.getElementById("themeToggle");
+    themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme");
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("xk335b-theme", next);
+    });
+
+    const savedTheme = localStorage.getItem("xk335b-theme");
+    if (savedTheme) {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    }
+
+    // Inicialización
+    renderStations();
+    renderDocuments(DOCUMENTS_DATA);
+    renderGallery(EVIDENCES_DATA);
+  </script>
 </body>
 </html>

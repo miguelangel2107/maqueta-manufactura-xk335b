@@ -1,141 +1,202 @@
-# Maqueta de Proceso de Manufactura Flexible (XK-335B)
-### Proyecto Integrado de Control Industrial y Sistemas Computacionales
+# 🏭 Maqueta de Manufactura Flexible (XK-335B)
+### Plataforma de Integración Interdisciplinar: Control Industrial, Instrumentación y Sistemas de Datos
 **Universidad Mayor de San Andrés (UMSA) — Facultad de Ingeniería**  
 **Carrera de Ingeniería Electrónica — Gestión II/2026**
 
+[![Fase 1: Concluida](https://img.shields.io/badge/Fase%201-Auditor%C3%ADa%20Kaizen%20%26%20Planos-blue.svg)](#-3-alcance-y-andamiaje-de-la-fase-1-semanas-1-a-6)
+[![Plataforma Web](https://img.shields.io/badge/Web%20Portal-Cloudflare%20Pages-orange.svg)](https://miguelangel2107.github.io/maqueta-manufactura-xk335b/)
+[![Norma ISA-S5.1](https://img.shields.io/badge/Norma-ANSI%2FISA--S5.1--2009-green.svg)](Documentacion/Planos/Diagrama_P&ID/)
+[![Norma IEC](https://img.shields.io/badge/Norma-IEC%2060617%20%2F%2081346-yellow.svg)](Documentacion/Planos/Diagrama_Electrico/)
+[![Base de Datos](https://img.shields.io/badge/PostgreSQL-3FN%20Normalizada-blue.svg)](database/)
+
 ---
 
-## 📌 1. Información General del Proyecto
-Este repositorio alberga la documentación técnica, diagramas de instrumentación (ANSI/ISA-S5.1), esquemas de potencia y mando (IEC/IEEE), modelado de persistencia de datos (PostgreSQL) y código fuente de control para la **Planta de Manufactura Flexible**. El desarrollo se enmarca en la **Fase 1: Auditoría Kaizen e Ingeniería Inversa** del programa inter-asignaturas concurrente.
+## 📌 1. Presentación Institucional y Académica
 
-* **Docente Auditor:** Ing. Jorge Antonio Nava Amador
+El presente repositorio constituye la memoria técnica viva y el centro de custodia documental para la **Planta de Manufactura Flexible XK-335B**, instalada en el Laboratorio de Control de la Facultad de Ingeniería (UMSA). 
+
+Bajo la iniciativa de optimización pedagógica del Semestre II/2026, tres asignaturas troncales operan de forma sinérgica sobre esta plataforma física:
+* **Sistemas de Control II (ETN-902 - 4 Hrs):** Caracterización dinámica, modelado fenomenológico, clasificación analítica de variables ($PV, MV, DV$), identificación por caja negra y diseño de lazos de regulación.
+* **Aplicación de Técnicas de Control (ETN-1034 - 8 Hrs):** Cableado industrial, esquemas de potencia y mando (IEC), relevamiento de I/O, control de servomotores (PTO/HSC), variadores de frecuencia y programación física de controladores lógicos programables.
+* **Bases de Datos (ETN-1000):** Arquitectura cliente-servidor de telemetría en 3 capas, modelado relacional en Tercera Forma Normal (3FN), diseño de mockups HMI/SCADA (ISA-101) y administración del flujo de desarrollo colaborativo con Git.
+
+---
+
+## 👥 2. Plantel Docente y Escuadra de Trabajo
+
+### 2.1. Cuerpo Docente y Auditoría
+* **Docente Titular y Auditor General:** Ing. Jorge Antonio Nava Amador
 * **Auxiliares de Docencia:**
-  * Aux. Limber Ajnota Cahuaya (ETN-1034)
-  * Aux. Fabian Plata Vargas (ETN-902)
-  * Aux. Franz Choque (ETN-1000)
+  * Aux. Limber Ajnota Cahuaya (*Aplicación de Técnicas de Control - ETN-1034*)
+  * Aux. Fabian Plata Vargas (*Sistemas de Control II - ETN-902*)
+  * Aux. Franz Choque (*Bases de Datos - ETN-1000*)
+
+### 2.2. Escuadra de Ingeniería Concurrente (Asignada a la Planta XK-335B)
+
+| Estudiante | Asignatura | Rol Técnico Especializado | Responsabilidad Principal |
+| :--- | :---: | :--- | :--- |
+| **Univ. López Rodríguez Miguel Ángel** | **ETN-1034** | **Líder de Hardware & Red RS-485** | Auditoría estática cable a cable, verificación del bus multipunto y parametrización de drivers. |
+| **Univ. Wilson David Huanca Challco** | **ETN-1034** | **Inspección de Procesamiento & Seguridad** | Diagnóstico de prensas neumáticas, mordazas mecánicas y análisis de fallas en parada de emergencia. |
+| **Univ. Siñani Canaza Juan Carlos** | **ETN-1034** | **Mapeo I/O de PLCs Siemens** | Asignación de operandos de memoria, entradas/salidas digitales/analógicas y cableado de borneras. |
+| **Univ. Henrry Jherson Torrez Patty** | **ETN-902** | **Causalidad Dinámica & Modelado** | Clasificación de variables ($PV, MV, DV$), balance de masas/fuerzas y demostración analítica de ruptura de lazo. |
+| **Univ. Gandarillas Conde Valeria Erika**| **ETN-1000** | **Modelado Relacional & 3FN** | Diseño conceptual E-R, normalización exhaustiva y optimización de esquemas para telemetría. |
+| **Univ. Quisbert Bautista Paul Fernando** | **ETN-1000** | **Arquitectura de Telemetría (3 Capas)** | Mapeo de flujos de datos campo-servidor, análisis de latencias y diseño de diccionarios de datos. |
+| **Univ. Cuevas Perez Mauricio** | **ETN-1000** | **Infraestructura de Datos & SQL** | Desarrollo de scripts DDL/DML para PostgreSQL/MySQL, índices de series temporales y triggers. |
 
 ---
 
-## 👥 2. Integrantes del Equipo de Trabajo
+## 🎯 3. Alcance y Andamiaje de la Fase 1 (Semanas 1 a 6)
 
-| Estudiante | Asignatura | Rol Principal |
-| :--- | :---: | :--- |
-| **Univ. López Rodríguez Miguel Ángel** | **ETN-1034** | **Auditoría de Hardware y Red RS-485** |
-| Univ. Wilson David Huanca Challco | ETN-1034 | Inspección de Procesamiento y Análisis de Ruptura de Lazo |
-| Univ. Siñani Canaza Juan Carlos | ETN-1034 | Mapeo I/O de PLCs y Diagnóstico de Actuadores |
-| Univ. Henrry Jherson Torrez Patty | ETN-902 | Clasificación de Variables (PV, MV, DV) y Causalidad Dinámica |
-| Univ. Gandarillas Conde Valeria Erika | ETN-1000 | Modelado Entidad-Relación y Normalización (3FN) |
-| Univ. Quisbert Bautista Paul Fernando | ETN-1000 | Arquitectura de Telemetría (3 Capas) y Diccionario de Datos |
-| Univ. Cuevas Perez Mauricio | ETN-1000 | Análisis de Infraestructura Local y Gestión de Scripts SQL |
-
----
-
-## 3. Mapa de Flujo Documental y Arquitectura del Repositorio
-
-A continuación se presenta la trazabilidad metodológica y el flujo de interconexión técnica entre la documentación, el diseño CAD y el backend de base de datos:
-
-```mermaid
-flowchart TB
-    classDef root fill:#0d47a1,stroke:#0d47a1,stroke-width:2px,color:#fff;
-    classDef folder fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
-    classDef doc fill:#ffffff,stroke:#37474f,stroke-width:1px,color:#263238;
-    classDef script fill:#ede7f6,stroke:#512da8,stroke-width:1px,color:#311b92;
-
-    Repo["Repositorio: maqueta-manufactura-xk335b"]:::root
-    Documentation["📁 documentation/"]:::folder
-    Database["📁 database/"]:::folder
-    DocInv["📁 manuales_ingenieria_inversa/"]:::folder
-    DocPlanos["📁 planos_isa/"]:::folder
-
-    Lab1PDF["Informe_Laboratorio_1.pdf"]:::doc
-    Datasheets["datasheets/: S7-200, VFD, Sensores"]:::doc
-    ReadmeInv["README.md: Diagnóstico Kaizen"]:::doc
-
-    PlanosCAD["Planos P&ID y Eléctricos (.DWG / .PDF)"]:::doc
-    ReadmePlanos["README.md: Normas ISA 5.1 e IEC"]:::doc
-    Mockups["mockups/: HMI y Dashboard ERP"]:::doc
-
-    ReadmeDB["README.md: Arquitectura 3 Capas"]:::doc
-    ScriptsSQL["scripts/: Modelo E-R, DDL y Triggers"]:::script
-
-    Repo --> Documentation
-    Repo --> Database
-    Documentation --> DocInv
-    Documentation --> DocPlanos
-    DocInv --> Lab1PDF
-    DocInv --> Datasheets
-    DocInv --> ReadmeInv
-    DocPlanos --> PlanosCAD
-    DocPlanos --> ReadmePlanos
-    DocPlanos --> Mockups
-    Database --> ReadmeDB
-    Database --> ScriptsSQL
-
-    %% Relaciones de Ingeniería Interdisciplinar
-    Lab1PDF ==>|1. Mapeo de Senales| PlanosCAD
-    PlanosCAD ==>|2. Tags ISA 5.1| Mockups
-    Mockups ==>|3. Variables de Persistencia| ScriptsSQL
-    ScriptsSQL ==>|4. Telemetria de Campo| ReadmeDB
-
-    linkStyle 12,13,14,15 stroke:#d84315,stroke-width:2px;
-```
----
-
-## 🏭 4. Descripción Técnica de la Planta (Manufactura Flexible)
-La planta modular se compone de 5 estaciones de trabajo automatizadas mediante controladores lógicos programables **Siemens SIMATIC S7-200 CN** interconectados en un bus multipunto serial **RS-485** bajo topología en cascada (*Daisy-Chain*):
-
-1. **Unidad de Alimentación (Feeding Unit):** Controlada por CPU 224 CN. Administra el dispensado por gravedad y eyección neumática de piezas base.
-2. **Unidad de Procesamiento (Processing Unit):** Controlada por CPU 224 CN. Ejecuta la simulación de estampado y maquinado mediante cilindros neumáticos y mordaza de sujeción.
-3. **Unidad de Ensamblaje (Assembly Unit):** Controlada por CPU 226 CN. Montaje de tapas y pasadores mediante actuador rotativo y pinza neumática.
-4. **Unidad de Transporte (Transmission Unit):** Controlada por CPU 226 CN (DC/DC/DC). **Nodo Maestro del bus RS-485**; gestiona la cinemática del manipulador de 3 GDL acoplado a un servomotor Panasonic y transportador lineal.
-5. **Unidad de Selección (Sorting Unit):** Controlada por CPU 224XP CN. Clasificación selectiva de materiales (metálicos y no metálicos) sobre cinta transportadora accionada por motor trifásico y VFD POWTRAN PT9100A (consigna analógica 0-10 V).
-
----
-
-## 📂 5. Estructura del Repositorio
-La organización de directorios cumple con la jerarquía estandarizada de ingeniería:
+La **Fase 1: Auditoría Kaizen e Ingeniería Inversa** sienta las bases de confiabilidad física, abstracción teórica y gobierno de código de la planta antes de cualquier intervención de control avanzado:
 
 ```text
-├── database/
-│   └── scripts/                  # Scripts DDL/DML, modelos CASE y esquemas E-R normalizados
-├── documentation/
-│   ├── manuales_ingenieria_inversa/ # Fichas técnicas de sensores, actuadores y reportes de campo
-│   └── planos_isa/               # Planos P&ID (ANSI/ISA-S5.1) y esquemas eléctricos (IEC) en DWG/PDF
-├── docs/                         # Entorno de visualización y despliegue web
-└── README.md                     # Memoria descriptiva principal del proyecto
++-------------------------------------------------------------------------------------------------------+
+|                               CRONOGRAMA DE LA FASE 1 (SEMANAS 1 A 6)                                 |
++-------------------------------------------------------------------------------------------------------+
+|  SEMANAS 1 - 2: LABORATORIO 1                                                                         |
+|  Levantamiento Físico de Activos, Fenomenología y Arquitectura Cliente-Servidor                      |
+|  • Auditoría estática cable a cable desmintiendo antecedentes obsoletos (VFD trifásico en selección). |
+|  • Mapeo formal de direcciones I/O de las 5 CPUs Siemens S7-200.                                      |
+|  • Demostración analítica de ruptura de lazo y pérdida de observabilidad (C = [0  0]).                |
+|  • Inspección de latencias de comunicación del puerto serie RS-485 vs. PC de adquisición.             |
++-------------------------------------------------------------------------------------------------------+
+|  SEMANAS 3 - 4: LABORATORIO 2                                                                         |
+|  Normalización Internacional de Planos (ISA/IEC) y Modelado de Datos de Campo                         |
+|  • Estandarización de diagramas P&ID bajo norma ANSI/ISA-S5.1-2009 (lazos, burbujas, tags).          |
+|  • Elaboración de esquemas eléctricos de potencia y mando bajo norma IEC 60617 / IEC 81346.           |
+|  • Diseño de Mockups UI/UX para panel HMI local de mesa y Dashboard SCADA/ERP centralizado (ISA-101).|
++-------------------------------------------------------------------------------------------------------+
+|  SEMANAS 5 - 6: LABORATORIO 3                                                                         |
+|  Gestión Colaborativa con Git/GitHub y Base de Datos Relacional Normalizada                           |
+|  • Flujo de desarrollo profesional con ramas por subsistema (`feature/*`) y Pull Requests auditados.  |
+|  • Implementación del esquema de base de datos relacional para PostgreSQL en Tercera Forma Normal (3FN)|
+|  • Registro atómico de actividad en consola de los 7 miembros de la escuadra concurrente.             |
++-------------------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 🛠️ 6. Resumen de Hallazgos y Auditoría Kaizen (Lab 1)
-Durante la inspección cable por cable y análisis fenomenológico se identificaron las siguientes discrepancias críticas respecto a los antecedentes históricos:
-* **Identificación de Actuador en Selección:** Se rectificó que el accionamiento principal es un motor AC trifásico alimentado por VFD POWTRAN PT9100A (entrada monofásica 220 VAC, salida trifásica), desmintiendo reportes históricos erróneos.
-* **Sensores Omitidos:** Incorporación al inventario de los sensores capacitivos Winston CM18 en la unidad de selección.
-* **Ruptura de Causalidad y Lazo Abierto:** Demostración analítica de pérdida de observabilidad ($C = [0\ 0]$) y riesgo de colisión o *deadlock* ante fallas en los sensores magnéticos (SMC D-C73) de la prensa de procesado.
-* **Seguridad Crítica:** Detección de avería mecánica interna en la parada de emergencia (Tag QS) de la estación de transporte (bloqueada en '1' lógico).
+## 🏛️ 4. Arquitectura del Repositorio
+
+A continuación se detalla la estructura física de directorios del proyecto, modularizada para garantizar navegación limpia y trazabilidad absoluta:
+
+```text
+maqueta-manufactura-xk335b/
+│
+├── .nojekyll                                  # Previene omisiones de directorios en despliegues estáticos
+├── .gitignore                                 # Exclusión de temporales Python, SO y logs locales
+├── README.md                                  # Manual maestro general de la Fase 1 (este documento)
+├── _sidebar.md                                # Estructura de navegación para motores de documentación
+├── index.html                                 # Plataforma Web SPA optimizada para Cloudflare Pages
+│
+├── database/                                  # PERSISTENCIA Y MODELADO DE DATOS (ETN-1000)
+│   ├── README.md                              # Guía técnica: Arquitectura 3 capas, 1FN/2FN/3FN y diccionarios
+│   └── scripts/                               # Scripts ejecutables SQL normalizados
+│       ├── 01_schema_telemetria_3fn.sql       # DDL: Creación de tablas de telemetría, alarmas y logs
+│       ├── 02_seed_data_xk335b.sql            # DML: Catálogo auditado de estaciones, instrumentos y tags
+│       └── 03_indices_optimizacion.sql        # Índices B-Tree para series temporales y triggers automáticos
+│
+└── Documentacion/                             # ACERVO TÉCNICO Y DOCUMENTACIÓN INDUSTRIAL
+    │
+    ├── ingenieria-inversa/                    # AUDITORÍA DE CAMPO Y REPORTES OFICIALES (Lab 1)
+    │   ├── README.md                          # Memoria Kaizen, inventario y demostración matemática de lazo
+    │   ├── Informe_Laboratorio_1.pdf          # Informe oficial compilado de 40 páginas
+    │   └── datasheets/                        # BIBLIOTECA DE FICHAS TÉCNICAS DE FABRICANTE
+    │       ├── README.md                      # Catálogo clasificado por controlador, actuador y sensor
+    │       ├── s7200_system_manual_es-ES.pdf  # Manual de sistema Siemens SIMATIC S7-200
+    │       ├── Technical reference_AC Servo...# Referencia técnica Servodriver Panasonic MINAS A4
+    │       ├── PI9000_English_Manual_V17.0.pdf# Manual Variador de Frecuencia POWTRAN PT9100A
+    │       ├── sensor_e3z-ls.pdf              # Ficha técnica sensor fotoeléctrico Omron E3Z-LS
+    │       └── ... (13 manuales oficiales)    # Cilindros SMC, válvulas Airtac, encoders y borneras RTB
+    │
+    ├── Planos/                                # PLANOS DE INGENIERÍA NORMALIZADOS (Lab 2)
+    │   ├── README.md                          # Guía de estándares: Diferenciación entre P&ID e IEC
+    │   │
+    │   ├── Diagrama_Electrico/                # ESQUEMAS DE POTENCIA Y MANDO (Norma IEC 60617 / 81346)
+    │   │   ├── README.md                      # Niveles de tensión (220VAC / 24VDC), código de colores y bornes
+    │   │   ├── 1_Transporte/README.md         # Servodriver Panasonic, salidas PTO, parada de emergencia
+    │   │   ├── 2_Alimentacion/README.md       # Electroválvula eyectora 24VDC, sensor óptico de tolva
+    │   │   ├── 3_Ensamblaje/README.md         # Actuador rotativo oscilante y pinza angular MHC
+    │   │   ├── 4_Procesamiento/README.md      # Prensa de estampado y mordaza de sujeción
+    │   │   └── 5_Seleccion/README.md          # Circuito trifásico VFD POWTRAN, motor AC y encoder HSC0
+    │   │
+    │   ├── Diagrama_P&ID/                     # DIAGRAMAS DE INSTRUMENTACIÓN (Norma ANSI/ISA-S5.1-2009)
+    │   │   ├── README.md                      # Reglas de codificación de tags, lazos, burbujas y líneas
+    │   │   ├── 1_Transporte/README.md         # Lazos de posición horizontal (ZTC-101) y enclavamientos
+    │   │   ├── 2_Alimentacion/README.md       # Lazos de dosificación neumática (ZIC-201) y nivel (BTE-201)
+    │   │   ├── 3_Ensamblaje/README.md         # Lazos de giro angular 0-180° y manipulación de componentes
+    │   │   ├── 4_Procesamiento/README.md      # Lazos de prensado (ZIC-301) y análisis de observabilidad
+    │   │   └── 5_Seleccion/README.md          # Lazos de velocidad analógica (SIC-501) y discriminación
+    │   │
+    │   └── mockups/                           # PROTOTIPOS UI/UX HMI & SCADA (Norma ISA-101)
+    │       └── README.md                      # Wireframes de panel táctil de mesa y Dashboard ERP web
+    │
+    └── evidencias/                            # BANCO DE PRUEBAS VISUALES Y AUDITORÍA KAIZEN
+        ├── README.md                          # Matriz de diagnósticos de campo, causa raíz y severidad
+        └── assets/                            # 16 fotografías y diagramas extraídos de la auditoría real
+            ├── fig01_portada_maqueta_xk335b.png
+            ├── fig02_sensores_capacitivos_motor_trifasico.png
+            ├── fig04_carcasa_fracturada_plc_s7200.png
+            ├── fig05_sensores_fijados_silicona_cinta.png
+            ├── fig06_desalineacion_piston_pinza.png
+            ├── fig07_conexion_no_documentada_vfd_giro.png
+            ├── fig08_cable_sensor_aislamiento_danado.png
+            └── ... (diagramas de bloques y cableados)
+```
 
 ---
 
-## 7. Metodología de Trabajo y Gestión del Ciclo de Vida (Git / Kaizen)
+## 🏭 5. Descripción Técnica de las 5 Estaciones de Planta
 
-En cumplimiento con los requerimientos pedagógicos y de control de versiones del Laboratorio Nº 3 (Fase 1: Auditoría Kaizen e Ingeniería Inversa), la escuadra opera bajo un flujo de desarrollo concurrente estructurado por asignaturas:
+La línea modular de manufactura flexible XK-335B procesa piezas cilíndricas secuencialmente mediante cinco unidades coordinadas en un bus serial **RS-485 Daisy-Chain**:
 
-### 7.1. Estructura y Custodia Documental (ETN-902)
-* **Trazabilidad de Planos e Informes:** Los diagramas P&ID bajo norma ANSI/ISA-S5.1 y esquemas eléctricos bajo norma IEC se versionan de forma incremental en el directorio `/documentation/planos_isa/`.
-* **Historial de Modificaciones:** Cada ajuste físico o corrección sobre la instrumentación se registra mediante commits atómicos descriptivos en consola (`git commit -m "docs(isa): ..."`), respaldando la evolución hacia la Versión 2.0 de los planos de planta.
+1. **Estación 1: Unidad de Transporte (Transmission Unit) — Nodo Maestro**  
+   Controlada por una CPU **SIMATIC S7-226 CN (DC/DC/DC)**. Dispone de un servomotor y servodriver **Panasonic MINAS A4** acoplado a un husillo de bolas que traslada un carro con manipulador de 3 GDL (elevación neumática, avance horizontal y pinza angular).
+2. **Estación 2: Unidad de Alimentación (Feeding Unit) — Nodo 2**  
+   Controlada por una CPU **SIMATIC S7-224 CN**. Aloja piezas de trabajo en una tolva tubular vertical de gravedad, detectadas por un sensor fotoeléctrico **Omron E3Z-LS61**, y expulsadas a la posición de recogida mediante un cilindro compacto **SMC CQ2**.
+3. **Estación 3: Unidad de Procesamiento (Processing Unit) — Nodo 3**  
+   Controlada por una CPU **SIMATIC S7-224 CN**. Retiene mecánicamente la pieza mediante una mordaza lateral accionada por cilindro guiado **SMC MGPM** y simula punzonado/estampado mediante un cilindro neumático de prensa vertical monitoreado por reed switches **SMC D-C73**.
+4. **Estación 4: Unidad de Ensamblaje (Assembly Unit) — Nodo 4**  
+   Controlada por una CPU **SIMATIC S7-226 CN**. Dispone de un actuador neumático rotativo oscilante (0° a 180°) y pinza angular **SMC MHC2-16D** para tomar tapas o pasadores desde un almacén auxiliar e insertarlos en la base.
+5. **Estación 5: Unidad de Selección (Sorting Unit) — Nodo 5**  
+   Controlada por una CPU **SIMATIC S7-224XP CN**. Cuenta con una cinta transportadora accionada por motor asíncrono trifásico y variador de frecuencia **POWTRAN PT9100A** (consigna analógica de 0 a 10 VDC desde salida `AQW0` y retroalimentación de velocidad por encoder incremental de 1000 PPR en `HSC0`). Clasifica piezas metálicas (mediante sensor inductivo LM18) y plásticas (mediante sensor capacitivo Winston CM18) hacia tolvas independientes.
 
-### 7.2. Ramificaciones Operativas y Revisión Técnica (ETN-1034)
-* **Aislamiento por Estación (Branching):** Para evitar sobreescritura accidental, las modificaciones de hardware, mapeo I/O de los PLCs Siemens S7-200 y rutinas de automatización se desarrollan en ramas específicas por subsistema:
-  * `feature/alimentacion-s7200`
-  * `feature/procesamiento-pinza`
-  * `feature/transporte-maestro-rs485`
-  * `feature/seleccion-vfd-motor`
-* **Flujo de Integración (Pull Requests & Code Review):** La incorporación de cambios a la rama principal (`main`) se ejecuta exclusivamente mediante *Pull Requests* auditados en la interfaz de GitHub, garantizando que todo cambio cumpla con las normas técnicas antes de su fusión (*merge*).
+---
 
-### 7.3. Persistencia y Diccionario de Datos (ETN-1000)
-* **Modelado Relacional Normalizado:** Los scripts de base de datos DDL/DML para PostgreSQL y los esquemas en herramientas CASE se custodian en `/database/scripts/`, garantizando el cumplimiento de la Tercera Forma Normal (3FN).
-* **Consistencia Semántica:** Se audita que las tablas de telemetría y alarmas empleen exactamente la misma nomenclatura de variables y *tags* (PV, MV, DV) definida en los planos P&ID.
+## 🛠️ 6. Resumen de la Auditoría Kaizen (Discrepancias Físicas Detectadas)
 
-### 7.4. Criterio de Calificación (Definition of Done)
-* **Trazabilidad Total:** Registro obligatorio de actividad (*commits*) de la totalidad de los 7 integrantes del equipo interdisciplinar en el historial del repositorio (`git log --oneline --graph`).
-* **Filtro de Seguridad:** No se autoriza el despliegue de código en hardware físico ni energización en caliente sin la auditoría previa de las simulaciones y la aprobación formal de la documentación técnica.
+La inspección física cable a cable del Laboratorio 1 contrastó la planta real contra los esquemas legados, identificando discrepancias de alta criticidad:
+* **Rectificación de Motor en Selección:** Se constató que el accionamiento es un motor asíncrono trifásico alimentado por VFD POWTRAN PT9100A (220 VAC mono a tri), descartando afirmaciones históricas erróneas sobre motores paso a paso.
+* **Presencia de Sensores Capacitivos:** Se integró al inventario el sensor Winston CM18-3008NA para discriminación dieléctrica de plásticos.
+* **Ruptura de Causalidad en Prensa:** Se formuló la pérdida de observabilidad ($C = [0\ 0]$) ante fallas en los sensores magnéticos SMC pegados con silicona, demostrando el riesgo de bloqueo infinito (*deadlock*).
+* **Seguridad Crítica:** Se detectó el pulsador de parada de emergencia `QS-101` mecánicamente trabado en '1' lógico permanente, impidiendo la desenergización segura del manipulador.
+* **Conexión de Marcha Inversa No Documentada:** Se descubrió un cable directo entre el PLC de selección y el borne `REV` del VFD que no figuraba en ningún esquema previo.
+
+---
+
+## 🌿 7. Metodología de Trabajo y Gestión Git (Lab 3)
+
+El equipo aplica estándares profesionales de control de versiones y flujo colaborativo:
+* **Estrategia de Ramificación (Branching por Subsistema):**
+  - `main`: Rama de producción y versiones consolidadas oficiales.
+  - `feature/transporte-maestro-rs485`: Desarrollos de la Estación 1.
+  - `feature/alimentacion-s7200`: Desarrollos de la Estación 2.
+  - `feature/procesamiento-pinza`: Desarrollos de la Estación 3.
+  - `feature/ensamblaje-rotativo`: Desarrollos de la Estación 4.
+  - `feature/seleccion-vfd-motor`: Desarrollos de la Estación 5.
+  - `feature/database-model`: Modelado relacional y scripts SQL.
+* **Revisiones de Código (Pull Requests):** La fusión hacia `main` exige aprobación previa con revisión de cumplimiento de normas ISA/IEC y verificación de integridad referencial SQL.
+* **Commits Convencionales:** Registro de cambios con prefijos estandarizados (`docs(isa):`, `feat(sql):`, `fix(elec):`, `audit(kaizen):`).
+
+---
+
+## 🚀 8. Navegación Rápida por el Repositorio
+
+* 🌐 **[Portal Web en Cloudflare Pages](index.html):** Visor interactivo de documentos, planos y galería de evidencias.
+* 📄 **[Informe Técnico Lab 1 (PDF)](Documentacion/ingenieria-inversa/Informe_Laboratorio_1.pdf):** Documento oficial de auditoría fenomenológica.
+* ⚡ **[Esquemas Eléctricos (IEC)](Documentacion/Planos/Diagrama_Electrico/):** Mapeo de bornes, tableros y distribución 220VAC/24VDC.
+* 📊 **[Diagramas P&ID (ISA)](Documentacion/Planos/Diagrama_P&ID/):** Simbología funcional, lazos de control e instrumentación.
+* 📑 **[Catálogo de Datasheets](Documentacion/ingenieria-inversa/datasheets/):** Manuales técnicos de Siemens, Panasonic, POWTRAN, SMC y Omron.
+* 🗄️ **[Base de Datos y Scripts SQL](database/):** Esquema DDL en 3FN, datos semilla y triggers de telemetría.
+* 📸 **[Galería de Evidencias Kaizen](Documentacion/evidencias/):** Fotografías de auditoría estática y diagnósticos de campo.
+* 🖥️ **[Mockups HMI & SCADA](Documentacion/Planos/mockups/):** Prototipos visuales de paneles de operador bajo norma ISA-101.
