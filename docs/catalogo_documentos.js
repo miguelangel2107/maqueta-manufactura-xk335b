@@ -46,6 +46,20 @@ const CATALOGO_DOCUMENTOS = [
     badgeText: "Plano CAD (IEC)",
     descripcion: "Esquema unifilar y multifilar oficial exportado desde AutoCAD Electrical para la Estación 2: conexionado de electroválvulas Airtac, sensor fotoeléctrico Omron y regleta de bornes."
   },
+
+  {
+    id: "plano-elec-est3-cad",
+    orden_prioridad: 9,
+    titulo: "Plano Eléctrico CAD: Unidad de Ensamblaje (IEC 60617)",
+    archivo: "EnsamblajeCAD.pdf",
+    ruta: "Documentacion/Planos/Diagrama_Electrico/3_Ensamblaje/EnsamblajeCAD.pdf",
+    categoria: "electrico",
+    estaciones: ["3"],
+    badgeClass: "badge-electrico",
+    badgeText: "Plano CAD (IEC)",
+    descripcion: "Esquema unifilar y multifilar oficial exportado desde AutoCAD Electrical para la Estación 3: conexionado de electroválvulas Airtac, sensor fotoeléctrico Omron y regleta de bornes."
+  },
+
   {
     id: "norma-electrica-master",
     orden_prioridad: 11,
