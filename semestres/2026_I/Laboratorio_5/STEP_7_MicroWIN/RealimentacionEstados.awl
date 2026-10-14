@@ -1,0 +1,134 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=
+BEGIN
+Network 1 // Inicializacion de Constantes de Control
+// Respuesta sobreamortiguada: K1 = 97.26, K2 = 25.64, N = 97.26
+// Respuesta subamortiguada: K1 = 177.49, K2 = 2.89, N = 177.49
+LD     SM0.1
+MOVR   97.26, VD120                // K1
+MOVR   25.64, VD124                // K2
+MOVR   97.26, VD132                // N (Pre-compensacion inicial = K1)
+MOVR   0.0, VD104                  // Reset Pos_Anterior
+
+Network 2 //  Llamada a Subrutina de Inicializacion de HSC
+LD     SM0.1
+CALL   SBR1                        // Llamada a HSC_INIT
+
+Network 3 //  Configuracion de Interrupcion 10ms
+LD     SM0.1
+MOVB   10, SMB34
+ATCH   INT0, 10
+ENI
+Network 4 // Ingresar setpoint de forma dinamica
+LD     SM0.0
+MOVR   VD136, VD112
+END_ORGANIZATION_BLOCK
+SUBROUTINE_BLOCK SBR_0:SBR0
+TITLE=SUBROUTINE COMMENTS
+BEGIN
+Network 1 // Network Title
+// Network Comment
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK HSC_INIT:SBR1
+TITLE=
+BEGIN
+Network 1 // Instruction Wizard HSC
+// To enable this configuration within the program, Use SM0.1 or an edge-triggered instruction to call this Subroutine once from the MAIN program block.  
+// Configure HC0 for Mode 9; CV = 0; PV = 0; count UP; 
+// Enable interrupts and start counter.
+// 
+LD     SM0.0
+MOVB   16#FC, SMB37                //Set control bits: count UP; rate 1X; enabled; 
+MOVD   +0, SMD38                   //Load CV
+MOVD   +0, SMD42                   //Load PV
+HDEF   0, 9
+ENI
+HSC    0
+END_SUBROUTINE_BLOCK
+INTERRUPT_BLOCK INT_0:INT0
+TITLE=
+BEGIN
+Network 1 
+LDN    I1.4
+JMP    0
+
+Network 2 //  Lectura Segura de Posicion
+LD     I1.4
+MOVD   HC0, AC0                    // Primero mover a AC0 (Búfer)
+DTR    AC0, VD100                  // Luego convertir a REAL
+
+Network 3 //  Calculo de Velocidad
+LD     I1.4
+MOVR   VD100, AC0
+-R     VD104, AC0                  // Delta Pos
+*R     100.0, AC0                  // Equivalente a / 0.01s (Mas estable)
+MOVR   AC0, VD108                  // VD108 = Vel_Actual
+
+Network 4 //  Ley de Control - Parte 1 (N*SP - K1*x1)
+LD     I1.4
+MOVR   VD132, AC0                  // N
+*R     VD112, AC0                  // N * SP
+MOVR   VD120, AC1                  // K1
+*R     VD100, AC1                  // K1 * x1
+-R     AC1, AC0                    // AC0 = N*SP - K1*x1
+MOVR   AC0, VD116                  // Guardado temporal
+
+Network 5 //  Ley de Control - Parte 2 (u - K2*x2)
+LD     I1.4
+MOVR   VD124, AC1                  // K2
+*R     VD108, AC1                  // K2 * x2
+MOVR   VD116, AC0
+-R     AC1, AC0                    // AC0 = Accion Final
+MOVR   AC0, VD116                  // Accion_Control final
+
+Network 6 //  Direccion y Valor Absoluto
+LD     I1.4
+AR>=   VD116, 0.0
+R      Q0.1, 1                     // FWD
+MOVR   VD116, VD128
+
+Network 7 //  Direccion Inversa
+LD     I1.4
+AR<    VD116, 0.0
+S      Q0.1, 1                     // REV
+MOVR   VD116, VD128
+*R     -1.0, VD128                 // |u|
+
+Network 8 //  Saturacion
+LD     I1.4
+AR>    VD128, 32000.0
+MOVR   32000.0, VD128
+
+Network 9 //  Conversion Segura a Salida Analogica
+LD     I1.4
+ROUND  VD128, AC0                  // Convertir a DINT en AC0
+DTI    AC0, AC1                    // Convertir DINT a INT en AC1 (Búfer)
+MOVW   AC1, AQW0                   // Mover Word a Salida (Forma mas segura)
+
+Network 10 //  Mando de Marcha
+LD     I1.4
+AR>    VD128, 100.0
+S      Q0.0, 1
+
+Network 11 //  Mando de Parada
+LD     I1.4
+AR<=   VD128, 100.0
+R      Q0.0, 1
+
+Network 12 //  Cierre de Ciclo
+LD     I1.4
+MOVR   VD100, VD104                // Guardar Posicion para sig. ciclo
+CRETI
+
+Network 13 //  Label de Emergencia
+LBL    0
+
+Network 14 //  Parada Segura
+LD     SM0.0
+R      Q0.0, 1
+R      Q0.1, 1
+MOVW   0, AQW0
+MOVR   0.0, VD116
+MOVR   VD100, VD104
+
+END_INTERRUPT_BLOCK

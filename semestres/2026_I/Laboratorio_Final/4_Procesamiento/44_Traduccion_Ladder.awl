@@ -1,0 +1,232 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=UNIDAD DE PROCESAMIENTO - RED DE PETRI (CIPN) - 5 MODULOS
+//  LOGICA BASADA EN REDES DE PETRI INTERPRETADAS
+//  MODULO 1: INICIALIZACION
+//  MODULO 2: EVENTOS
+//  MODULO 3: DISPARO
+//  MODULO 4: DINAMICA
+//  MODULO 5: ACCIONES
+BEGIN
+Network 1 //  MODULO 1: INICIALIZACION
+//  Marcado Inicial
+
+LD     SM0.1                       // P0 Reposo activo
+S      M0.0, 1                     // Limpieza de marcas P1 a M0.7
+R      M0.1, 7
+Network 2 //  MODULO 2: EVENTOS (CAPTURA DE SENSORES)
+//  Solicitud de Marcha activado por boton o mediante solicitud de marcha en la marca V1.1
+
+
+
+LD     I1.3
+O      V1.1
+=      M2.0
+Network 3 // Desactivacion de la solicitud de marcha mediante acknowledgement
+LD     M2.0
+=      V0.1
+Network 4 //  Sensor Pieza en Base
+
+
+LD     I0.0
+=      M2.1
+Network 5 //  Sensor Pinza Cerrada
+
+
+LD     I0.1
+=      M2.2
+Network 6 //  Sensor Carro en Origen (CilL Extendido)
+
+
+LD     I0.2
+=      M2.3
+Network 7 //  Sensor Carro en Prensa (CilL Retraido)
+
+
+LD     I0.3
+=      M2.4
+Network 8 //  Sensor Prensa Abajo (CilD Extendido)
+// Se intercambio I0.5 con I0.4 de forma provisional debido a que los sensores se intercambiaron
+
+
+LD     I0.4
+=      M2.5
+Network 9 //  Sensor Prensa Arriba (CilD Retraido)
+
+
+LD     I0.5
+=      M2.6
+Network 10 //  MODULO 3: CONDICIONES DE DISPARO (FIRING)
+//  Transicion T0: Inicio Ciclo
+
+
+
+
+LD     M0.0
+LPS
+A      M2.0
+A      M2.1
+=      M1.0
+LPP
+=      V0.2
+Network 11 //  Transicion T1: Sujecion OK
+
+
+
+LD     M0.1
+A      M2.2
+=      M1.1
+Network 12 //  Transicion T2: Carro en Prensa
+
+
+
+LD     M0.2
+A      M2.4
+=      M1.2
+Network 13 //  Transicion T3: Prensa Abajo
+
+
+
+LD     M0.3
+A      M2.5
+=      M1.3
+Network 14 //  Transicion T4: Prensa Arriba
+
+
+
+LD     M0.4
+A      M2.6
+=      M1.4
+Network 15 //  Transicion T5: Carro en Origen
+// Adicionalmente activa la solicitud de procesamiento a ensamblaje la cual sera leida por el maestro (Transporte)
+// Esta solicitud funciona como enclavamiento que impide volver al estado de reposo hasta que sea atendida
+
+
+
+LD     M0.5
+LPS
+A      M2.3
+AN     V0.0
+=      M1.5
+LPP
+EU
+S      V0.0, 1
+Network 16 // Reseteo de la solicitud por acknowledgement
+// La unidad de transporte activa V1.0 como acuse de recibo cuando atiende la solicitud V0.0
+// Por ende en necesario desactivar la solicitud para evitar repeticiones.
+LD     V1.0
+EU
+R      V0.0, 1
+Network 17 //  MODULO 4: DINAMICA DE LA RED (EVOLUCION DE ESTADOS)
+//  Evolucion T0: P0 a P1
+
+
+
+LD     M1.0
+R      M0.0, 1
+S      M0.1, 1
+Network 18 //  Evolucion T1: P1 a P2
+
+
+
+LD     M1.1
+R      M0.1, 1
+S      M0.2, 1
+Network 19 //  Evolucion T2: P2 a P3
+
+
+
+LD     M1.2
+R      M0.2, 1
+S      M0.3, 1
+Network 20 //  Evolucion T3: P3 a P4
+
+
+
+LD     M1.3
+R      M0.3, 1
+S      M0.4, 1
+Network 21 //  Evolucion T4: P4 a P5
+
+
+
+LD     M1.4
+R      M0.4, 1
+S      M0.5, 1
+Network 22 //  Evolucion T5: P5 a P0
+
+
+
+LD     M1.5
+R      M0.5, 1
+S      M0.0, 1
+Network 23 //  Seguridad: Salto por Emergencia
+
+
+LDN    I1.4
+JMP    0
+Network 24 //  MODULO 5: ACCIONES (SALIDAS FISICAS)
+//  Accion: Pinza (Q0.0) Activa en P1-P5
+
+
+
+
+
+
+LD     M0.1
+O      M0.2
+O      M0.3
+O      M0.4
+O      M0.5
+=      Q0.0
+Network 25 //  Accion: Traslacion In (Q0.2) Activa en P2-P4
+
+
+
+
+LD     M0.2
+O      M0.3
+O      M0.4
+=      Q0.2
+Network 26 //  Accion: Prensado Baja (Q0.3) Activa en P3
+
+
+LD     M0.3
+=      Q0.3
+Network 27 //  Senalizacion: Lampara Verde
+
+
+
+
+
+
+LD     M0.1
+O      M0.2
+O      M0.3
+O      M0.4
+O      M0.5
+=      Q1.0
+Network 28 //  Senalizacion: Lampara Roja
+
+
+
+
+LD     M0.0
+AN     M2.1
+ON     I1.4
+=      Q1.1
+Network 29 //  Etiqueta para Emergencia
+
+LBL    0
+Network 30 //  Parada de Emergencia: Reset de marcas y retorno a P0
+
+
+
+LDN    I1.4
+R      M0.1, 7
+S      M0.0, 1
+END_ORGANIZATION_BLOCK
+SUBROUTINE_BLOCK SBR_0:SBR0
+TITLE=
+BEGIN
+Network 1 
+END_SUBROUTINE_BLOCK

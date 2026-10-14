@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMI SCADA - Planta de Manufactura Flexible S7-200</title>
+    <!-- Google Fonts: Inter and Share Tech Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER SCADA -->
+        <header class="scada-header">
+            <div class="header-main">
+                <div class="logo-area">
+                    <span class="pulse-dot" id="connection-dot"></span>
+                    <h1>HMI SCADA <span class="subtitle">Manufactura Flexible S7-200</span></h1>
+                    <!-- Boton para activar el modo de simulacion local -->
+                    <button id="btn-demo-mode" class="btn-demo" onclick="toggleDemoMode()">MODO DEMO: OFF</button>
+                </div>
+                <div class="connection-status" id="connection-text">
+                    Estableciendo conexion...
+                </div>
+            </div>
+            
+            <!-- Panel de Seguridad / Inicio de Sesion SCADA -->
+            <div class="header-security-panel">
+                <div id="auth-logged-out" class="auth-box">
+                    <input type="text" id="username-input" placeholder="Usuario" class="auth-input" />
+                    <input type="password" id="password-input" placeholder="Contrasena" class="auth-input" />
+                    <button onclick="loginUser()" class="btn-auth-action">INGRESAR</button>
+                </div>
+                <div id="auth-logged-in" class="auth-box" style="display: none;">
+                    <span class="auth-user-info">Sesion: <strong id="logged-username">--</strong> <span class="badge-role" id="logged-role">--</span></span>
+                    <button onclick="logoutUser()" class="btn-auth-action btn-logout">SALIR</button>
+                </div>
+            </div>
+
+            <div class="header-stats">
+                <!-- Contador de piezas principal -->
+                <div class="stat-box">
+                    <span class="stat-label">PIEZAS PROCESADAS</span>
+                    <span class="stat-value" id="global-pieces-counter">0</span>
+                </div>
+                <!-- Pantalla del Servo -->
+                <div class="stat-box servo-box">
+                    <span class="stat-label">COORDENADA SERVO (VD34)</span>
+                    <span class="stat-value digital-display" id="servo-position">000000</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN UNIFIED MAQUETA (Interactive SVG Console) -->
+        <section class="maqueta-section">
+            <div class="maqueta-card">
+                <h2>Maqueta Consolidada de la Planta</h2>
+                <div class="maqueta-body">
+                    <svg viewBox="0 0 1000 610" id="maqueta-svg" class="transport-svg">
+                        <!-- Definicion de Estilos y Degradados del SVG -->
+                        <defs>
+                            <linearGradient id="cabinet-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#1e293b" stop-opacity="0.9" />
+                                <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+                            </linearGradient>
+                            <radialGradient id="led-red" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#f87171" />
+                                <stop offset="100%" stop-color="#ef4444" />
+                            </radialGradient>
+                            <radialGradient id="led-green" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#34d399" />
+                                <stop offset="100%" stop-color="#10b981" />
+                            </radialGradient>
+                            <radialGradient id="led-gray" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#64748b" />
+                                <stop offset="100%" stop-color="#334155" />
+                            </radialGradient>
+                            <linearGradient id="btn-green-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#14b8a6" />
+                                <stop offset="100%" stop-color="#0f766e" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- ESTACION 5: SELECCION (x = 140) -->
+                        <g id="station-group-sele">
+                            <!-- Gabinete Industrial -->
+                            <rect x="30" y="40" width="220" height="340" fill="url(#cabinet-grad)" rx="8" stroke="#ef4444" stroke-width="1.5" />
+                            <text x="140" y="58" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700" font-family="Inter">ST5: SELECCION</text>
+                            
+                            <!-- Indicador LED de Disponibilidad -->
+                            <circle id="svg-sele-led" cx="100" cy="72" r="7" fill="url(#led-gray)" stroke="#475569" stroke-width="1" />
+                            <text x="112" y="75" fill="#94a3b8" font-size="8" font-family="Inter" font-weight="600">DISPONIBLE</text>
+                            
+                            <!-- Boton de Marcha Industrial -->
+                            <g id="btn-start-sele" transform="translate(155, 105)" cursor="pointer" onclick="lanzarCiclo(3)">
+                                <circle cx="0" cy="0" r="18" fill="#0f172a" stroke="#475569" stroke-width="2" />
+                                <circle cx="0" cy="0" r="14" fill="url(#btn-green-grad)" />
+                                <text x="0" y="3" text-anchor="middle" fill="#ffffff" font-size="7" font-weight="700" font-family="Inter">START</text>
+                            </g>
+                            
+                            <!-- Valores de Estado -->
+                            <text x="140" y="142" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">Estado: <tspan id="svg-sele-status" fill="#ef4444" font-weight="700">--</tspan></text>
+                            <text x="140" y="157" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">Pieza: <tspan id="svg-sele-piece" font-weight="700">NINGUNA</tspan></text>
+                            
+                            <!-- Edicion de Posicion (VD22) -->
+                            <foreignObject x="88" y="175" width="104" height="32">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="svg-input-wrapper">
+                                    <input type="number" id="input-pos-sele" value="0" title="Coordenada VD22" />
+                                    <button onclick="guardarPosicionDirecta('sele', 11, 'input-pos-sele')">💾</button>
+                                </div>
+                            </foreignObject>
+
+                            <!-- MAQUETA INTERNA SELECCION (Cinta, rampas, pistones empujadores) -->
+                            <g id="maqueta-sele-interna">
+                                <!-- Cinta transportadora horizontal -->
+                                <rect x="50" y="333" width="180" height="10" fill="#334155" rx="2" />
+                                <line x1="52" y1="338" x2="228" y2="338" stroke="#1e293b" stroke-width="2" stroke-dasharray="6 3" id="sele-belt-line" />
+                                
+                                <!-- Rampas de clasificacion -->
+                                <!-- Ramp 1: Metalica -->
+                                <line x1="90" y1="343" x2="70" y2="373" stroke="#10b981" stroke-width="3" />
+                                <text x="66" y="378" fill="#10b981" font-size="7" font-weight="600" font-family="Share Tech Mono">MET</text>
+                                <!-- Ramp 2: Mixta -->
+                                <line x1="140" y1="343" x2="120" y2="373" stroke="#f59e0b" stroke-width="3" />
+                                <text x="116" y="378" fill="#f59e0b" font-size="7" font-weight="600" font-family="Share Tech Mono">MIX</text>
+                                <!-- Ramp 3: Plastica -->
+                                <line x1="190" y1="343" x2="170" y2="373" stroke="#3b82f6" stroke-width="3" />
+                                <text x="166" y="378" fill="#3b82f6" font-size="7" font-weight="600" font-family="Share Tech Mono">PLA</text>
+                                
+                                <!-- Pistones empujadores (Pusher rods) -->
+                                <!-- Piston 1: Metalica -->
+                                <rect id="sele-pusher-1" x="87" y="298" width="6" height="30" fill="#64748b" rx="1" />
+                                <rect x="84" y="293" width="12" height="6" fill="#475569" />
+                                <!-- Piston 2: Mixta -->
+                                <rect id="sele-pusher-2" x="137" y="298" width="6" height="30" fill="#64748b" rx="1" />
+                                <rect x="134" y="293" width="12" height="6" fill="#475569" />
+                                <!-- Piston 3: Plastica -->
+                                <rect id="sele-pusher-3" x="187" y="298" width="6" height="30" fill="#64748b" rx="1" />
+                                <rect x="184" y="293" width="12" height="6" fill="#475569" />
+
+                                <!-- Pieza en movimiento por la cinta / rampa -->
+                                <circle id="sele-piece-sim" cx="55" cy="328" r="9" fill="#ef4444" opacity="0" />
+                            </g>
+                        </g>
+
+                        <!-- ESTACION 3: ENSAMBLAJE (x = 380) -->
+                        <g id="station-group-ensa">
+                            <!-- Gabinete Industrial -->
+                            <rect x="270" y="40" width="220" height="340" fill="url(#cabinet-grad)" rx="8" stroke="#3b82f6" stroke-width="1.5" />
+                            <text x="380" y="58" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700" font-family="Inter">ST3: ENSAMBLAJE</text>
+                            
+                            <!-- Indicador LED de Disponibilidad -->
+                            <circle id="svg-ensa-led" cx="340" cy="72" r="7" fill="url(#led-gray)" stroke="#475569" stroke-width="1" />
+                            <text x="352" y="75" fill="#94a3b8" font-size="8" font-family="Inter" font-weight="600">DISPONIBLE</text>
+                            
+                            <!-- Boton de Marcha Industrial -->
+                            <g id="btn-start-ensa" transform="translate(395, 105)" cursor="pointer" onclick="lanzarCiclo(2)">
+                                <circle cx="0" cy="0" r="18" fill="#0f172a" stroke="#475569" stroke-width="2" />
+                                <circle cx="0" cy="0" r="14" fill="url(#btn-green-grad)" />
+                                <text x="0" y="3" text-anchor="middle" fill="#ffffff" font-size="7" font-weight="700" font-family="Inter">START</text>
+                            </g>
+                            
+                            <!-- Valores de Estado -->
+                            <text x="380" y="142" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">Estado: <tspan id="svg-ensa-status" fill="#3b82f6" font-weight="700">--</tspan></text>
+                            <text x="380" y="157" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">Solicitud: <tspan id="svg-ensa-sol" font-weight="700">--</tspan></text>
+                            
+                            <!-- Edicion de Posicion (VD18) -->
+                            <foreignObject x="328" y="175" width="104" height="32">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="svg-input-wrapper">
+                                    <input type="number" id="input-pos-ensa" value="0" title="Coordenada VD18" />
+                                    <button onclick="guardarPosicionDirecta('ensa', 9, 'input-pos-ensa')">💾</button>
+                                </div>
+                            </foreignObject>
+
+                            <!-- MAQUETA INTERNA ENSAMBLAJE (Brazo local 2-DOF, cargador de fichas) -->
+                            <g id="maqueta-ensa-interna">
+                                <!-- Cargador/tubo vertical de tapas (Fichas) -->
+                                <rect x="298" y="278" width="18" height="55" fill="none" stroke="#475569" stroke-width="1.5" />
+                                <!-- Tapas apiladas en el cargador -->
+                                <rect x="300" y="315" width="14" height="6" fill="#3b82f6" rx="1" class="ensa-stack-lid" />
+                                <rect x="300" y="322" width="14" height="6" fill="#3b82f6" rx="1" class="ensa-stack-lid" />
+                                <rect x="300" y="329" width="14" height="6" fill="#3b82f6" rx="1" class="ensa-stack-lid" />
+                                
+                                <!-- Brazo rotatorio local (Pivot en 375, 288) -->
+                                <g id="ensa-rot-arm" transform="translate(375, 288) rotate(0)">
+                                    <!-- Eslabon principal -->
+                                    <line x1="0" y1="0" x2="-45" y2="45" stroke="#94a3b8" stroke-width="4" />
+                                    <circle cx="0" cy="0" r="5" fill="#1e293b" stroke="#64748b" stroke-width="1.5" />
+                                    
+                                    <!-- Eslabon extensor (Piston local de garra) -->
+                                    <g id="ensa-ext-arm" transform="translate(-45, 45)">
+                                        <line x1="0" y1="0" x2="-15" y2="15" stroke="#cbd5e1" stroke-width="3" id="ensa-piston-line" />
+                                        <!-- Mini ventosa/garra -->
+                                        <rect x="-19" y="10" width="8" height="4" fill="#334155" />
+                                        <!-- Ficha succionada (Visible al pick) -->
+                                        <rect id="ensa-held-lid" x="-23" y="14" width="16" height="6" fill="#3b82f6" rx="1" opacity="0" />
+                                    </g>
+                                </g>
+
+                                <!-- Base de recepcion del cilindro a ensamblar -->
+                                <rect x="360" y="360" width="40" height="6" fill="#475569" />
+                                <!-- Cilindro base esperando ensamble en plataforma -->
+                                <circle id="ensa-base-sim" cx="380" cy="350" r="9" fill="none" stroke="#cbd5e1" stroke-width="2" opacity="0" />
+                                <!-- Ficha ensamblada sobre el cilindro -->
+                                <rect id="ensa-lid-sim" x="372" y="348" width="16" height="6" fill="#3b82f6" rx="1" opacity="0" />
+                            </g>
+                        </g>
+
+                        <!-- ESTACION 4: PROCESAMIENTO (x = 620) -->
+                        <g id="station-group-proc">
+                            <!-- Gabinete Industrial -->
+                            <rect x="510" y="40" width="220" height="340" fill="url(#cabinet-grad)" rx="8" stroke="#eab308" stroke-width="1.5" />
+                            <text x="620" y="58" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700" font-family="Inter">ST4: PROCESAM.</text>
+                            
+                            <!-- Indicador LED de Disponibilidad -->
+                            <circle id="svg-proc-led" cx="580" cy="72" r="7" fill="url(#led-gray)" stroke="#475569" stroke-width="1" />
+                            <text x="592" y="75" fill="#94a3b8" font-size="8" font-family="Inter" font-weight="600">DISPONIBLE</text>
+                            
+                            <!-- Boton de Marcha Industrial -->
+                            <g id="btn-start-proc" transform="translate(635, 105)" cursor="pointer" onclick="lanzarCiclo(1)">
+                                <circle cx="0" cy="0" r="18" fill="#0f172a" stroke="#475569" stroke-width="2" />
+                                <circle cx="0" cy="0" r="14" fill="url(#btn-green-grad)" />
+                                <text x="0" y="3" text-anchor="middle" fill="#ffffff" font-size="7" font-weight="700" font-family="Inter">START</text>
+                            </g>
+                            
+                            <!-- Valores de Estado -->
+                            <text x="620" y="142" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">Estado: <tspan id="svg-proc-status" fill="#eab308" font-weight="700">--</tspan></text>
+                            <text x="620" y="157" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">Solicitud: <tspan id="svg-proc-sol" font-weight="700">--</tspan></text>
+                            
+                            <!-- Edicion de Posicion (VD14) -->
+                            <foreignObject x="568" y="175" width="104" height="32">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="svg-input-wrapper">
+                                    <input type="number" id="input-pos-proc" value="0" title="Coordenada VD14" />
+                                    <button onclick="guardarPosicionDirecta('proc', 7, 'input-pos-proc')">💾</button>
+                                </div>
+                            </foreignObject>
+
+                            <!-- MAQUETA INTERNA PROCESAMIENTO (Pinza deslizante vertical y Piston estampador) -->
+                            <g id="maqueta-proc-interna">
+                                <!-- Estructura/Guia de la prensa -->
+                                <rect x="600" y="273" width="40" height="85" fill="none" stroke="#475569" stroke-width="1.5" />
+                                
+                                <!-- Piston Estampador vertical superior -->
+                                <g id="proc-stamp-piston" transform="translate(0, 0)">
+                                    <rect x="615" y="274" width="10" height="30" fill="#94a3b8" rx="1" />
+                                    <rect x="608" y="304" width="24" height="6" fill="#475569" />
+                                </g>
+                                
+                                <!-- Pinza de recepcion de cilindros que desliza verticalmente -->
+                                <g id="proc-slider" transform="translate(0, 0)">
+                                    <!-- Soporte delisante -->
+                                    <rect x="602" y="343" width="36" height="10" fill="#334155" rx="1" stroke="#64748b" stroke-width="0.5" />
+                                    <!-- Garras receptoras -->
+                                    <path d="M 598 343 L 602 350 M 642 343 L 638 350" stroke="#94a3b8" stroke-width="2" />
+                                    
+                                    <!-- Cilindro base dentro de la pinza deslizante -->
+                                    <circle id="proc-piece-sim" cx="620" cy="354" r="9" fill="none" stroke="#cbd5e1" stroke-width="2" opacity="0" />
+                                </g>
+
+                                <!-- Base de plataforma de recepcion externa -->
+                                <rect x="602" y="360" width="36" height="6" fill="#475569" />
+                            </g>
+                        </g>
+
+                        <!-- ESTACION 2: ALIMENTACION (x = 860) -->
+                        <g id="station-group-alim">
+                            <!-- Gabinete Industrial -->
+                            <rect x="750" y="40" width="220" height="340" fill="url(#cabinet-grad)" rx="8" stroke="#10b981" stroke-width="1.5" />
+                            <text x="860" y="58" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700" font-family="Inter">ST2: ALIMENTAC.</text>
+                            
+                            <!-- Indicador LED de Disponibilidad -->
+                            <circle id="svg-alim-led" cx="820" cy="72" r="7" fill="url(#led-gray)" stroke="#475569" stroke-width="1" />
+                            <text x="832" y="75" fill="#94a3b8" font-size="8" font-family="Inter" font-weight="600">DISPONIBLE</text>
+                            
+                            <!-- Boton de Marcha Industrial -->
+                            <g id="btn-start-alim" transform="translate(875, 105)" cursor="pointer" onclick="lanzarCiclo(0)">
+                                <circle cx="0" cy="0" r="18" fill="#0f172a" stroke="#475569" stroke-width="2" />
+                                <circle cx="0" cy="0" r="14" fill="url(#btn-green-grad)" />
+                                <text x="0" y="3" text-anchor="middle" fill="#ffffff" font-size="7" font-weight="700" font-family="Inter">START</text>
+                            </g>
+                            
+                            <!-- Valores de Estado -->
+                            <text x="860" y="142" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">Estado: <tspan id="svg-alim-status" fill="#10b981" font-weight="700">--</tspan></text>
+                            <text x="860" y="157" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">Solicitud: <tspan id="svg-alim-sol" font-weight="700">--</tspan></text>
+                            
+                            <!-- Edicion de Posicion (VD10) -->
+                            <foreignObject x="808" y="175" width="104" height="32">
+                                <div xmlns="http://www.w3.org/1999/xhtml" class="svg-input-wrapper">
+                                    <input type="number" id="input-pos-alim" value="0" title="Coordenada VD10" />
+                                    <button onclick="guardarPosicionDirecta('alim', 5, 'input-pos-alim')">💾</button>
+                                </div>
+                            </foreignObject>
+
+                            <!-- MAQUETA INTERNA ALIMENTACION (Gravedad de cilindros, piston empujador) -->
+                            <g id="maqueta-alim-interna">
+                                <!-- Tubo vertical del cargador de gravedad -->
+                                <rect x="802" y="278" width="26" height="80" fill="none" stroke="#475569" stroke-width="1.5" />
+                                
+                                <!-- Cilindros (piezas base) apilados por gravedad -->
+                                <circle cx="815" cy="347" r="9" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" class="alim-stacked-piece" />
+                                <circle cx="815" cy="328" r="9" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" class="alim-stacked-piece" />
+                                <circle cx="815" cy="309" r="9" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" class="alim-stacked-piece" />
+                                
+                                <!-- Piston empujador horizontal inferior -->
+                                <!-- Cuerpo del piston -->
+                                <rect x="745" y="343" width="45" height="12" fill="#334155" rx="1" />
+                                <!-- Rod/Vastago metalico deslizante -->
+                                <rect id="alim-pusher-rod" x="750" y="347" width="45" height="4" fill="#cbd5e1" />
+                                <rect id="alim-pusher-head" x="795" y="342" width="4" height="14" fill="#64748b" />
+                                
+                                <!-- Plataforma receptora (Zona de recoleccion) -->
+                                <rect x="834" y="360" width="52" height="6" fill="#475569" />
+                                <!-- Cilindro base empujado listo para recoger en x=860 -->
+                                <circle id="alim-piece-ready" cx="860" cy="350" r="9" fill="none" stroke="#cbd5e1" stroke-width="2" opacity="0" />
+                            </g>
+                        </g>
+
+                        <!-- EJE LINEAL DE TRANSPORTE (y = 510) -->
+                        <g id="transport-rail-group">
+                            <!-- Guia Lineal Fija (Rail) -->
+                            <rect x="20" y="480" width="960" height="15" fill="#1e293b" rx="4" />
+                            <line x1="30" y1="487" x2="970" y2="487" stroke="#475569" stroke-width="4" stroke-dasharray="10 5" />
+                            
+                            <!-- Conexiones fisicas de las plataformas a las estaciones -->
+                            <line x1="140" y1="380" x2="140" y2="480" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3" />
+                            <line x1="380" y1="380" x2="380" y2="480" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3" />
+                            <line x1="620" y1="380" x2="620" y2="480" stroke="#eab308" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3" />
+                            <line x1="860" y1="380" x2="860" y2="480" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3" />
+
+                            <!-- Carro del Servo (Desplazamiento horizontal via translate) -->
+                            <g id="carriage" transform="translate(860, 480)">
+                                <!-- Cuerpo del carro -->
+                                <rect x="-35" y="0" width="70" height="20" fill="#334155" rx="3" stroke="#94a3b8" stroke-width="1.5" />
+                                <circle cx="-20" cy="20" r="5" fill="#0f172a" />
+                                <circle cx="20" cy="20" r="5" fill="#0f172a" />
+                                <!-- Soporte del cilindro vertical hacia arriba -->
+                                <rect x="-6" y="-20" width="12" height="20" fill="#475569" />
+                                
+                                <!-- Brazo Vertical (Eje Z - Se desplaza hacia arriba via translateY negativo) -->
+                                <g id="vertical-arm" transform="translate(0, -20)">
+                                    <!-- Vastago metalico del cilindro telescopico -->
+                                    <line x1="0" y1="0" x2="0" y2="-67" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round" id="z-rod" />
+                                    <!-- Cuerpo del cilindro -->
+                                    <rect x="-6" y="-55" width="12" height="55" fill="#1e293b" rx="2" stroke="#475569" stroke-width="1" />
+                                    
+                                    <!-- Cabeza de la garra rotatoria (Theta) -->
+                                    <g id="gripper-head" transform="translate(0, -67) rotate(0)">
+                                        <circle cx="0" cy="0" r="8" fill="#334155" stroke="#94a3b8" stroke-width="1.5" />
+                                        
+                                        <!-- Extension de doble vastago -->
+                                        <g id="vastago-extension" transform="translate(0, 0)">
+                                            <!-- Barra de extension -->
+                                            <line x1="0" y1="0" x2="0" y2="-20" stroke="#cbd5e1" stroke-width="5" />
+                                            <!-- Plaqueta de soporte para pinzas -->
+                                            <rect x="-16" y="-23" width="32" height="5" fill="#1e293b" rx="1" stroke="#475569" stroke-width="1" />
+                                            
+                                            <!-- Pinza Izquierda (L) -->
+                                            <path id="claw-left" d="M -12 -23 L -12 -38 L -7 -38" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linejoin="round" />
+                                            <!-- Pinza Derecha (R) -->
+                                            <path id="claw-right" d="M 12 -23 L 12 -38 L 7 -38" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linejoin="round" />
+                                            
+                                            <!-- Pieza transportada en la pinza (Cilindro vacio o ensamblado) -->
+                                            <g id="gripped-piece" opacity="0">
+                                                <circle cx="0" cy="-31" r="9" fill="none" stroke="#cbd5e1" stroke-width="2" />
+                                                <!-- Tapa de la pieza (Visible si hasLid es true) -->
+                                                <rect id="gripped-piece-lid" x="-8" y="-43" width="16" height="6" fill="#3b82f6" rx="1" opacity="0" />
+                                            </g>
+                                        </g>
+                                    </g>
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTROL PANEL & DATABASE FOOTER AREA -->
+        <section class="footer-grid-layout">
+            <!-- PANEL DE CONTROL CENTRAL -->
+            <div class="control-panel-card">
+                <h2>Control Central</h2>
+                <div class="control-panel-body">
+                    <!-- Baliza de Torre -->
+                    <div class="baliza-wrapper">
+                        <div class="baliza-stack">
+                            <div class="baliza-light red" id="baliza-red" title="Alarma / Offline"></div>
+                            <div class="baliza-light amber" id="baliza-amber" title="Espera / Homing"></div>
+                            <div class="baliza-light green" id="baliza-green" title="Automatico"></div>
+                        </div>
+                        <span class="baliza-label">ESTADO</span>
+                    </div>
+                    <!-- Pulsadores Industriales -->
+                    <div class="industrial-buttons">
+                        <button class="btn-ind btn-ind-marcha" id="btn-global-marcha" onclick="lanzarMarchaGlobal()">
+                            <span class="btn-ind-cap">MARCHA</span>
+                        </button>
+                        <button class="btn-ind btn-ind-paro" id="btn-global-paro" onclick="lanzarParoGlobal()">
+                            <span class="btn-ind-cap">PARO</span>
+                        </button>
+                    </div>
+
+                    <!-- Seta de Emergencia SCADA -->
+                    <div class="seta-wrapper">
+                        <div class="seta-button" id="btn-seta-emergencia" onclick="toggleSetaEmergencia()" title="Seta de Emergencia: Click para alternar en Modo Demo">
+                            <div class="seta-mushroom"></div>
+                        </div>
+                        <span class="seta-label" id="seta-status-label">SETA LIBERADA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BASE DE DATOS Y METRICAS -->
+            <div class="database-card-footer">
+                <h2>Base de Datos de Clasificacion (piezas.db)</h2>
+                <div class="db-footer-layout">
+                    <!-- Metricas -->
+                    <div class="stats-footer-card">
+                        <div class="metrics-row">
+                            <div class="metric-circle metalica">
+                                <span class="count" id="count-metalica">0</span>
+                                <span class="type-label">Metalicas</span>
+                            </div>
+                            <div class="metric-circle mixta">
+                                <span class="count" id="count-mixta">0</span>
+                                <span class="type-label">Mixtas</span>
+                            </div>
+                            <div class="metric-circle plastica">
+                                <span class="count" id="count-plastica">0</span>
+                                <span class="type-label">Plasticas</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tabla -->
+                    <div class="history-footer-card">
+                        <div class="table-container">
+                            <table class="db-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Fecha / Hora</th>
+                                        <th>Tipo de Pieza</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="db-history-body">
+                                    <tr>
+                                        <td colspan="3" class="empty-table">No hay registros aun</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- REGISTRO DE AUDITORIA (SCADA Audit Trail) -->
+        <section class="audit-section">
+            <div class="audit-card">
+                <h2>Registro de Auditoria y Eventos de Seguridad (CFR 21 Parte 11)</h2>
+                <div class="audit-body">
+                    <div class="audit-table-container">
+                        <table class="db-table audit-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Fecha / Hora</th>
+                                    <th>Usuario</th>
+                                    <th>Accion</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-history-body">
+                                <tr>
+                                    <td colspan="5" class="empty-table">No hay registros de auditoria aun</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

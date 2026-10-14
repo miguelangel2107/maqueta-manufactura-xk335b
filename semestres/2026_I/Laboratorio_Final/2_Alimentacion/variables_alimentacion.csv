@@ -1,0 +1,40 @@
+Symbol;Address;Comment
+P0_Reposo;M0.0;Estado de espera inicial
+P1_Sujecion;M0.1;Estado de sujecion de la columna
+P2_Empuje;M0.2;Estado de entrega de la pieza inferior
+P3_Retorno_E;M0.3;Estado de retorno del cilindro de empuje
+P4_Retorno_S;M0.4;Estado de liberacion de la columna
+T0_Inicio;M1.0;Transicion Inicio Ciclo
+T1_Sujeto;M1.1;Transicion Sujecion OK
+T2_Entregado;M1.2;Transicion Entrega OK
+T3_Emp_Ret;M1.3;Transicion Empuje Retraido
+T4_Suj_Ret;M1.4;Transicion Sujecion Retraida
+Ev_Marcha;M2.0;Evento Marcha presionado y Seta OK
+Ev_Pieza;M2.1;Evento Pieza en base detectada
+Ev_CilP_Ext;M2.2;Evento Cilindro pequeno extendido
+Ev_CilL_Ext;M2.3;Evento Cilindro largo extendido
+Ev_CilL_Ret;M2.4;Evento Cilindro largo retraido
+Ev_CilP_Ret;M2.5;Evento Cilindro pequeno retraido
+Ev_Pos_Pieza;M2.6;Evento pieza en posicion
+Cil_Peq_Ext;I0.0;Sensor cilindro pequeno extendido
+Cil_Peq_Ret;I0.1;Sensor cilindro pequeno retraido
+Cil_Lrg_Ext;I0.2;Sensor cilindro largo extendido
+Cil_Lrg_Ret;I0.3;Sensor cilindro largo retraido
+Pos_Pieza;I0.4;Sensor fotoelectrico posicion pieza
+Presencia_Sup;I0.5;Sensor presencia superior
+Presencia_Inf;I0.6;Sensor presencia inferior
+Sensor_Induc;I0.7;Sensor inductivo material metalico
+Btn_Marcha;I1.2;Pulsador verde de marcha
+Btn_Paro;I1.3;Pulsador rojo de paro
+Seta_Emerg;I1.4;Zeta de emergencia (NC)
+Selector_Rot;I1.5;Selector rotatorio
+V_Cil_Peq;Q0.0;Valvula cilindro pequeno
+V_Cil_Lrg;Q0.1;Valvula cilindro largo
+Lamp_Amarilla;Q0.7;Lampara de advertencia
+Lamp_Verde;Q1.0;Lampara de marcha
+Lamp_Roja;Q1.1;Lampara de paro o falla
+Sol_AP;V0.0;Solicitud Alimentacion a Procesamiento
+Ack_Sol_AP;V1.0;Reconocimiento AP
+Ack_MA;V0.1;Reconocimiento marcha Unidad de Alimentacion
+Marcha_A;V1.1;Solicitud de marcha para la Unidad de Alimentacion
+Alim_OK;V0.2;Unidad de Alimentacion disponible

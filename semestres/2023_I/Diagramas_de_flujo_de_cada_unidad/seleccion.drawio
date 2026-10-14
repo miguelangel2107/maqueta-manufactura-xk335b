@@ -1,0 +1,82 @@
+<mxfile host="app.diagrams.net" modified="2023-06-04T18:30:37.410Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36" etag="hif6iRDXKcJ39P4mkiVc" version="21.3.7" type="google">
+  <diagram name="Página-1" id="WvSxTJeFQvlfa3MzmcrK">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-1" value="" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-2" target="hEvp2sPTBHlIvZPDF9ry-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="90" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-2" value="Selección" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="120" y="50" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-4" target="hEvp2sPTBHlIvZPDF9ry-7">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="180" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-4" value="Mantener cinta en reposo" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="90" y="120" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-5" value="Si" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-7" target="hEvp2sPTBHlIvZPDF9ry-9">
+          <mxGeometry x="-0.1429" y="-20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="180" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-6" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-7" target="hEvp2sPTBHlIvZPDF9ry-4">
+          <mxGeometry x="-0.6098" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="290" y="230" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="310" y="230" />
+              <mxPoint x="310" y="145" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-7" value="se dejo la pieza?" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=0;" vertex="1" parent="1">
+          <mxGeometry x="130" y="200" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-9" target="hEvp2sPTBHlIvZPDF9ry-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-9" value="Desplazar el objeto hasta la zona de detección" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="90" y="290" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-11" target="hEvp2sPTBHlIvZPDF9ry-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-11" value="Clasificar la pieza con los valores de los sensores" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="90" y="370" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-13" target="hEvp2sPTBHlIvZPDF9ry-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-13" value="Desplazar la pieza hasta la sección correspondiente" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="90" y="450" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-14" value="Extender el pistón de la sección y empujar la pieza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="90" y="530" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-14" target="hEvp2sPTBHlIvZPDF9ry-22">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="180" y="675" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-19" value="Fin" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="120" y="690" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="hEvp2sPTBHlIvZPDF9ry-22" target="hEvp2sPTBHlIvZPDF9ry-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="180" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hEvp2sPTBHlIvZPDF9ry-22" value="Retraer el pistón de la sección correspondiente" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="90" y="610" width="180" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

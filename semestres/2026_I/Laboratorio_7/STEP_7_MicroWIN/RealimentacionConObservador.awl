@@ -1,0 +1,202 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=
+BEGIN
+Network 1 // Inicializacion de constantes de control y del observador
+LD     SM0.1
+MOVR   97.7436, VD120              // K1
+MOVR   25.8460, VD124              // K2
+MOVR   97.7436, VD132              // N (Pre-compensacion)
+MOVR   0.1919, VD152               // L1 (Ganancia de observador 1)
+MOVR   0.6113, VD156               // L2 (Ganancia de observador 2)
+MOVR   0.009814, VD160             // Phi12
+MOVR   0.963062, VD164             // Phi22
+MOVR   0.000008, VD168             // Gamma1
+MOVR   0.001611, VD172             // Gamma2
+
+Network 2 // Llamada a subrutina de inicializacion de contador rapido
+LD     SM0.1
+CALL   SBR1                        // Llamada a SBR1 (HSC_INIT)
+
+Network 3 // Configuracion de la interrupcion por temporizador a 10ms
+LD     SM0.1
+MOVB   10, SMB34                   // Intervalo de interrupcion de 10ms
+ATCH   INT0, 10                    // Asociar INT0 al evento de temporizador 0
+ENI                                // Habilitar interrupciones globalmente
+
+Network 4 // Asignacion dinamica de consigna o setpoint
+LD     SM0.0
+MOVR   VD136, VD112                // VD112 = Setpoint (Referencia)
+
+Network 5 // Inicializacion de punteros y banderas del datalogger
+LD     SM0.1
+R      V408.0, 1                   // Desactivar bandera de datalogger activo
+R      V408.1, 1                   // Desactivar bandera de disparo (trigger)
+MOVD   &VB5000, VD400              // Direccion inicial del bufer en puntero
+MOVW   0, VW404                    // Resetear contador de muestras
+MOVW   0, VW406                    // Resetear contador de decimacion
+
+Network 6 // Verificacion del gatillo de inicio del datalogger
+LD     V408.1                      // Si el usuario activa el gatillo
+R      V408.1, 1                   // Resetear bandera de gatillo
+MOVD   &VB5000, VD400              // Apuntar puntero al inicio VB5000
+MOVW   0, VW404                    // Resetear contador de muestras
+MOVW   0, VW406                    // Resetear contador de decimacion
+S      V408.0, 1                   // Activar bandera de datalogger activo
+END_ORGANIZATION_BLOCK
+
+SUBROUTINE_BLOCK SBR_0:SBR0
+TITLE=
+BEGIN
+Network 1
+LD     SM0.0
+END_SUBROUTINE_BLOCK
+
+SUBROUTINE_BLOCK HSC_INIT:SBR1
+TITLE=
+BEGIN
+Network 1 // Inicializacion de contador rapido para el encoder
+LD     SM0.0
+MOVB   16#FC, SMB37                // Configuracion de conteo: UP, 1X, habilitado
+MOVD   +0, SMD38                   // Cargar valor actual (CV = 0)
+MOVD   +0, SMD42                   // Cargar valor de preseleccion (PV = 0)
+HDEF   0, 9                        // Configurar HSC0 en Modo 9 (Fases A/B)
+ENI                                // Habilitar interrupciones
+HSC    0                           // Iniciar contador rapido HSC0
+END_SUBROUTINE_BLOCK
+
+INTERRUPT_BLOCK INT_0:INT0
+TITLE=
+BEGIN
+Network 1 // Verificacion de seguridad y seta de emergencia
+LDN    I1.4                        // Si la seta de emergencia se activa (NC abierto)
+JMP    0                           // Saltar a la etiqueta de parada segura
+
+Network 2 // Lectura segura de la posicion real
+LD     I1.4
+MOVD   HC0, AC0                    // Mover lectura de HC0 a AC0
+DTR    AC0, VD100                  // Convertir entero de AC0 a REAL en VD100 (y)
+
+Network 3 // Calculo del error de estimacion ey = y - x1_est
+LD     I1.4
+MOVR   VD100, AC0                  // AC0 = y
+-R     VD140, AC0                  // AC0 = y - x1_est
+MOVR   AC0, VD148                  // VD148 = ey
+
+Network 4 // Actualizacion del estado 1 del observador (x1_est_next)
+// x1_est_next = x1_est + Phi12*x2_est + Gamma1*u + L1*ey
+LD     I1.4
+MOVR   VD140, AC0                  // AC0 = x1_est
+MOVR   VD160, AC1                  // AC1 = Phi12
+*R     VD144, AC1                  // AC1 = Phi12 * x2_est
++R     AC1, AC0                    // AC0 = x1_est + Phi12*x2_est
+MOVR   VD168, AC1                  // AC1 = Gamma1
+*R     VD116, AC1                  // AC1 = Gamma1 * u
++R     AC1, AC0
+MOVR   VD152, AC1                  // AC1 = L1
+*R     VD148, AC1                  // AC1 = L1 * ey
++R     AC1, AC0
+MOVR   AC0, VD176                  // VD176 = x1_est_next (temporal)
+
+Network 5 // Actualizacion del estado 2 del observador (x2_est_next)
+// x2_est_next = Phi22*x2_est + Gamma2*u + L2*ey
+LD     I1.4
+MOVR   VD164, AC0                  // AC0 = Phi22
+*R     VD144, AC0                  // AC0 = Phi22 * x2_est
+MOVR   VD172, AC1                  // AC1 = Gamma2
+*R     VD116, AC1                  // AC1 = Gamma2 * u
++R     AC1, AC0
+MOVR   VD156, AC1                  // AC1 = L2
+*R     VD148, AC1                  // AC1 = L2 * ey
++R     AC1, AC0
+MOVR   AC0, VD180                  // VD180 = x2_est_next (temporal)
+
+Network 6 // Guardado de los nuevos estados estimados
+LD     I1.4
+MOVR   VD176, VD140                // Actualizar x1_est
+MOVR   VD180, VD144                // Actualizar x2_est
+
+Network 7 // Ley de control por realimentacion de estados
+// u = N*SP - K1*x1_est - K2*x2_est
+LD     I1.4
+MOVR   VD132, AC0                  // AC0 = N
+*R     VD112, AC0                  // AC0 = N * SP
+MOVR   VD120, AC1                  // AC1 = K1
+*R     VD140, AC1                  // AC1 = K1 * x1_est
+-R     AC1, AC0                    // AC0 = N*SP - K1*x1_est
+MOVR   VD124, AC1                  // AC1 = K2
+*R     VD144, AC1                  // AC1 = K2 * x2_est
+-R     AC1, AC0                    // AC0 = u final
+MOVR   AC0, VD116                  // VD116 = Accion de Control (u)
+
+Network 8 // Seleccion de direccion: Adelante (FWD)
+LD     I1.4
+AR>=   VD116, 0.0                  // Si u >= 0
+R      Q0.1, 1                     // Desactivar sentido inverso (FWD)
+MOVR   VD116, VD128                // Copiar magnitud a VD128
+
+Network 9 // Seleccion de direccion: Atras (REV)
+LD     I1.4
+AR<    VD116, 0.0                  // Si u < 0
+S      Q0.1, 1                     // Activar sentido inverso (REV)
+MOVR   VD116, VD128
+*R     -1.0, VD128                 // Copiar magnitud absoluta |u| a VD128
+
+Network 10 // Saturacion de la accion de control
+LD     I1.4
+AR>    VD128, 32000.0              // Si la magnitud supera los 10V
+MOVR   32000.0, VD128              // Limitar consigna a 32000
+
+Network 11 // Conversion segura a la salida analoga
+LD     I1.4
+ROUND  VD128, AC0                  // Redondear REAL a DINT en AC0
+DTI    AC0, AC1                    // Convertir DINT a INT en AC1
+MOVW   AC1, AQW0                   // Escribir Word en la salida analoga
+
+Network 12 // Mando de marcha del motor (Velocidad > umbral)
+LD     I1.4
+AR>    VD128, 100.0                // Si supera la zona muerta
+S      Q0.0, 1                     // Arrancar motor (RUN)
+
+Network 13 // Mando de parada del motor (Velocidad <= umbral)
+LD     I1.4
+AR<=   VD128, 100.0                // Si cae dentro de la zona muerta
+R      Q0.0, 1                     // Parar motor (STOP)
+
+Network 14 // Incrementar decimacion del datalogger
+LD     I1.4
+A      V408.0                      // Si el registro esta activo
++I     1, VW406                    // Incrementar decimacion
+
+Network 15 // Registro de datos y avance de punteros
+LD     I1.4
+A      V408.0
+AW>=   VW406, 5                    // Si han pasado 50ms
+MOVW   0, VW406                    // Resetear decimacion
+MOVR   VD100, *VD400               // Guardar posicion real
++D     4, VD400                    // Avanzar puntero a setpoint
+MOVR   VD112, *VD400               // Guardar setpoint
++D     4, VD400                    // Avanzar puntero a posicion siguiente
++I     1, VW404                    // Incrementar contador de muestras
+
+Network 16 // Parada automatica del datalogger
+LD     I1.4
+AW>=   VW404, 200                  // Si se alcanza el limite de 200 muestras
+R      V408.0, 1                   // Detener adquisicion
+
+Network 17 // Fin del ciclo normal de la interrupcion
+LD     I1.4
+CRETI                              // Retorno de interrupcion
+
+Network 18 // Etiqueta de parada de emergencia
+LBL    0
+
+Network 19 // Rutina de parada segura de emergencia
+LD     SM0.0
+R      Q0.0, 1                     // Apagar motor inmediatamente
+R      Q0.1, 1                     // Desactivar sentido de giro
+MOVW   0, AQW0                     // Escribir cero en salida analoga
+MOVR   0.0, VD116                  // Resetear accion de control
+MOVR   0.0, VD140                  // Resetear posicion estimada
+MOVR   0.0, VD144                  // Resetear velocidad estimada
+R      V408.0, 1                   // Apagar datalogger
+END_INTERRUPT_BLOCK

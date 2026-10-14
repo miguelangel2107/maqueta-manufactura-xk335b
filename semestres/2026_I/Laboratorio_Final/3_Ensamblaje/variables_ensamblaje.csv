@@ -1,0 +1,79 @@
+Symbol;Address;Comment
+Sens_Tub_Inf;I0.0;Sensor fotoelectrico del tubo inferior (nivel bajo de stock)
+Sens_Tub_Sup;I0.1;Sensor fotoelectrico del tubo superior (nivel alto de stock)
+Sens_Sal_Tub;I0.2;Sensor de presencia a la salida del tubo dosificador
+Sens_Pieza_Rec;I0.3;Sensor de presencia de pieza lista para recoger
+Sens_Fibra_Pza;I0.4;Sensor de fibra omron (pieza grande receptora presente)
+CilS_Ext;I0.5;Sensor cilindro superior extendido (sujetador OK)
+CilS_Ret;I0.6;Sensor cilindro superior retraido
+CilI_Ext;I0.7;Sensor cilindro inferior extendido
+CilI_Ret;I1.0;Sensor cilindro inferior retraido (pieza liberada)
+Giro_AH;I1.1;Sensor giro antihorario alcanzado (posicion recogida)
+Giro_H;I1.2;Sensor giro horario alcanzado (posicion origen)
+Pinza_Cer;I1.3;Sensor cierre de la pinza de agarre
+CilV_Abajo;I1.4;Sensor cilindro vertical hacia abajo
+CilV_Arriba;I1.5;Sensor cilindro vertical hacia arriba
+CilH_Atras;I1.6;Sensor cilindro horizontal hacia atras (origen)
+CilH_Adelante;I1.7;Sensor cilindro horizontal hacia adelante (sobre pieza)
+Btn_Rojo;I2.4;Boton de parada
+Btn_Verde;I2.5;Boton de marcha
+Seta_Emerg;I2.6;Seta de emergencia (NC - 0 = emergencia activa)
+Selector;I2.7;Selector rotatorio de modo
+V_CilI;Q0.0;Valvula cilindro inferior (liberador) - activa en P2
+V_CilS;Q0.1;Valvula cilindro superior (sujetador) - activa en P1 y P2
+V_Giro_H;Q0.2;Valvula cilindro rotatorio antihorario - activa en P4 a P7
+V_Pinza;Q0.3;Valvula garra (cerrar pinza) - activa en P6 a P9
+V_CilV;Q0.4;Valvula cilindro vertical (bajar) - activa en P5 P6 P9 P10
+V_CilH;Q0.5;Valvula cilindro horizontal (adelante) - activa en P8 a P11
+Baliza_Roja;Q0.6;Baliza roja - sin stock en reposo
+Baliza_Amarilla;Q0.7;Baliza amarilla - parada activa (M6.0)
+Baliza_Verde;Q1.0;Baliza verde - ciclo en ejecucion
+Led_Amarillo;Q1.5;LED boton amarillo - parada activa
+Led_Verde;Q1.6;LED boton verde - ciclo en ejecucion
+Led_Rojo;Q1.7;LED boton rojo - sin stock en reposo
+P0_Reposo;M0.0;Plaza P0 - Estado reposo (marcado inicial)
+P1_Dos_Sujetar;M0.1;Plaza P1 - Cilindro superior sujetando columna
+P2_Dos_Caida;M0.2;Plaza P2 - Cilindro inferior retraido (pieza en caida)
+P3_Dos_Restaurar;M0.3;Plaza P3 - Dosificador retornando a posicion base
+P4_Mesa_Giro;M0.4;Plaza P4 - Mesa girando a posicion de recogida
+P5_Pick_Bajar;M0.5;Plaza P5 - Garra descendiendo sobre pieza secundaria
+P6_Pick_Agarrar;M0.6;Plaza P6 - Pinza cerrando para sujetar la pieza
+P7_Pick_Subir;M0.7;Plaza P7 - Garra subiendo con pieza sujeta
+P8_Place_Trans;M1.0;Plaza P8 - Brazo trasladando horizontalmente a base
+P9_Place_Bajar;M1.1;Plaza P9 - Garra bajando para insertar en base
+P10_Place_Soltar;M1.2;Plaza P10 - Pinza abriendo para liberar pieza
+P11_Place_Subir;M1.3;Plaza P11 - Garra subiendo tras ensamblaje
+P12_Reset_Arm;M1.4;Plaza P12 - Retorno horizontal y mesa a origen
+Ev_Marcha;M2.0;Evento - Boton de marcha activo
+Ev_Tub_Inf;M2.1;Evento - Stock disponible en tubo (nivel bajo)
+Ev_Fibra;M2.2;Evento - Pieza grande receptora detectada
+Ev_CilS_Ext;M2.3;Evento - Cilindro superior extendido confirmado
+Ev_CilS_Ret;M2.4;Evento - Cilindro superior retraido confirmado
+Ev_CilI_Ext;M2.5;Evento - Cilindro inferior extendido confirmado
+Ev_CilI_Ret;M2.6;Evento - Cilindro inferior retraido (pieza liberada)
+Ev_Giro_AH;M2.7;Evento - Giro antihorario alcanzado (posicion recogida)
+Ev_Giro_H;M3.0;Evento - Giro horario alcanzado (posicion origen)
+Ev_Pinza_Cer;M3.1;Evento - Pinza cerrada (agarre confirmado)
+Ev_CilV_Abajo;M3.2;Evento - Cilindro vertical en posicion abajo
+Ev_CilV_Arriba;M3.3;Evento - Cilindro vertical en posicion arriba
+Ev_CilH_Atras;M3.4;Evento - Cilindro horizontal en posicion atras
+Ev_CilH_Adel;M3.5;Evento - Cilindro horizontal en posicion adelante
+T0_Inicio;M4.0;Disparo T0 - Condicion para iniciar ciclo (P0->P1)
+T1_SujecOK;M4.1;Disparo T1 - Sujecion de columna confirmada (P1->P2)
+T2_PiezaCaida;M4.2;Disparo T2 - Pieza liberada y caida (P2->P3)
+T3_DosifRest;M4.3;Disparo T3 - Dosificador restaurado (P3->P4)
+T4_MesaRec;M4.4;Disparo T4 - Mesa en posicion recogida (P4->P5)
+T5_GarraAbajo;M4.5;Disparo T5 - Garra en contacto con pieza (P5->P6)
+T6_AgarreOK;M4.6;Disparo T6 - Agarre de pieza confirmado (P6->P7)
+T7_PiezaElev;M4.7;Disparo T7 - Pieza secundaria elevada (P7->P8)
+T8_BrazoAdel;M5.0;Disparo T8 - Brazo en punto de entrega (P8->P9)
+T9_PiezaBase;M5.1;Disparo T9 - Pieza posicionada en base grande (P9->P10)
+T10_PinzaAb;M5.2;Disparo T10 - Pinza abierta pieza liberada (P10->P11)
+T11_GarraRet;M5.3;Disparo T11 - Garra retirada del ensamblaje (P11->P12)
+T12_FinCiclo;M5.4;Disparo T12 - Sistema en origen fin de ciclo (P12->P0)
+Flag_Parada;M6.0;Flag de parada - activado por flanco Btn_Rojo reset en P0
+Sol_ES;V0.0;Solicitud Ensamblaje a Seleccion
+Ack_Sol_ES;V1.0;Reconocimiento ES
+Ack_ME;V0.1;Reconocimiento marcha Unidad de Ensamblaje
+Marcha_E;V1.1;Solicitud de marcha para la Unidad de Ensamblaje
+Ens_OK;V0.2;Unidad de Ensamblaje disponible

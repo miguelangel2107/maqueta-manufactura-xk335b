@@ -1,0 +1,105 @@
+<mxfile host="app.diagrams.net" modified="2023-06-02T16:42:05.295Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36" etag="1tF9Bf6o4FCFu84rGq_8" version="21.3.7" type="google">
+  <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="0sdf20sE-zxgOrfjXAig-0" value="" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-1" target="0sdf20sE-zxgOrfjXAig-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="130" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-1" value="Procesamiento" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="160" y="80" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-3" target="0sdf20sE-zxgOrfjXAig-6">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-3" value="Mantener la pinza en posición para recibir piezas" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="130" y="160" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-4" value="Si" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-6" target="0sdf20sE-zxgOrfjXAig-8">
+          <mxGeometry x="-0.1429" y="-20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="220" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-5" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-6" target="0sdf20sE-zxgOrfjXAig-3">
+          <mxGeometry x="-0.6098" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="330" y="270" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="350" y="270" />
+              <mxPoint x="350" y="185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-6" value="hay piezas?" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="170" y="240" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-8" target="0sdf20sE-zxgOrfjXAig-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-8" value="Sujetar la pieza cerrando la pinza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="130" y="330" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-10" target="0sdf20sE-zxgOrfjXAig-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-10" value="Retraer el pistón horizontal para llevar la pieza al punto de procesamiento" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingBottom=0;spacingRight=2;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="130" y="410" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-12" target="0sdf20sE-zxgOrfjXAig-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-12" value="Extender el pistón delgado sobre la pieza y retraerlo&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="130" y="500" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-13" value="Extender el pistón horizontal" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="130" y="580" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-13" target="0sdf20sE-zxgOrfjXAig-21">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="725" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-15" value="Si" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-17" target="0sdf20sE-zxgOrfjXAig-18">
+          <mxGeometry x="-0.5062" y="-20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="220" y="1010" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-17" target="0sdf20sE-zxgOrfjXAig-20">
+          <mxGeometry x="-0.6757" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="310" y="780" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="350" y="850" />
+              <mxPoint x="350" y="765" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-17" value="pieza &lt;br&gt;retirada?" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=0;verticalAlign=middle;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="170" y="820" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-18" value="Fin" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="160" y="910" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-20" target="0sdf20sE-zxgOrfjXAig-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-20" value="Indicar finalización de la actividad" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="130" y="740" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="0sdf20sE-zxgOrfjXAig-21" target="0sdf20sE-zxgOrfjXAig-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0sdf20sE-zxgOrfjXAig-21" value="Abrir la pinza para liberar la pieza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="130" y="660" width="180" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

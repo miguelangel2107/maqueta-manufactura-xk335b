@@ -1,0 +1,133 @@
+<mxfile host="app.diagrams.net" modified="2023-06-02T22:14:07.964Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36" etag="l5cDZv7vWHAE_-AOoeDk" version="21.3.7" type="google">
+  <diagram name="Página-1" id="TU3tXSdmUWMhHY7qKZN3">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-1" value="" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-2" target="YwmSm2jEVUmnGfjcANuX-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="90" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-2" value="Ensamblaje" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="160" y="40" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-4" target="YwmSm2jEVUmnGfjcANuX-7">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-4" value="Sujetar piezas extendiendo el pistón de liberación" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="130" y="110" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-5" value="Si" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-7" target="YwmSm2jEVUmnGfjcANuX-9">
+          <mxGeometry x="0.2" y="-20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="220" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-6" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-7" target="YwmSm2jEVUmnGfjcANuX-4">
+          <mxGeometry x="-0.6098" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="330" y="230" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="350" y="205" />
+              <mxPoint x="350" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-7" value="hay &lt;br&gt;cilindro?" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=-5;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="170" y="180" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-9" target="YwmSm2jEVUmnGfjcANuX-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-9" value="Liberar la pieza retrayendo el pistón de liberación" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="130" y="260" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-11" target="YwmSm2jEVUmnGfjcANuX-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-11" value="Volver a sujetar las piezas con el pistón" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="130" y="330" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-13" target="YwmSm2jEVUmnGfjcANuX-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-13" value="Girar el cilindro rotatorio para llevar la pieza hacia la garra" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="120" y="400" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-14" target="YwmSm2jEVUmnGfjcANuX-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-14" value="Abrir la pinza para sujetar la pieza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="130" y="470" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-16" value="Si" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-18" target="YwmSm2jEVUmnGfjcANuX-19">
+          <mxGeometry x="-0.3333" y="-20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="220" y="1210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-17" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-18" target="YwmSm2jEVUmnGfjcANuX-21">
+          <mxGeometry x="-0.6923" y="25" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="310" y="990" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="350" y="1055" />
+              <mxPoint x="350" y="980" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-18" value="cilindro&lt;br&gt;retirado?" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=-4;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="170" y="1030" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-19" value="Fin" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1110" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-21" target="YwmSm2jEVUmnGfjcANuX-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-21" value="Indicar finalización de la actividad" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="130" y="960" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-22" target="YwmSm2jEVUmnGfjcANuX-24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-22" value="Extender el pistón vertical descendiendo sobre la pieza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="120" y="540" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-24" target="YwmSm2jEVUmnGfjcANuX-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-24" value="Sujetar la pieza cerrando la pinza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="130" y="610" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-26" target="YwmSm2jEVUmnGfjcANuX-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-26" value="Elevar la pieza retrayendo pistón vertical" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="130" y="680" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-28" target="YwmSm2jEVUmnGfjcANuX-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-28" value="Extender pistón horizontal y vertical para dejar la pieza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="120" y="750" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-29" target="YwmSm2jEVUmnGfjcANuX-33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-29" value="Depositar la pieza en el cilindro abriendo la garra" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="120" y="820" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="YwmSm2jEVUmnGfjcANuX-33" target="YwmSm2jEVUmnGfjcANuX-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="YwmSm2jEVUmnGfjcANuX-33" value="Retraer los pistones horizontal y vertical a su punto inicial" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="120" y="890" width="200" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

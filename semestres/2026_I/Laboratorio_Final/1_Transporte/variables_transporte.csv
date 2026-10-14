@@ -1,0 +1,126 @@
+Symbol;Address;Comment
+Sens_Origen;I0.0;Sensor inductivo origen servo (usado por libreria MAP_SERV para homing)
+FC_Derecha;I0.1;Final de carrera derecha (Fwd_Limit para Q0_0_CTRL)
+FC_Izquierda;I0.2;Final de carrera izquierda (Rev_Limit para Q0_0_CTRL)
+CilV_Abajo;I0.3;Sensor brazo retraido (abajo)
+CilV_Arriba;I0.4;Sensor brazo extendido (arriba)
+Giro_Izquierda;I0.5;Sensor rotatorio posicion izquierda (antihorario)
+Giro_Derecha;I0.6;Sensor rotatorio posicion derecha (horario)
+CilDV_Ext;I0.7;Sensor doble vastago extendido
+CilDV_Ret;I1.0;Sensor doble vastago retraido
+Pinza_Cer;I1.1;Sensor pinza cerrada
+Estado_Servo;I1.2;Estado driver servo (1=Ready 0=Alarma)
+Btn_Paro;I2.4;Pulsador rojo de paro
+Btn_Marcha;I2.5;Pulsador amarillo de marcha
+Seta_Emerg;I2.6;Seta de emergencia (NC - 0=emergencia activa)
+Selector;I2.7;Selector rotatorio de modo
+Servo_Pulsos;Q0.0;Salida PTO tren de pulsos al driver servo
+Servo_Dir;Q0.2;Salida direccion al driver servo
+V_Cil_Vert;Q0.3;Valvula elevar brazo neumatico (activo=arriba inactivo=baja)
+V_Giro_AH;Q0.4;Valvula rotatorio antihorario (destino Seleccion)
+V_Giro_H;Q0.5;Valvula rotatorio horario (destino Procesamiento y Ensamblaje)
+V_Cil_DV;Q0.6;Valvula doble vastago (extender)
+V_Pinza_Abre;Q0.7;Valvula pinza abre
+V_Pinza_Cierra;Q1.0;Valvula pinza cierra
+Lamp_Amarilla;Q1.5;Lampara amarilla - parada pendiente o homing activo
+Lamp_Verde;Q1.6;Lampara verde - ciclo de tarea en ejecucion
+Lamp_Roja;Q1.7;Lampara roja - reposo esperando solicitud
+P_Hom_Espera;M5.0;Plaza Homing_Espera - estado inicial al arranque o tras emergencia
+P_Hom_Activo;M5.1;Plaza Homing_Activo - servo buscando origen
+P0_Brazo_Libre;M0.0;Plaza P0 - Reposo. Brazo disponible para nueva tarea
+P1_Req_A_P;M0.1;Plaza P1 - Solicitud activa Alimentacion -> Procesamiento (inyectable Modbus)
+P2_Req_P_E;M0.2;Plaza P2 - Solicitud activa Procesamiento -> Ensamblaje (inyectable Modbus)
+P3_Req_E_S;M0.3;Plaza P3 - Solicitud activa Ensamblaje -> Seleccion (inyectable Modbus)
+P10_Viaje_Ori;M1.0;Plaza P10 - Servo viajando a coordenada de recogida
+P11a_Rot_Ori;M1.1;Plaza P11a - Orientando garra en posicion de recogida
+P11b_DV_Ext;M1.2;Plaza P11b - Extendiendo doble vastago en pick
+P11c_Cil_Baj;M1.3;Plaza P11c - Bajando brazo en pick
+P11d_Pinza_Cer;M1.4;Plaza P11d - Cerrando pinza (agarrando pieza)
+P11e_Cil_Arr;M1.5;Plaza P11e - Subiendo brazo con pieza
+P11f_DV_Ret;M1.6;Plaza P11f - Retrayendo doble vastago (pick completo)
+P12_Viaje_Des;M1.7;Plaza P12 - Servo viajando a coordenada de entrega
+P13a_Rot_Des;M2.0;Plaza P13a - Orientando garra en posicion de entrega
+P13b_DV_Ext;M2.1;Plaza P13b - Extendiendo doble vastago en place
+P13c_Cil_Baj;M2.2;Plaza P13c - Bajando brazo en place
+P13d_Pinza_Ab;M8.0;Plaza P13d - Abriendo pinza (liberando pieza)
+P13e_Cil_Arr;M8.1;Plaza P13e - Subiendo brazo tras soltar
+P13f_DV_Ret;M3.5;Plaza P13f - Retrayendo doble vastago (place completo)
+P14_Finalizar;M3.6;Plaza P14 - Liberando brazo y limpiando solicitud
+Ev_Marcha_Flanco;M6.0;Evento - Flanco subida boton marcha (autorreset en P0)
+Ev_Paro_Flanco;M6.1;Evento - Flanco subida boton paro (bloquea inicio nuevo ciclo)
+Ev_CilV_Abajo;M2.3;Evento - Sensor brazo abajo
+Ev_CilV_Arriba;M2.4;Evento - Sensor brazo arriba
+Ev_Giro_Izq;M2.5;Evento - Sensor rotatorio posicion izquierda
+Ev_Giro_Der;M2.6;Evento - Sensor rotatorio posicion derecha (horario)
+Ev_CilDV_Ext;M2.7;Evento - Sensor doble vastago extendido
+Ev_CilDV_Ret;M3.0;Evento - Sensor doble vastago retraido
+Ev_Pinza_Cer;M3.1;Evento - Pinza cerrada
+Ev_Move_Done;M3.2;Evento - Flag Done libreria MAP_SERV (posicion alcanzada)
+Ev_Origen_Det;M3.3;Evento - Sensor I0.0 origen detectado (usado en homing)
+Ev_Servo_OK;M3.4;Evento - Driver servo listo (I1.2=1)
+T_Homing_Start;M4.0;Disparo - Iniciar secuencia de homing
+T_Homing_Done;M4.1;Disparo - Homing completado sensor origen detectado
+T_Acept_ES;M4.2;Disparo - Aceptar tarea E->S (Prioridad 1 alta)
+T_Acept_PE;M4.3;Disparo - Aceptar tarea P->E (Prioridad 2 media)
+T_Acept_AP;M4.4;Disparo - Aceptar tarea A->P (Prioridad 3 baja)
+T_Origen_OK;M4.5;Disparo - Servo llego a coordenada de recogida
+T_Rot_Ori_OK;M4.6;Disparo - Garra orientada en posicion de recogida
+T_DV_Ext_Pick;M4.7;Disparo - Doble vastago extendido en pick
+T_CilV_Baj_Pick;M5.2;Disparo - Brazo abajo en pick
+T_Pinza_Cer;M5.3;Disparo - Pinza cerrada agarre confirmado
+T_CilV_Arr_Pick;M5.4;Disparo - Brazo arriba con pieza en pick
+T_DV_Ret_Pick;M5.5;Disparo - Doble vastago retraido pick completo
+T_Destino_OK;M5.6;Disparo - Servo llego a coordenada de entrega
+T_Rot_Des_OK;M5.7;Disparo - Garra orientada en posicion de entrega
+T_DV_Ext_Place;M6.2;Disparo - Doble vastago extendido en place
+T_CilV_Baj_Place;M6.3;Disparo - Brazo abajo en place
+T_Pinza_Ab;M6.4;Disparo - Pinza abierta pieza liberada
+T_CilV_Arr_Place;M6.5;Disparo - Brazo arriba tras soltar en place
+T_DV_Ret_Place;M6.6;Disparo - Doble vastago retraido place completo
+T_Tarea_Fin;M6.7;Disparo - Liberar brazo y volver a reposo
+Ctx_Tarea_AP;M7.0;Contexto tarea activa - Alimentacion -> Procesamiento
+Ctx_Tarea_PE;M7.1;Contexto tarea activa - Procesamiento -> Ensamblaje
+Ctx_Tarea_ES;M7.2;Contexto tarea activa - Ensamblaje -> Seleccion
+Home_Done;V221.0;Bit Done libreria MAP_SERV (busqueda de origen alcanzada)
+Home_error;V221.1;Bit Error libreria MAP_SERV (avisa si hubo un error en la busqueda de origen)
+Servo_Exec;V220.0;Bit interno - Comando ejecutar movimiento (nivel)
+Servo_Done;V220.1;Bit Done libreria MAP_SERV (posicion alcanzada)
+Servo_Err;V220.2;Bit Error libreria MAP_SERV
+Servo_Execute_Pulse;V220.4;Bit pulso EXECUTE un scan para MoveAbsolute
+Servo_C_Pos;VD34;Posicion actual del servo en pulsos (salida Q0_0_CTRL)
+Coord_Target;VD200;Coordenada destino activa cargada antes de MoveAbsolute
+Coord_Alim;VD204;Coordenada estacion Alimentacion (pulsos)
+Coord_Proc;VD208;Coordenada estacion Procesamiento (pulsos)
+Coord_Ensa;VD212;Coordenada estacion Ensamblaje (pulsos)
+Coord_Sele;VD216;Coordenada estacion Seleccion (pulsos)
+net_cycle;M10.0;network cycle (PPI)
+net_error;M10.1;network error (PPI)
+done_modbus;M10.2;marca done para libreria modbus (init)
+error_modbus;VB26;byte de error para libreria modbus (init)
+done_modbus2;M10.3;marca done para libreria modbus
+error_modbus2;VB30;byte de error para libreria modbus
+Pos_Alim;VD10;Posicion Alimentacion
+Pos_Proc;VD14;Posicion Procesamiento
+Pos_Ensa;VD18;Posicion Ensamblaje
+Pos_Sele;VD22;Posicion Seleccion
+Sol_AP;V0.0;Solicitud Alimentacion a Procesamiento
+Ack_AP;V1.0;Reconocimiento AP
+Sol_PE;V2.0;Solicitud Procesamiento a Ensamblaje
+Ack_PE;V3.0;Reconocimiento PE
+Sol_ES;V4.0;Solicitud Ensamblaje a Seleccion
+Ack_ES;V5.0;Reconocimiento ES
+Ack_MA;V0.1;Reconocimiento marcha Unidad de Alimentacion
+Marcha_A;V1.1;Solicitud de marcha para la Unidad de Alimentacion
+Ack_MP;V2.1;Reconocimiento marcha Unidad de Procesammiento
+Marcha_P;V3.1;Solicitud de marcha para la Unidad de Procesamiento
+Ack_ME;V4.1;Reconocimiento marcha Unidad de Ensamblaje
+Marcha_E;V5.1;Solicitud de marcha para la Unidad de Ensamblaje
+Ack_MS;V6.1;Reconocimiento marcha Unidad de Seleccion
+Marcha_S;V7.1;Solicitud de marcha para la Unidad de Seleccion
+Alim_OK;V0.2;Unidad de Alimentacion disponible
+Proc_OK;V2.2;Unidad de Procesamiento disponible
+Ens_OK;V4.2;Unidad de Ensamblaje disponible
+Sel_OK;V6.2;Unidad de Seleccion disponible
+Pieza_Metal;V6.3;Pieza identificada por la unidad de seleccion es totalmente metalica
+Pieza_Mixta;V6.4;Pieza identificada por la unidad de seleccion es totalmente mixta
+Pieza_Plastica;V6.5;Pieza identificada por la unidad de seleccion es totalmente plastica

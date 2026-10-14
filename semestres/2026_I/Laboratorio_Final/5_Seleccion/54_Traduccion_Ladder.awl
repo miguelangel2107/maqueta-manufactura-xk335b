@@ -1,0 +1,421 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=UNIDAD DE SELECCION - RED DE PETRI + CONTROL DE ESTADOS
+//  MODULO 1: INICIALIZACION
+//  MODULO 2: EVENTOS
+//  MODULO 3: DISPARO
+//  MODULO 4: DINAMICA
+//  MODULO 5: ACCIONES
+//  MODULO 1: INICIALIZACION
+BEGIN
+Network 1 //  Marcado Inicial Petri
+
+LD     SM0.1                       // P0 Reposo activo
+S      M0.0, 1                     // Limpiar marcas P1 a M0.7
+R      M0.1, 7
+Network 2 //  Inicializacion Ganancias Controlador por Realimentacion de Estados
+
+LD     SM0.1                       // K1
+MOVR   97.26, VD120                // K2
+MOVR   25.64, VD124                // N
+MOVR   97.26, VD132
+Network 3 //  Reset Registros de Control
+
+LD     SM0.1                       // Setpoint Inicial
+MOVR   0.0, VD112                  // Reset Pos_Last
+MOVR   0.0, VD104
+Network 4 //  Configuracion Hardware
+
+LD     SM0.1                       // Inicializar HSC0
+CALL   SBR1
+Network 5 //  Configuracion Interrupcion 10ms
+
+
+
+
+
+// MODULO 2: EVENTOS (CAPTURA DE SENSORES Y COMPARADORES)
+LD     SM0.1
+MOVB   10, SMB34
+ATCH   INT0, 10
+ENI
+Network 6 //  Evento: Solicitud de Marcha
+//  Solicitud de Marcha activado por boton o mediante solicitud de marcha en la marca V1.1
+
+
+
+LD     I1.3
+O      V1.1
+=      M2.0
+Network 7 
+LD     M2.0
+=      V0.1
+Network 8 //  Evento: Pieza en Entrada
+
+
+LD     I0.3
+=      M2.1
+Network 9 //  Evento: Llegada a Sensores (Cuenta 510)
+// Nota: La comparacion se hace a 500 en lugar de 510 para evitar estancamientos
+
+
+
+
+LD     SM0.0
+DTR    HC0, AC0
+AR>=   AC0, 500.0
+=      M2.2
+Network 10 //  Evento: Llegada a Rampa Objetivo
+// Nota: Se adiciona 10 unidades al conteo actual para evitar estancamientos
+
+
+
+
+LD     SM0.0
+DTR    HC0, AC0
++R     10.0, AC0
+AR>=   AC0, VD300
+=      M2.3
+Network 11 //  Evento: Al menos un Cilindro esta extendido
+
+
+
+
+
+// MODULO 3: CONDICIONES DE DISPARO (FIRING)
+LD     I0.7
+O      I1.0
+O      I1.1
+=      M2.4
+Network 12 //  Transicion T0: Inicio
+
+
+
+
+LD     M0.0
+LPS
+A      M2.0
+A      M2.1
+=      M1.0
+LPP
+=      V0.2
+Network 13 //  Transicion T1: Posicion 510
+// Adicionalmente resetea el tipo de pieza
+
+
+
+LD     M0.1
+LPS
+A      M2.2
+=      M1.1
+LPP
+R      V0.3, 3
+Network 14 //  Transicion T2: Clasificacion Terminada
+
+
+LD     M0.2
+=      M1.2
+Network 15 //  Transicion T3: Posicion Rampa
+
+
+
+LD     M0.3
+A      M2.3
+=      M1.3
+Network 16 //  Transicion T4: Expulsion Terminada
+
+
+LD     M0.4
+A      M2.4
+=      M1.4
+Network 17 //  Transicion T5: Reset Terminado
+
+
+
+
+// MODULO 4: DINAMICA DE LA RED (EVOLUCION)
+LD     M0.5
+=      M1.5
+Network 18 //  Evolucion T0: P0 a P1
+
+
+
+LD     M1.0
+R      M0.0, 1
+S      M0.1, 1
+Network 19 //  Evolucion T1: P1 a P2
+
+
+
+LD     M1.1
+R      M0.1, 1
+S      M0.2, 1
+Network 20 //  Evolucion T2: P2 a P3
+
+
+
+LD     M1.2
+R      M0.2, 1
+S      M0.3, 1
+Network 21 //  Evolucion T3: P3 a P4
+
+
+
+LD     M1.3
+R      M0.3, 1
+S      M0.4, 1
+Network 22 //  Evolucion T4: P4 a P5
+
+
+
+LD     M1.4
+R      M0.4, 1
+S      M0.5, 1
+Network 23 //  Evolucion T5: P5 a P0
+
+
+
+LD     M1.5
+R      M0.5, 1
+S      M0.0, 1
+Network 24 //  SEGURIDAD: Salto por Emergencia
+
+
+
+// MODULO 5: ACCIONES (SALIDAS Y SETPOINTS)
+LDN    I1.4
+JMP    0
+Network 25 //  Accion P0: Setpoint 0
+
+
+LD     M0.0
+MOVR   0.0, VD112
+Network 26 //  Accion P1: Setpoint 500
+// Nota: Se ajusta el setpoint a 700 en lugar de 500 para tener un movimiento mas suave de la cinta.
+
+
+LD     M0.1
+MOVR   700.0, VD112
+Network 27 //  Clasificacion: Rampa 1 (Metalica)
+
+
+
+LD     M0.2
+A      I0.5
+A      I0.4
+MOVR   700.0, VD300
+Network 28 //  Clasificacion: Rampa 2 (Mixta)
+
+
+
+
+LD     M0.2
+LD     I0.4
+AN     I0.5
+LDN    I0.4
+A      I0.5
+OLD
+ALD
+MOVR   1120.0, VD300
+Network 29 //  Clasificacion: Rampa 3 (Plastica)
+
+
+
+
+LD     M0.2
+AN     I0.4
+AN     I0.5
+MOVR   1520.0, VD300
+Network 30 //  Accion P3: Viaje a Rampa
+
+
+LD     M0.3
+MOVR   VD300, VD112
+Network 31 //  Accion P4: Expulsar Rampa 1
+
+
+
+LD     M0.4
+LPS
+AR=    VD300, 700.0
+=      Q0.4
+LPP
+S      V0.3, 1
+Network 32 //  Accion P4: Expulsar Rampa 2
+
+
+
+LD     M0.4
+LPS
+AR=    VD300, 1120.0
+=      Q0.5
+LPP
+S      V0.4, 1
+Network 33 //  Accion P4: Expulsar Rampa 3
+
+
+
+LD     M0.4
+LPS
+AR=    VD300, 1520.0
+=      Q0.6
+LPP
+S      V0.5, 1
+Network 34 //  Accion P5: Retorno y Reset Encoder
+
+
+
+
+LD     M0.5
+MOVR   0.0, VD112
+MOVD   0, SMD38
+HSC    0
+Network 35 //  Etiqueta Emergencia
+
+LBL    0
+Network 36 //  Parada Segura: Reset Marcas
+
+
+LDN    I1.4
+S      M0.0, 1
+R      M0.1, 1
+R      M0.2, 1
+R      M0.3, 1
+R      M0.4, 1
+R      M0.5, 1
+Network 37 //  Parada Segura: Reset Actuadores
+
+
+
+
+LDN    I1.4
+MOVR   0.0, VD112
+R      Q0.0, 1
+R      Q0.4, 3
+END_ORGANIZATION_BLOCK
+SUBROUTINE_BLOCK HSC_INIT:SBR1
+TITLE=INICIALIZACION ENCODER HSC0
+BEGIN
+Network 1 
+
+
+
+
+
+
+LD     SM0.0
+MOVB   16#FC, SMB37
+MOVD   +0, SMD38
+MOVD   +0, SMD42
+HDEF   0, 9
+HSC    0
+END_SUBROUTINE_BLOCK
+INTERRUPT_BLOCK INT_0:INT0
+TITLE=CONTROLADOR REALIMENTACION ESTADOS 10ms
+BEGIN
+Network 1 //  Seguridad
+
+
+LDN    I1.4
+CRETI
+Network 2 //  Lectura Posicion
+
+
+
+LD     SM0.0
+MOVD   HC0, AC0
+DTR    AC0, VD100
+Network 3 //  Calculo Velocidad
+
+
+
+
+
+LD     SM0.0
+MOVR   VD100, AC0
+-R     VD104, AC0
+*R     100.0, AC0
+MOVR   AC0, VD108
+Network 4 //  Ley Control Parte 1 (N*SP - K1*x1)
+
+
+
+
+
+
+
+LD     SM0.0
+MOVR   VD132, AC0
+*R     VD112, AC0
+MOVR   VD120, AC1
+*R     VD100, AC1
+-R     AC1, AC0
+MOVR   AC0, VD116
+Network 5 //  Ley Control Parte 2 (u - K2*x2)
+
+
+
+
+
+
+LD     SM0.0
+MOVR   VD124, AC1
+*R     VD108, AC1
+MOVR   VD116, AC0
+-R     AC1, AC0
+MOVR   AC0, VD116
+Network 6 //  Direccion y Absoluto
+
+
+
+LD     SM0.0
+AR>=   VD116, 0.0
+MOVR   VD116, VD128
+R      Q0.1, 1
+Network 7 //  Inversion
+
+
+
+
+LD     SM0.0
+AR<    VD116, 0.0
+MOVR   VD116, VD128
+*R     -1.0, VD128
+S      Q0.1, 1
+Network 8 //  Saturacion
+
+
+
+LD     SM0.0
+AR>    VD128, 32000.0
+MOVR   32000.0, VD128
+Network 9 //  Salida Analogica
+
+
+
+
+LD     SM0.0
+ROUND  VD128, AC0
+DTI    AC0, AC1
+MOVW   AC1, AQW0
+Network 10 //  Marcha Motor (Q0.0)
+
+
+
+LD     SM0.0
+AR>    VD128, 100.0
+S      Q0.0, 1
+Network 11 //  Parada Motor
+
+
+
+LD     SM0.0
+AR<=   VD128, 100.0
+R      Q0.0, 1
+Network 12 //  Actualizar Ciclo
+
+
+
+LD     SM0.0
+MOVR   VD100, VD104
+CRETI
+END_INTERRUPT_BLOCK

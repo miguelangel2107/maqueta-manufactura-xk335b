@@ -1,0 +1,23 @@
+{
+  "actual": "2026_II",
+  "semestres": {
+    "2022_II": {
+      "resumen": "Programas Ladder del diagnóstico inicial, P&ID en AutoCAD, bitácoras y videos de funcionamiento."
+    },
+    "2023_I": {
+      "resumen": "GRAFCET de cada unidad en FluidSIM, diagramas de flujo, controladores PID, por realimentación de estados y LQG."
+    },
+    "2023_II": {
+      "resumen": "Modelos 3D en AutoCAD, caracterización de las unidades, diseño de controladores, mantenimiento y presentaciones."
+    },
+    "2025_II": {
+      "resumen": "P&ID por unidad, función de transferencia de la cinta, programas Micro/WIN con comunicación y pruebas de HMI."
+    },
+    "2026_I": {
+      "resumen": "Laboratorios 1 a 8 y laboratorio final: diagramas de bloques, planos, redes de Petri, OpenPLC y SCADA."
+    },
+    "2026_II": {
+      "resumen": "Semestre en curso. Ingeniería inversa, diagnóstico Kaizen, planos, mapeo de hardware, programas AWL y SCADA web."
+    }
+  }
+}

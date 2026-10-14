@@ -1,0 +1,15 @@
+=========================================================
+   PARAMETROS CALCULADOS PARA EL PLC
+=========================================================
+K1 (Posicion): 97.7436
+K2 (Velocidad): 25.8460
+N (Precompensacion): 97.7436
+L1 (Ganancia Obs 1): 0.1919
+L2 (Ganancia Obs 2): 0.6113
+Phi11: 1.000000, Phi12: 0.009814
+Phi21: 0.000000, Phi22: 0.963062
+Gamma1: 0.000008, Gamma2: 0.001611
+=========================================================
+
+Simulacion completada y grafica guardada como ComparacionControladorObservador.pdf
+>> 

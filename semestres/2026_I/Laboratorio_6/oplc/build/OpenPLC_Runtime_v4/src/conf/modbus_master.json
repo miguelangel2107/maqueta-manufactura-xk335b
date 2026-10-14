@@ -1,0 +1,30 @@
+[
+  {
+    "name": "simulador_planta",
+    "protocol": "MODBUS",
+    "config": {
+      "type": "SLAVE",
+      "transport": "tcp",
+      "host": "127.0.0.1",
+      "port": 5020,
+      "timeout_ms": 1000,
+      "slave_id": 1,
+      "io_points": [
+        {
+          "fc": 2,
+          "offset": "0x0000",
+          "iec_location": "%IX0.0",
+          "len": 40,
+          "cycle_time_ms": 50
+        },
+        {
+          "fc": 15,
+          "offset": "0x0000",
+          "iec_location": "%QX0.0",
+          "len": 40,
+          "cycle_time_ms": 50
+        }
+      ]
+    }
+  }
+]

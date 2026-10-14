@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMI - XK335B Planta de Manufactura</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+    <!-- CSS Estilos -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="header-logo">
+                <span class="logo-dot"></span>
+                <h1>SISTEMA DE MANUFACTURA FLEXIBLE <span>XK335B</span></h1>
+            </div>
+            <div class="header-status">
+                <div class="status-badge" id="system-mode-badge">MODO: AUTOMATICO</div>
+                <div class="status-badge" id="modbus-port-badge">PORT: 5020</div>
+            </div>
+        </header>
+
+        <!-- MAIN GRID -->
+        <main class="grid-layout">
+            <!-- PANEL DE CONTROL GENERAL -->
+            <section class="panel control-panel">
+                <h2>MANDOS PRINCIPALES</h2>
+                <div class="btn-group-vertical">
+                    <button class="btn btn-danger btn-emerg" id="btn-emergency">PARADA DE EMERGENCIA</button>
+                    
+                    <div class="toggle-container">
+                        <span class="toggle-label">Control Automatico</span>
+                        <label class="switch">
+                            <input type="checkbox" id="mode-selector" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" id="btn-reabastecer">Reabastecer Stock U1</button>
+                </div>
+
+                <div class="counters">
+                    <div class="counter-card">
+                        <h3>Piezas Procesadas</h3>
+                        <div class="counter-val" id="counter-value">0</div>
+                    </div>
+                </div>
+
+                <div class="system-logs">
+                    <h3>Estado del Proceso</h3>
+                    <div class="info-row">
+                        <span>Pieza Actual:</span>
+                        <strong id="info-piece-type">-</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Prensada:</span>
+                        <span class="led-indicator inline-led" id="led-info-proc"></span>
+                    </div>
+                    <div class="info-row">
+                        <span>Ensamblada:</span>
+                        <span class="led-indicator inline-led" id="led-info-ensa"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REPRESENTACIÓN GRÁFICA / SIMULACIÓN -->
+            <section class="panel simulation-panel">
+                <h2>VISTA DE LA PLANTA (SIMULADOR EN TIEMPO REAL)</h2>
+                
+                <div class="plant-layout">
+                    <!-- Estaciones Físicas -->
+                    <div class="stations-container">
+                        <!-- U1: Alimentacion -->
+                        <div class="station-card" id="card-u1">
+                            <div class="station-title">U1: ALIMENTACION</div>
+                            <div class="visual-element u1-container">
+                                <div class="feeder-tube">
+                                    <div class="stacked-pieces" id="u1-pieces">
+                                        <div class="stock-piece color-neutral"></div>
+                                        <div class="stock-piece color-neutral"></div>
+                                        <div class="stock-piece color-neutral"></div>
+                                    </div>
+                                </div>
+                                <div class="piston-small-vis" id="piston-small-vis"></div>
+                                <div class="piston-large-vis" id="piston-large-vis"></div>
+                                <div class="delivery-spot">
+                                    <div class="piece-vis" id="piece-u1-delivery"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- U2: Procesamiento -->
+                        <div class="station-card" id="card-u2">
+                            <div class="station-title">U2: PROCESAMIENTO</div>
+                            <div class="visual-element u2-container">
+                                <div class="press-cylinder" id="press-cylinder-vis"></div>
+                                <div class="press-die">
+                                    <div class="piece-vis" id="piece-u2"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- U3: Ensamblaje -->
+                        <div class="station-card" id="card-u3">
+                            <div class="station-title">U3: ENSAMBLAJE</div>
+                            <div class="visual-element u3-container">
+                                <div class="assembly-feeder">
+                                    <div class="small-piece-stock"></div>
+                                </div>
+                                <div class="piston-ensa-vis" id="piston-ensa-vis"></div>
+                                <div class="assembly-table">
+                                    <div class="piece-vis" id="piece-u3"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- U5: Seleccion -->
+                        <div class="station-card" id="card-u5">
+                            <div class="station-title">U5: SELECCION</div>
+                            <div class="visual-element u5-container">
+                                <div class="belt-conveyor" id="belt-vis">
+                                    <div class="piece-vis" id="piece-u5"></div>
+                                    <div class="deflector" id="deflector-r1" style="left: 40%;"></div>
+                                    <div class="deflector" id="deflector-r2" style="left: 60%;"></div>
+                                    <div class="deflector" id="deflector-r3" style="left: 80%;"></div>
+                                </div>
+                                <div class="ramps-container">
+                                    <div class="ramp"><span class="ramp-lbl">R1: Metal</span></div>
+                                    <div class="ramp"><span class="ramp-lbl">R2: Mixto</span></div>
+                                    <div class="ramp"><span class="ramp-lbl">R3: Plast.</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Riel del Servo (U4) -->
+                    <div class="rail-container">
+                        <div class="rail-label">RIEL HORIZONTAL (SERVO U4)</div>
+                        <div class="rail">
+                            <!-- Carro del Servo -->
+                            <div class="servo-carriage" id="servo-carriage" style="left: 0%;">
+                                <div class="gripper-arm" id="gripper-arm">
+                                    <div class="gripper-hand" id="gripper-hand"></div>
+                                </div>
+                            </div>
+                            <!-- Estaciones marcadas -->
+                            <div class="station-mark mark-u1" style="left: 7%;">U1</div>
+                            <div class="station-mark mark-u2" style="left: 45%;">U2</div>
+                            <div class="station-mark mark-u3" style="left: 82%;">U3</div>
+                            <div class="station-mark mark-u5" style="left: 100%;">U5</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MANDOS MANUALES -->
+            <section class="panel manual-panel" id="manual-controls-section">
+                <h2>MANDOS MANUALES (DESACTIVADO EN AUTO)</h2>
+                <div class="manual-grid">
+                    <!-- U1 -->
+                    <div class="manual-group">
+                        <h3>U1: ALIMENTACION</h3>
+                        <button class="btn btn-manual" data-cmd="v_cil_peq">Cil. Peq. (Q0.0)</button>
+                        <button class="btn btn-manual" data-cmd="v_cil_lrg">Cil. Lrg. (Q0.1)</button>
+                    </div>
+                    <!-- U2 -->
+                    <div class="manual-group">
+                        <h3>U2: PROCESAMIENTO</h3>
+                        <button class="btn btn-manual" data-cmd="v_prensa">Prensa (Q1.0)</button>
+                    </div>
+                    <!-- U3 -->
+                    <div class="manual-group">
+                        <h3>U3: ENSAMBLAJE</h3>
+                        <button class="btn btn-manual" data-cmd="v_cil_ensa">Empuje Ensa. (Q2.0)</button>
+                    </div>
+                    <!-- U4 -->
+                    <div class="manual-group">
+                        <h3>U4: TRANSPORTE</h3>
+                        <button class="btn btn-manual" data-cmd="v_cil_vert">Bajar Brazo (Q3.0)</button>
+                        <button class="btn btn-manual" data-cmd="v_pinza">Cerrar Pinza (Q3.1)</button>
+                        <div class="servo-destinations">
+                            <span>Mover Servo:</span>
+                            <div class="btn-group-row">
+                                <button class="btn btn-servo" data-pos="U1">U1</button>
+                                <button class="btn btn-servo" data-pos="U2">U2</button>
+                                <button class="btn btn-servo" data-pos="U3">U3</button>
+                                <button class="btn btn-servo" data-pos="U5">U5</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- U5 -->
+                    <div class="manual-group">
+                        <h3>U5: SELECCION</h3>
+                        <button class="btn btn-manual" data-cmd="motor_cinta">Motor Cinta (Q4.0)</button>
+                        <button class="btn btn-manual" data-cmd="v_deflector_r1">Deflector R1 (Q4.1)</button>
+                        <button class="btn btn-manual" data-cmd="v_deflector_r2">Deflector R2 (Q4.2)</button>
+                        <button class="btn btn-manual" data-cmd="v_deflector_r3">Deflector R3 (Q4.3)</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TABLA DE ENTRADAS Y SALIDAS MODBUS -->
+            <section class="panel io-panel">
+                <h2>MAPA DE REGISTROS MODBUS (I/O)</h2>
+                <div class="io-tables">
+                    <!-- Entradas -->
+                    <div class="io-table-container">
+                        <h3>Entradas (Sensores - Lectura PLC)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Reg.</th>
+                                    <th>Simbolo</th>
+                                    <th>Fisico</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inputs-table-body">
+                                <!-- Generado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Salidas -->
+                    <div class="io-table-container">
+                        <h3>Salidas (Actuadores - Escritura PLC)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Reg.</th>
+                                    <th>Simbolo</th>
+                                    <th>Fisico</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coils-table-body">
+                                <!-- Generado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HISTORIAL -->
+            <section class="panel history-panel">
+                <h2>HISTORIAL DE CLASIFICACION</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo de Pieza</th>
+                            <th>Prensado</th>
+                            <th>Ensamblado</th>
+                            <th>Destino</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr>
+                            <td colspan="5" class="txt-center text-muted">No hay piezas procesadas todavia</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- JS Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

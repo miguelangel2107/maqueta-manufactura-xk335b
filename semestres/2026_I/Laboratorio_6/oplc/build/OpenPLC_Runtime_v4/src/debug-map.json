@@ -1,0 +1,357 @@
+{
+  "version": 2,
+  "md5": "f7f0695ba00af9a73542f5fbb92f3977",
+  "typeTags": {
+    "BOOL": 0,
+    "SINT": 1,
+    "USINT": 2,
+    "INT": 3,
+    "UINT": 4,
+    "DINT": 5,
+    "UDINT": 6,
+    "LINT": 7,
+    "ULINT": 8,
+    "REAL": 9,
+    "LREAL": 10,
+    "BYTE": 11,
+    "WORD": 12,
+    "DWORD": 13,
+    "LWORD": 14,
+    "TIME": 15,
+    "DATE": 16,
+    "TOD": 17,
+    "DT": 18,
+    "STRING": 19,
+    "WSTRING": 20
+  },
+  "arrays": [
+    {
+      "index": 0,
+      "count": 46
+    }
+  ],
+  "leaves": [
+    {
+      "arrayIdx": 0,
+      "elemIdx": 0,
+      "path": "INSTANCE0.STEP",
+      "type": "INT",
+      "size": 2
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 1,
+      "path": "INSTANCE0.TIMER_PINZA.IN",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 2,
+      "path": "INSTANCE0.TIMER_PINZA.PT",
+      "type": "TIME",
+      "size": 8
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 3,
+      "path": "INSTANCE0.TIMER_PINZA.Q",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 4,
+      "path": "INSTANCE0.TIMER_PINZA.ET",
+      "type": "TIME",
+      "size": 8
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 5,
+      "path": "INSTANCE0.TIMER_SELECCION.IN",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 6,
+      "path": "INSTANCE0.TIMER_SELECCION.PT",
+      "type": "TIME",
+      "size": 8
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 7,
+      "path": "INSTANCE0.TIMER_SELECCION.Q",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 8,
+      "path": "INSTANCE0.TIMER_SELECCION.ET",
+      "type": "TIME",
+      "size": 8
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 9,
+      "path": "INSTANCE0.CIL_PEQ_EXT",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 10,
+      "path": "INSTANCE0.CIL_PEQ_RET",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 11,
+      "path": "INSTANCE0.CIL_LRG_EXT",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 12,
+      "path": "INSTANCE0.CIL_LRG_RET",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 13,
+      "path": "INSTANCE0.PRESENCIA_INF",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 14,
+      "path": "INSTANCE0.PRENSA_ARRIBA",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 15,
+      "path": "INSTANCE0.PRENSA_ABAJO",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 16,
+      "path": "INSTANCE0.CIL_ENSA_RET",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 17,
+      "path": "INSTANCE0.CIL_ENSA_EXT",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 18,
+      "path": "INSTANCE0.CIL_VERT_ARRIBA",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 19,
+      "path": "INSTANCE0.CIL_VERT_ABAJO",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 20,
+      "path": "INSTANCE0.PINZA_CERRADA",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 21,
+      "path": "INSTANCE0.SERVO_EN_U1",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 22,
+      "path": "INSTANCE0.SERVO_EN_U2",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 23,
+      "path": "INSTANCE0.SERVO_EN_U3",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 24,
+      "path": "INSTANCE0.SERVO_EN_U5",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 25,
+      "path": "INSTANCE0.SENS_OBJETO_ENT",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 26,
+      "path": "INSTANCE0.SENS_METAL",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 27,
+      "path": "INSTANCE0.SENS_MIXTO",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 28,
+      "path": "INSTANCE0.SENS_PLASTICO",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 29,
+      "path": "INSTANCE0.DEFLECTOR_R1_EXT",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 30,
+      "path": "INSTANCE0.DEFLECTOR_R2_EXT",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 31,
+      "path": "INSTANCE0.DEFLECTOR_R3_EXT",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 32,
+      "path": "INSTANCE0.V_CIL_PEQ",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 33,
+      "path": "INSTANCE0.V_CIL_LRG",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 34,
+      "path": "INSTANCE0.V_PRENSA",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 35,
+      "path": "INSTANCE0.V_CIL_ENSA",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 36,
+      "path": "INSTANCE0.V_CIL_VERT",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 37,
+      "path": "INSTANCE0.V_PINZA",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 38,
+      "path": "INSTANCE0.SERVO_GO_U1",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 39,
+      "path": "INSTANCE0.SERVO_GO_U2",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 40,
+      "path": "INSTANCE0.SERVO_GO_U3",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 41,
+      "path": "INSTANCE0.SERVO_GO_U5",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 42,
+      "path": "INSTANCE0.MOTOR_CINTA",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 43,
+      "path": "INSTANCE0.V_DEFLECTOR_R1",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 44,
+      "path": "INSTANCE0.V_DEFLECTOR_R2",
+      "type": "BOOL",
+      "size": 1
+    },
+    {
+      "arrayIdx": 0,
+      "elemIdx": 45,
+      "path": "INSTANCE0.V_DEFLECTOR_R3",
+      "type": "BOOL",
+      "size": 1
+    }
+  ]
+}

@@ -1,0 +1,2784 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=UNIDAD 1: TRANSPORTE MASTER - COORDINADOR DE CELDA XL-335B (REV. AUDITADA)
+// ==============================================================================
+// SISTEMA: CELDA DE MANUFACTURA FLEXIBLE XL-335B + BRAZO 4-DOF
+// MODULO: UNIDAD 1 - TRANSPORTE MASTER Y COORDINADOR DE CELDA
+// CPU: SIEMENS SIMATIC S7-200 CPU 226CN (2 PUERTOS RS-485 INTEGRADOS)
+// PUERTO 0: ESCLAVO MODBUS RTU HACIA WEB SCADA (DIRECCION 1, 19200 BPS, 8-N-1)
+// PUERTO 1: MAESTRO PPI (SMB130 = 2) EN BUS DAISY-CHAIN 19200 BPS (NODOS 2..6)
+// SELECTOR FISICO: RUN = Modbus en Puerto 0 + maestro PPI en Puerto 1 (produccion)
+//                  TERM = ambos puertos en PPI esclavo: el PC programa y monitorea con el programa en RUN
+// ==============================================================================
+// CABLEADO REAL VERIFICADO (CODIGO PROBADO EN BANCO):
+//   ENTRADAS: I0.0 Inductivo HOME (NA)       I0.1 FC IZQUIERDO (NA, 24V = choque)
+//             I0.2 FC DERECHO (NA, 24V = choque)   I0.3 CilV abajo   I0.4 CilV arriba
+//             I0.5 Giro AH (Seleccion)  I0.6 Giro H (bancada)  I0.7 CilDV extendido
+//             I1.0 CilDV retraido  I1.1 Pinza cerrada  I1.2 Servo RDY
+//             I2.0..I2.2 Fin de carril 1..3   I2.4 SB2 (NA)  I2.5 SB1 (NA)
+//             I2.6 QS (NC fail-safe)  I2.7 SA1 (1 = Auto)
+//   SALIDAS:  Q0.0 PTO0 pulsos  Q0.2 DIR (1 = derecha / hacia Seleccion)
+//             Q0.3 CilV (1 = ARRIBA, 0 = abajo)  Q0.4 Giro AH  Q0.5 Giro H (= NOT Q0.4)
+//             Q0.6 CilDV (1 = extender)  Q0.7 Pinza abre  Q1.0 Pinza cierra
+//             Q1.5 HL2 amarilla  Q1.6 HL1 verde  Q1.7 HL3 roja  Q1.1 HL3 roja (redundante)
+// ==============================================================================
+// HOME vs FINALES DE CARRERA:
+//   - I0.0 (inductivo) es la REFERENCIA de posicion: el homing (SBR_HOMING) captura
+//     su flanco por interrupcion hardware (Evento 0) y fija VD250 = 0. Como la cota de
+//     Alimentacion coincide con el sensor, VD204 = 0.
+//   - I0.1 / I0.2 son ENCLAVAMIENTOS DE SEGURIDAD independientes: nunca se usan para
+//     referenciar. Si se accionan con el PTO en marcha hacia ese lado, el tren de
+//     pulsos se corta, se pierde la referencia (M13.3 = 0) y se activa M7.6.
+// ==============================================================================
+// COTAS ABSOLUTAS (DINT, pulsos, ajustables en vivo en memoria V o desde SCADA):
+//   VD204 = 0       Alimentacion (A) - sobre el inductivo I0.0
+//   VD208 = 45500   Procesamiento (P)
+//   VD212 = 87500   Ensamblaje (E)
+//   VD216 = 107500  Seleccion (S)
+//   VD222 = 116000  Limite software maximo   VD226 = -1000 Limite software minimo
+//   VD240 = 3000    Distancia de retroceso del homing
+//   Los valores por defecto solo se cargan si la firma VW220 <> 16#C07F, por lo que
+//   un ajuste fino permanece mientras la memoria V se conserve (rango retentivo).
+// ==============================================================================
+// MAPA DE MEMORIA (PROCESO < VB1000; LIBRERIA MODBUS ESCLAVO EN VB4000..VB4799):
+//   VW8 paso a reanudar tras homing   VW12/VB14 paso/sub-etapa manual   VB15 fase homing
+//   VW16/VB18 paso/sub-etapa auto     VB19 tipo maniobra   VB32 material base
+//   VB33 tipo especial (5 = negra)    VB34 sub-etapa maniobra   VB35 reintentos homing
+//   VD230 cota objetivo   VD234 delta   VD250 posicion actual   VD260..VD272 sombras SCADA
+//   VW450 paso del carrusel PPI   VB500..VB690 descriptores NETR/NETW (cada 20 bytes)
+//   VB702..VB706 solicitudes de comando "envio unico" a nodos 2..6   VB710 errores por nodo
+//   VW1000.. imagen Modbus del SCADA (HoldStart = &VB1000)
+//   VD244 offset de Home   VD280 / V284.0 / V284.1 jog de calibracion   VD288 rebote en FC derecho
+//   VW276 firma de parametros   M24.x rebote   M25.x / VB37 baliza de planta (-> PLC 3 VB102)
+// ==============================================================================
+BEGIN
+
+Network 1 // Modulo 0: Inicializacion General (solo primer scan)
+LD     SM0.1
+CALL   SBR_INIT
+
+Network 2 // Modulo 1: Captura de Entradas, Pulsadores NA y Mandos SCADA
+LD     SM0.0
+CALL   SBR_IO_SCAN
+
+Network 3 // Modulo 2: Diagnostico Neumatico Delta-t y Alarmas de Atasco/Fuga
+LD     SM0.0
+CALL   SBR_DIAGNOSTICO
+
+Network 4 // Modulo 3: Homing sobre Inductivo I0.0 (atiende peticiones M7.0 de Manual y Auto)
+LD     SM0.0
+CALL   SBR_HOMING
+
+Network 5 // Modulo 4: Modo Manual Secuencial Cinematico Paso a Paso (I2.7 = 0)
+LDN    M5.2
+CALL   SBR_MAN_STEP
+
+Network 6 // Modulo 5: Modo Automatico - Maquina de Estados de Celda (I2.7 = 1)
+LD     M5.2
+CALL   SBR_SECUENCIA
+
+Network 7 // Modulo 6: Maniobras del Manipulador (Pick / Place / Place en Cinta) en Auto
+LD     SM0.0
+CALL   SBR_MANIOBRA
+
+Network 8 // Modulo 7: Coordinacion PPI Seleccion <-> Brazo 4-DOF (siempre: tambien con Transporte en Manual)
+LD     SM0.0
+CALL   SBR_COORD_BRAZO
+
+Network 9 // Modulo 8: Electrovalvulas, Balizas y Enclavamientos Fail-Safe
+LD     SM0.0
+CALL   SBR_ACTUADORES
+
+Network 10 // Modulo 9: Carrusel Maestro PPI en Puerto 1 (siempre activo: telemetria y handshakes)
+LD     SM0.0
+CALL   SBR_PPI_CARRUSEL
+
+Network 11 // Modulo 10: Servidor Modbus RTU Esclavo en Puerto 0 hacia Web SCADA
+LD     SM0.0
+CALL   SBR_MODBUS_SLAVE
+
+Network 12 // Modulo 11: Estado General de Planta para la Baliza Grande (PLC 3 Q0.6 / Q0.7 / Q1.0)
+LD     SM0.0
+CALL   SBR_BALIZA_PLANTA
+
+END_ORGANIZATION_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 0: SBR_INIT (INICIALIZACION GENERAL - PRIMER SCAN)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_INIT:SBR0
+TITLE=COTAS PTO, DESCRIPTORES PPI, PUERTO 1 MAESTRO, SERVIDOR MODBUS E INTERRUPCIONES
+BEGIN
+
+Network 1 // Cotas Absolutas por Defecto SOLO si la Firma VW220 no es Valida
+// Permite ajuste fino en memoria V sin recompilar (no se sobrescriben en cada arranque).
+LDW<>  VW220, 16#C07F                // Firma revision 2026-10-12d (cotas -4500 en P, E y S)
+MOVD   +0, VD204                    // Cota Alimentacion (A) = 0 pulsos (sobre inductivo I0.0)
+MOVD   +45500, VD208                // Cota Procesamiento (P) - banco: -4500
+MOVD   +87500, VD212                // Cota Ensamblaje (E) - banco: -4500
+MOVD   +107500, VD216               // Cota Seleccion (S) - banco: -4500
+MOVD   +116000, VD222               // Limite software maximo (antes del FC derecho)
+MOVD   -1000, VD226                 // Limite software minimo (antes del FC izquierdo)
+MOVD   +3000, VD240                 // Retroceso de homing para la aproximacion lenta
+MOVW   16#C07F, VW220               // Firma de cotas validas
+
+Network 2 // Parametros de Calibracion (firma propia VW276 = 16#C07B)
+LDW<>  VW276, 16#C07B
+MOVD   +0, VD244                    // Offset de Home: cota asignada al flanco de I0.0 (pulsos)
+MOVD   +100, VD280                  // Pulsos por toque de jog de calibracion (Tabla de Estado)
+MOVD   +1500, VD288                 // Retroceso del rebote en el FC derecho al llegar a Seleccion
+MOVW   16#C07B, VW276
+
+Network 3 // Sombras de Sincronizacion de Cotas (VD1110..VD1122) y Parametros (VD1002..VD1010) con el SCADA
+LD     SM0.0
+MOVD   VD204, VD260
+MOVD   VD208, VD264
+MOVD   VD212, VD268
+MOVD   VD216, VD272
+MOVD   VD204, VD1110
+MOVD   VD208, VD1114
+MOVD   VD212, VD1118
+MOVD   VD216, VD1122
+MOVD   VD280, VD720                 // Parametros editables desde el SCADA (40002..40007) y sus sombras
+MOVD   VD288, VD724
+MOVD   VD240, VD728
+MOVD   VD280, VD1002
+MOVD   VD288, VD1006
+MOVD   VD240, VD1010
+
+Network 4 // Banderas y Registros de Control
+LD     SM0.0
+R      M4.0, 2                      // Fuga (M4.0) y Atasco (M4.1)
+R      M6.0, 3                      // Marcha (M6.0), Pausa (M6.1), Parada fin de ciclo (M6.2)
+R      M7.0, 8                      // Homing y alarmas de posicion
+R      M8.0, 4                      // Maniobra
+R      M10.0, 8                     // Diagnostico y alarma manual
+R      M13.0, 6                     // Pausa, Moving, Done, Homed, PTO_Done, Escape
+R      M14.0, 4                     // Mandos de cilindros
+R      M20.0, 8                     // Handshake Brazo 4-DOF
+R      M21.0, 8                     // Carrusel PPI
+MOVW   +0, VW12                     // Paso manual = 0
+MOVB   0, VB14
+MOVB   0, VB15                      // Fase homing = 0
+MOVW   +0, VW16                     // Paso auto = 0
+MOVB   0, VB18
+MOVB   0, VB34
+MOVB   0, VB33
+MOVW   +10, VW8
+MOVB   0, VB284                     // Ordenes de jog V284.0 / V284.1 en reposo
+R      M24.0, 8                     // Rebote en FC derecho
+R      M25.0, 8                     // Baliza de planta
+MOVD   +0, VD250                    // Posicion desconocida hasta el homing (M13.3 = 0)
+MOVD   +0, VD230
+MOVW   +1, VW450                    // Carrusel PPI en Paso 1
+
+Network 5 // Umbrales Nominales Neumaticos para Diagnostico (ms)
+LD     SM0.0
+MOVW   +400, VW40
+MOVW   +350, VW42
+MOVW   +350, VW44
+MOVW   +300, VW46
+MOVW   +400, VW48
+MOVW   +250, VW50
+
+Network 6 // Puerto 1: el modo maestro PPI (SMB130) se gestiona en SBR_PPI_CARRUSEL segun el selector RUN/TERM
+LD     SM0.0
+R      M26.0, 8                     // Memoria de SB1 del manual
+
+Network 7 // Descriptores NETR (lectura de VB200 remoto) - Cabecera de 7 bytes
+LD     SM0.0
+MOVB   0, VB500                     // Nodo 2 Alimentacion: estado
+MOVB   2, VB501
+MOVD   &VB200, VD502
+MOVB   8, VB506                     // 8 bytes -> VB507..VB514 (estado, paso, IB0, dato, IB1, QB0, QB1, -)
+MOVB   0, VB540                     // Nodo 3 Ensamblaje
+MOVB   3, VB541
+MOVD   &VB200, VD542
+MOVB   8, VB546                     // -> VB547..VB554 (estado, paso, IB0, dato, IB1, QB0, paso prep., diag.)
+MOVB   0, VB580                     // Nodo 4 Procesamiento
+MOVB   4, VB581
+MOVD   &VB200, VD582
+MOVB   8, VB586                     // -> VB587..VB594 (estado, paso, IB0, dato, IB1, QB0, QB1, -)
+MOVB   0, VB620                     // Nodo 5 Seleccion (estado + telemetria VFD)
+MOVB   5, VB621
+MOVD   &VB200, VD622
+MOVB   13, VB626                    // 13 bytes -> VB627..VB639 (VB639 = QB0 del PLC 5)
+MOVB   0, VB660                     // Nodo 6 Brazo 4-DOF
+MOVB   6, VB661
+MOVD   &VB200, VD662
+MOVB   4, VB666                     // -> VB667..VB670
+
+Network 8 // Descriptores NETW (escritura en VB100 remoto)
+// Todos los nodos reciben el paquete ICD completo VB100..VB103 (pasos de los esclavos
+// reubicados a VW330/VW332). VB101..VB103 hacia nodos 2, 3 y 4 = 0 (reservado).
+LD     SM0.0
+MOVB   0, VB520                     // Nodo 2
+MOVB   2, VB521
+MOVD   &VB100, VD522
+MOVB   4, VB526                     // VB527..VB530
+MOVB   0, VB560                     // Nodo 3
+MOVB   3, VB561
+MOVD   &VB100, VD562
+MOVB   4, VB566                     // VB567..VB570
+MOVB   0, VB600                     // Nodo 4
+MOVB   4, VB601
+MOVD   &VB100, VD602
+MOVB   4, VB606                     // VB607..VB610
+MOVB   0, VB640                     // Nodo 5: control, tipo, modo VFD, reservado
+MOVB   5, VB641
+MOVD   &VB100, VD642
+MOVB   4, VB646                     // VB647..VB650
+MOVB   0, VB680                     // Nodo 6
+MOVB   6, VB681
+MOVD   &VB100, VD682
+MOVB   1, VB686                     // VB687
+
+Network 9 // Buffers de Datos y Colas de Solicitudes Limpias
+LD     SM0.0
+MOVD   +0, VD507
+MOVD   +0, VD511                    // Nodo 2: IB1, QB0, QB1, reservado
+MOVD   +0, VD547
+MOVD   +0, VD551                    // Nodo 3: IB1, QB0, paso de preparacion, diagnostico
+MOVD   +0, VD587
+MOVD   +0, VD591                    // Nodo 4: IB1, QB0, QB1, reservado
+MOVD   +0, VD627
+MOVB   0, VB639                     // Nodo 5: QB0
+MOVD   +0, VD667
+MOVD   +0, VD527                    // Nodo 2: control + 3 bytes reservados
+MOVD   +0, VD567                    // Nodo 3
+MOVD   +0, VD607                    // Nodo 4
+MOVD   +0, VD647
+MOVB   0, VB687
+MOVB   0, VB702
+MOVB   0, VB703
+MOVB   0, VB704
+MOVB   0, VB705
+MOVB   0, VB706
+MOVB   0, VB710
+
+Network 10 // Servidor Modbus RTU Esclavo en Puerto 0 (HoldStart = &VB1000, 128 registros)
+// MBUS_INIT se ejecuta en SBR_MODBUS_SLAVE con Mode = selector en RUN (SM0.7)
+LD     SM0.0
+MOVB   0, VB285
+
+Network 11 // Interrupciones: Evento 19 (PTO0 fin), Evento 0 (I0.0 flanco +), Evento 10 (10 ms)
+LD     SM0.0
+ATCH   INT_PTO_DONE, 19
+ATCH   INT_HOME_I00, 0
+MOVB   10, SMB34
+ATCH   INT_TIMED_10MS, 10
+ENI
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 1: SBR_IO_SCAN (CAPTURA DE ENTRADAS Y MANDOS)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_IO_SCAN:SBR1
+TITLE=CAPTURA DE SENSORES, PULSADORES NA, SELECTOR Y COMANDOS SCADA (FLANCOS)
+BEGIN
+
+Network 1 // Sensor inductivo de HOME (referencia de posicion, NO es fin de carrera)
+LD     I0.0
+=      M3.3
+
+Network 2 // Final de carrera fisico IZQUIERDO (NA: 24V = choque) - enclavamiento de seguridad
+LD     I0.1
+=      M3.4
+
+Network 3 // Final de carrera fisico DERECHO (NA: 24V = choque) - enclavamiento de seguridad
+LD     I0.2
+=      M3.5
+
+Network 4 // Cilindros, actuador rotatorio, pinza y servo
+LD     I0.3
+=      M2.3                         // CilV abajo
+LD     I0.4
+=      M2.4                         // CilV arriba
+LD     I0.5
+=      M2.5                         // Giro antihorario (Seleccion)
+LD     I0.6
+=      M2.6                         // Giro horario (bancada)
+LD     I0.7
+=      M2.7                         // CilDV extendido
+LD     I1.0
+=      M3.0                         // CilDV retraido
+LD     I1.1
+=      M3.1                         // Pinza cerrada
+LD     I1.2
+=      M3.2                         // Servo RDY
+
+Network 5 // Sensores Capacitivos de Fin de Carril (I2.0..I2.2)
+LD     I2.0
+=      M9.2
+LD     I2.1
+=      M9.3
+LD     I2.2
+=      M9.4
+
+Network 6 // Selector SA1 (I2.7): 1 = Automatico, 0 = Manual (evaluado ANTES de los mandos)
+LD     I2.7
+=      M5.2
+
+Network 7 // Pulsadores Locales SB1 (I2.5) / SB2 (I2.4) por flanco, sus gemelos del SCADA y Seta QS (I2.6 NC)
+// 40001 bit 4 = SB1 virtual y bit 5 = SB2 virtual: hacen exactamente lo mismo que los pulsadores fisicos.
+LD     I2.5
+EU
+LD     V1001.4                      // SCADA: SB1 virtual
+EU
+OLD
+=      M5.0
+LD     I2.4
+EU
+LD     V1001.5                      // SCADA: SB2 virtual
+EU
+OLD
+=      M5.1
+LDN    I2.6
+=      M10.6                        // 1 = seta QS presionada
+
+Network 8 // Mandos SCADA 40001 (pulsos de 300 ms; bit n del registro = V1001.n, byte bajo; bit 8 = V1000.0)
+LD     V1001.0
+EU
+=      M22.0                        // Bit 0: Marcha
+LD     V1001.1
+EU
+=      M22.1                        // Bit 1: Pausa
+LD     V1001.2
+EU
+=      M22.2                        // Bit 2: Reset / Rearme
+LD     V1001.3
+EU
+=      M22.3                        // Bit 3: Parada al final del ciclo
+LD     V1001.6                      // Bit 6: Jog de calibracion a la derecha (Manual)
+EU
+AN     M5.2
+S      V284.0, 1
+LD     V1001.7                      // Bit 7: Jog de calibracion a la izquierda (Manual)
+EU
+AN     M5.2
+S      V284.1, 1
+LD     V1000.0                      // Bit 8: Puesta a cero de los contadores de produccion
+EU
+MOVW   +0, VW1182
+MOVW   +0, VW1184
+MOVW   +0, VW1186
+MOVW   +0, VW1188
+MOVW   +0, VW1190
+
+Network 9 // Marcha en Automatico (SB1 o SCADA) - Limpia alarmas recuperables
+LD     M5.0
+O      M22.0
+A      M5.2
+A      I2.6
+AN     I0.1
+AN     I0.2
+AN     M10.7
+S      M6.0, 1
+R      M6.1, 1
+R      M4.0, 2                      // Fuga y atasco
+R      M7.2, 1                      // Homing fallido (se reintenta)
+R      M7.6, 1                      // Limite / cota fuera de rango
+R      M7.7, 1                      // Movimiento sin referencia
+R      M8.2, 1                      // Timeout de maniobra
+R      M20.3, 1                     // Timeout del Brazo
+S      M8.3, 1                      // Reiniciar supervision de sub-etapa
+S      V702.0, 1                    // CMD_START (envio unico) a Alimentacion, Ensamblaje,
+S      V703.0, 1                    // Procesamiento y Seleccion: toda la celda arranca con
+S      V704.0, 1                    // este SB1. Ensamblaje empieza a preparar nucleos y
+S      V705.0, 1                    // Alimentacion repone bases sola.
+S      V702.3, 1                    // CMD_ACK_RESET: rearma las estaciones que esperan rearme
+S      V703.3, 1                    // (tras energizar o tras una seta) y borra sus alarmas;
+S      V704.3, 1                    // a una estacion ya rearmada NO le reinicia el paso.
+S      V705.3, 1
+
+Network 10 // Pausa en Automatico (SB2 o SCADA): termina el movimiento en curso y espera
+LD     M5.1
+O      M22.1
+A      M5.2
+S      M6.1, 1
+
+Network 11 // Parada al Final del Ciclo (SCADA bit 3)
+LD     M22.3
+S      M6.2, 1
+
+Network 12 // Reset de Alarmas desde SCADA (bit 2) y ACK_RESET a Estaciones 2..5
+LD     M22.2
+R      M4.0, 2
+R      M7.2, 1
+R      M7.6, 1
+R      M7.7, 1
+R      M8.2, 1
+R      M20.3, 1
+S      V702.3, 1
+S      V703.3, 1
+S      V704.3, 1
+S      V705.3, 1
+
+Network 13 // Seta QS de la Celda: CMD_ESTOP (envio unico) a Seleccion y Brazo 4-DOF
+LD     M10.6
+EU
+S      V705.2, 1
+S      V706.2, 1
+
+Network 14 // Conmutacion Auto -> Manual: reposo seguro de ambas maquinas
+LD     M5.2
+ED
+MOVW   +0, VW12
+MOVB   0, VB14
+MOVW   +0, VW16
+MOVB   0, VB18
+MOVB   0, VB34
+R      M6.0, 3
+R      M8.0, 2
+R      M13.0, 3
+R      M10.0, 8
+
+Network 15 // Conmutacion Manual -> Auto: arranca en Paso 0 (homing si no hay referencia)
+LD     M5.2
+EU
+MOVW   +0, VW12
+MOVB   0, VB14
+MOVW   +0, VW16
+MOVB   0, VB18
+R      M13.0, 3
+R      M13.5, 1
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 2: SBR_DIAGNOSTICO (SUPERVISION NEUMATICA DELTA-T)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_DIAGNOSTICO:SBR2
+TITLE=MEDICION DE TIEMPOS DE TRANSITO Y ATASCOS EN TRANSPORTE
+BEGIN
+Network 1 // Diagnostico CilV Descenso (Q0.3 = 0, sensor I0.3)
+LDN    Q0.3
+A      M2.3
+EU
+MOVW   T33, VW20
+*I     +10, VW20
+
+Network 2 // Alerta CilV Descenso
+LDW>   VW20, +550
+S      M4.0, 1
+
+Network 3 // Lazo de conteo CilV Descenso
+LDN    Q0.3
+AN     M2.3
+TON    T33, +32767
+
+Network 4 // Atasco CilV Descenso (1.5 s)
+LDW>   T33, +150
+AN     M2.3
+S      M4.1, 1
+
+Network 5 // Diagnostico CilV Elevacion (Q0.3 = 1, sensor I0.4)
+LD     Q0.3
+A      M2.4
+EU
+MOVW   T34, VW22
+*I     +10, VW22
+
+Network 6 // Alerta CilV Elevacion
+LDW>   VW22, +500
+S      M4.0, 1
+
+Network 7 // Lazo de conteo CilV Elevacion
+LD     Q0.3
+AN     M2.4
+TON    T34, +32767
+
+Network 8 // Atasco CilV Elevacion
+LDW>   T34, +150
+AN     M2.4
+S      M4.1, 1
+
+Network 9 // Diagnostico CilDV Extension (Q0.6 = 1, sensor I0.7)
+LD     Q0.6
+A      M2.7
+EU
+MOVW   T35, VW24
+*I     +10, VW24
+
+Network 10 // Alerta CilDV Extension
+LDW>   VW24, +550
+S      M4.0, 1
+
+Network 11 // Lazo de conteo CilDV Extension
+LD     Q0.6
+AN     M2.7
+TON    T35, +32767
+
+Network 12 // Atasco CilDV Extension
+LDW>   T35, +150
+AN     M2.7
+S      M4.1, 1
+
+Network 13 // Diagnostico CilDV Retraccion (Q0.6 = 0, sensor I1.0)
+LDN    Q0.6
+A      M3.0
+EU
+MOVW   T36, VW26
+*I     +10, VW26
+
+Network 14 // Alerta CilDV Retraccion
+LDW>   VW26, +500
+S      M4.0, 1
+
+Network 15 // Lazo de conteo CilDV Retraccion
+LDN    Q0.6
+AN     M3.0
+TON    T36, +32767
+
+Network 16 // Atasco CilDV Retraccion
+LDW>   T36, +150
+AN     M3.0
+S      M4.1, 1
+
+Network 17 // Diagnostico Giro Horario (Q0.5 = 1, sensor I0.6)
+LD     Q0.5
+A      M2.6
+EU
+MOVW   T97, VW28
+*I     +10, VW28
+
+Network 18 // Alerta Giro Horario
+LDW>   VW28, +600
+S      M4.0, 1
+
+Network 19 // Lazo de conteo Giro Horario
+LD     Q0.5
+AN     M2.6
+TON    T97, +32767
+
+Network 20 // Atasco Giro Horario
+LDW>   T97, +150
+AN     M2.6
+S      M4.1, 1
+
+Network 21 // Diagnostico Pinza Cierre (Q1.0 = 1, sensor I1.1)
+LD     Q1.0
+A      M3.1
+EU
+MOVW   T98, VW30
+*I     +10, VW30
+
+Network 22 // Alerta Pinza Cierre
+LDW>   VW30, +450
+S      M4.0, 1
+
+Network 23 // Lazo de conteo Pinza Cierre
+LD     Q1.0
+AN     M3.1
+TON    T98, +32767
+
+Network 24 // Atasco Pinza Cierre
+LDW>   T98, +150
+AN     M3.1
+S      M4.1, 1
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 3: SBR_SECUENCIA (MODO AUTOMATICO DE CELDA - PASO VW16 / SUB-ETAPA VB18)
+// ==============================================================================
+// PASOS: 0 Reposo | 5 Homing | 10 A: viaje + espera pieza + PICK
+//        20 E: viaje + PLACE (CMD_PIEZA_ENTREGADA a PLC 3, CMD_AUTORIZAR_DOSIF a PLC 2)
+//        22 E: espera STAT_DONE PLC 3, PICK, discriminacion Tipo 5 (VB550 = 5 -> Paso 50)
+//        30 P: viaje + PLACE (CMD_PIEZA_ENTREGADA a PLC 4)
+//        32 P: espera STAT_DONE PLC 4 + PICK
+//        50 S: viaje + espera STAT_READY PLC 5 + PLACE en cinta (Tipo en VB648) -> Paso 10
+// SUB-ETAPAS: 0 lanzar viaje | 1 viajando | 2 esperar condicion y lanzar maniobra
+//             3 maniobra en curso
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_SECUENCIA:SBR3
+TITLE=MAQUINA DE ESTADOS GLOBAL DE TRANSPORTE EN AUTOMATICO
+BEGIN
+
+Network 1 // Seta QS: cancelar marcha, reiniciar sub-etapas; si el PTO estaba en marcha se pierde la referencia
+LD     M10.6
+LPS
+AN     SM66.7                       // PTO activo en el instante de la emergencia
+R      M13.3, 1
+LRD
+R      M6.0, 1
+R      M8.0, 1
+R      M23.0, 1
+MOVB   0, VB18
+MOVB   0, VB34
+LPP
+CRET
+
+Network 2 // Bloqueo por Alarmas Criticas (se rearman con SB1 / SCADA Marcha)
+// Un viaje interrumpido se relanza desde la sub-etapa 0 tras el rearme.
+LD     M4.1
+O      M7.2
+O      M7.6
+O      M7.7
+O      M8.2
+LPS
+R      M23.0, 1
+LRD
+AB=    VB18, 1
+MOVB   0, VB18
+LPP
+CRET
+
+Network 3 // Referencia Perdida con Ciclo en Curso: Homing y Reanudacion del Mismo Paso
+LD     M6.0
+AN     M6.1
+AN     M13.3
+AW>=   VW16, +10
+AB=    VB18, 0                      // Solo antes de lanzar un viaje (tras el rebote en S se deja la pieza)
+AN     M24.0
+MOVW   VW16, VW8
+MOVW   +5, VW16
+MOVB   0, VB18
+
+Network 4 // Paso 0 Reposo -> Paso 5 (Homing) o Paso 10 (Inicio de ciclo)
+LDW=   VW16, +0
+A      M6.0
+AN     M6.1
+LPS
+AN     M13.3
+MOVW   +10, VW8
+MOVW   +5, VW16
+MOVB   0, VB18
+LPP
+A      M13.3
+MOVW   +10, VW16
+MOVB   0, VB18
+
+Network 5 // Paso 5 / Sub 0: Solicitar Homing sobre I0.0
+LDW=   VW16, +5
+AB=    VB18, 0
+S      M7.0, 1
+R      M7.3, 1
+MOVB   1, VB18
+
+Network 6 // Paso 5 / Sub 1: Homing Terminado -> Reanudar Paso VW8
+LDW=   VW16, +5
+AB=    VB18, 1
+A      M7.3
+LPS
+R      M7.3, 1
+MOVB   0, VB18
+LPP
+A      M13.3
+MOVW   VW8, VW16
+
+Network 7 // Supervision Generica de Viaje (T130, 20 s) y Llegada por Evento 19 (M13.4)
+LD     M23.0
+TON    T130, +200
+LD     T130
+S      M4.1, 1                      // Viaje no concluido: alarma
+R      M23.0, 1
+LD     M23.0
+A      M13.4
+AN     M24.0                        // No durante el rebote en el FC derecho
+R      M23.0, 1
+R      M13.4, 1
+MOVB   2, VB18                      // Sub-etapa 2: en cota
+
+// ---------------------------- PASO 10: ALIMENTACION ----------------------------
+Network 8 // Paso 10 / Sub 0: Parada al final del ciclo solicitada -> Reposo
+LDW=   VW16, +10
+AB=    VB18, 0
+A      M6.2
+MOVW   +0, VW16
+R      M6.0, 1
+R      M6.2, 1
+
+Network 9 // Paso 10 / Sub 0: Viaje a Alimentacion (VD204) y Autorizacion de Dosificacion a PLC 2
+LDW=   VW16, +10
+AB=    VB18, 0
+AN     M6.1
+LPS
+MOVD   VD204, VD230
+CALL   SBR_MOVE_PTO
+S      M23.0, 1
+MOVB   1, VB18
+LPP
+AN     V507.2                       // Sin pieza ya lista en cuna
+AN     V507.1                       // PLC 2 no esta dosificando
+S      V702.5, 1                    // CMD_AUTORIZAR_DOSIF (envio unico)
+
+Network 10 // Paso 10 / Sub 2: Pieza en Cuna -> PICK
+// Pieza disponible: STAT_DONE de PLC 2, o su sensor de cuna I0.4 (espejo VB509 bit 4) con la
+// estacion sin empujar y con comunicacion valida (cubre a Alimentacion en Manual).
+LDW=   VW16, +10
+AB=    VB18, 2
+AN     M6.1
+LD     V507.2
+LD     V509.4                       // PLC 2 I0.4: pieza en la cuna
+AN     V507.1                       // PLC 2 no esta empujando
+AN     V710.2                       // Datos validos del nodo 2
+OLD
+ALD
+MOVB   1, VB19                      // Maniobra PICK
+S      M8.0, 1
+R      M8.1, 1
+MOVB   3, VB18
+
+Network 11 // Paso 10 / Sub 3: Pieza Tomada -> CMD_RETIRO_CONFIRMADO a PLC 2 -> Paso 20
+LDW=   VW16, +10
+AB=    VB18, 3
+A      M8.1
+R      M8.1, 1
+S      V702.6, 1
+MOVB   VB510, VB32                  // Material base informado (1 = metal, 0 = plastico)
+MOVB   0, VB33
+MOVW   +20, VW16
+MOVB   0, VB18
+
+// ----------------------- PASO 20: ENSAMBLAJE (ENTREGA) -------------------------
+Network 12 // Paso 20 / Sub 0: Viaje a Ensamblaje (VD212), pasa de largo Procesamiento
+LDW=   VW16, +20
+AB=    VB18, 0
+AN     M6.1
+MOVD   VD212, VD230
+CALL   SBR_MOVE_PTO
+S      M23.0, 1
+MOVB   1, VB18
+
+Network 13 // Paso 20 / Sub 2: PLC 3 Listo (nido libre) -> PLACE en nido
+LDW=   VW16, +20
+AB=    VB18, 2
+AN     M6.1
+A      V547.0
+MOVB   2, VB19                      // Maniobra PLACE
+S      M8.0, 1
+R      M8.1, 1
+MOVB   3, VB18
+
+Network 14 // Paso 20 / Sub 3: Entregada -> CMD_PIEZA_ENTREGADA (PLC 3) + CMD_AUTORIZAR_DOSIF (PLC 2)
+LDW=   VW16, +20
+AB=    VB18, 3
+A      M8.1
+R      M8.1, 1
+S      V703.4, 1
+S      V702.5, 1
+MOVW   +22, VW16
+MOVB   0, VB18
+
+// --------------------- PASO 22: ENSAMBLAJE (RECOGIDA) --------------------------
+Network 15 // Paso 22 / Sub 0: STAT_DONE de PLC 3 -> Discriminar Tipo 5 y PICK
+LDW=   VW16, +22
+AB=    VB18, 0
+AN     M6.1
+A      V547.2
+LPS
+AB=    VB550, 5                     // STAT_DATA PLC 3 = 5: plastico negro (bypass)
+MOVB   5, VB33
+LPP
+MOVB   1, VB19
+S      M8.0, 1
+R      M8.1, 1
+MOVB   3, VB18
+
+Network 16 // Paso 22 / Sub 3: Pieza Tomada -> CMD_RETIRO_CONFIRMADO (PLC 3) y Ruta
+LDW=   VW16, +22
+AB=    VB18, 3
+A      M8.1
+R      M8.1, 1
+S      V703.6, 1
+MOVB   0, VB18
+LPS
+AB=    VB33, 5
+MOVW   +50, VW16                    // Tipo 5: BYPASS directo a Seleccion
+LPP
+AB<>   VB33, 5
+MOVW   +30, VW16                    // Tipos 1..4: retroceso a Procesamiento
+
+// ------------------------- PASO 30: PROCESAMIENTO ------------------------------
+Network 17 // Paso 30 / Sub 0: Viaje de Retroceso a Procesamiento (VD208)
+LDW=   VW16, +30
+AB=    VB18, 0
+AN     M6.1
+MOVD   VD208, VD230
+CALL   SBR_MOVE_PTO
+S      M23.0, 1
+MOVB   1, VB18
+
+Network 18 // Paso 30 / Sub 2: PLC 4 Listo -> PLACE en mordaza
+LDW=   VW16, +30
+AB=    VB18, 2
+AN     M6.1
+A      V587.0
+MOVB   2, VB19
+S      M8.0, 1
+R      M8.1, 1
+MOVB   3, VB18
+
+Network 19 // Paso 30 / Sub 3: Entregada -> CMD_PIEZA_ENTREGADA a PLC 4 (dispara prensado)
+LDW=   VW16, +30
+AB=    VB18, 3
+A      M8.1
+R      M8.1, 1
+S      V704.4, 1
+MOVW   +32, VW16
+MOVB   0, VB18
+
+Network 20 // Paso 32 / Sub 0: Fin de Prensado (PLC 4 STAT_DONE) -> PICK
+LDW=   VW16, +32
+AB=    VB18, 0
+AN     M6.1
+A      V587.2
+MOVB   1, VB19
+S      M8.0, 1
+R      M8.1, 1
+MOVB   3, VB18
+
+Network 21 // Paso 32 / Sub 3: Pieza Tomada -> CMD_RETIRO_CONFIRMADO a PLC 4 -> Paso 50
+LDW=   VW16, +32
+AB=    VB18, 3
+A      M8.1
+R      M8.1, 1
+S      V704.6, 1
+MOVW   +50, VW16
+MOVB   0, VB18
+
+// --------------------------- PASO 50: SELECCION --------------------------------
+Network 22 // Paso 50 / Sub 0: Viaje a Seleccion (VD216)
+LDW=   VW16, +50
+AB=    VB18, 0
+AN     M6.1
+MOVD   VD216, VD230
+CALL   SBR_MOVE_PTO
+S      M23.0, 1
+MOVB   1, VB18
+
+Network 23 // Paso 50 / Sub 2: Cinta Lista (PLC 5 STAT_READY) -> Tipo a VB648 y PLACE en cinta
+LDW=   VW16, +50
+AB=    VB18, 2
+AN     M6.1
+A      V627.0
+MOVB   VB33, VB648                  // 5 = pieza negra (bypass a fin de cinta), 0 = clasificar
+MOVB   3, VB19                      // Maniobra PLACE_CINTA (giro antihorario)
+S      M8.0, 1
+R      M8.1, 1
+MOVB   3, VB18
+
+Network 24 // Paso 50 / Sub 3: Descargada -> CMD_PIEZA_ENTREGADA a PLC 5 -> Paso 10 (retorno a A)
+LDW=   VW16, +50
+AB=    VB18, 3
+A      M8.1
+R      M8.1, 1
+S      V705.4, 1
+MOVW   +10, VW16
+MOVB   0, VB18
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 4: SBR_ACTUADORES (ELECTROVALVULAS, BALIZAS Y SEGURIDAD)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_ACTUADORES:SBR4
+TITLE=CONTROL DE ELECTROVALVULAS, BALIZAS Y ENCLAVAMIENTOS FAILSAFE
+BEGIN
+Network 1 // Cilindro Vertical Q0.3: 1 = Arriba, 0 = Abajo (M14.0 = orden de bajar, Manual y Auto)
+LD     M14.0
+NOT
+=      Q0.3
+
+Network 2 // Cilindro Doble Vastago Q0.6: 1 = Extender hacia estacion
+LD     M14.1
+=      Q0.6
+
+Network 3 // Pinza: Q1.0 Cierra / Q0.7 Abre
+LD     M14.2
+=      Q1.0
+NOT
+=      Q0.7
+
+Network 4 // Actuador Rotatorio: Q0.4 Antihorario (Seleccion) / Q0.5 Horario (bancada)
+LD     M14.3
+=      Q0.4
+NOT
+=      Q0.5
+
+Network 5 // Baliza Roja HL3 (Q1.7 y Q1.1)
+LDN    I2.6
+O      I0.1
+O      I0.2
+O      M10.7
+O      M4.1
+O      M7.2                         // Homing fallido
+O      M7.6                         // Limite fisico / cota fuera de rango
+O      M7.7                         // Movimiento sin referencia
+O      M8.2                         // Timeout de maniobra
+O      M20.3                        // Brazo 4-DOF sin respuesta
+=      Q1.7
+=      Q1.1
+
+Network 6 // Baliza Verde HL1 (Q1.6) - Ciclo activo en movimiento
+LD     M5.2
+A      M6.0
+AN     M6.1
+AW>    VW16, +0
+LDN    M27.0                        // Fijo en movimiento...
+O      SM0.5                        // ...intermitente si espera a otra estacion
+ALD
+LDN    M5.2
+AW>    VW12, +0
+AN     M13.0
+AN     M13.2
+AN     M10.7
+OLD
+A      I2.6
+AN     M4.1
+LDN    I0.1
+AN     I0.2
+O      M13.5
+ALD
+=      Q1.6
+
+Network 7 // Baliza Amarilla HL2 (Q1.5) - Espera o Pausa (nunca con la verde encendida)
+LDN    M5.2
+AW=    VW12, +0
+LDN    M5.2
+A      M13.0
+OLD
+LDN    M5.2
+A      M13.2
+OLD
+LD     M5.2
+A      M6.1
+OLD
+LD     M5.2
+A      M4.0
+OLD
+LD     M5.2
+AW=    VW16, +0
+OLD
+A      SM0.5
+AN     Q1.6
+A      I2.6
+AN     I0.1
+AN     I0.2
+AN     M10.7
+AN     M4.1
+=      Q1.5
+
+Network 8 // Seta QS o Alarma Critica: Freno Inmediato del PTO y Cilindros a Posicion Segura
+LDN    I2.6
+O      M10.7
+O      M4.1
+LPS
+AN     SM66.7                       // Corte con el PTO en marcha: referencia perdida
+R      M13.3, 1
+LPP
+MOVB   16#00, SMB67
+PLS    0
+R      M14.0, 1                    // Orden: vertical arriba
+R      M14.1, 1                     // Orden: doble vastago retraido
+R      M24.0, 1                     // Cancelar rebote en curso
+R      M24.2, 1
+S      Q0.3, 1
+R      Q0.6, 1
+
+Network 9 // Enclavamiento FC IZQUIERDO (I0.1) moviendo a la izquierda (Q0.2 = 0)
+LD     I0.1
+AN     Q0.2
+LPS
+AN     SM66.7                       // El PTO estaba activo: posicion perdida
+R      M13.3, 1
+S      M7.6, 1
+LPP
+MOVB   16#00, SMB67
+PLS    0
+
+Network 10 // FC DERECHO (I0.2) moviendo a la derecha: viaje a Seleccion -> REBOTE; otro destino -> ALARMA
+LD     I0.2
+A      Q0.2
+AN     SM66.7                       // El PTO estaba activo
+AN     M24.0
+LPS
+R      M13.3, 1                     // Posicion exacta desconocida: se re-referencia en el retorno
+LRD
+LDD=   VD230, VD216                 // Destino = cota de Seleccion
+ALD
+S      M24.0, 1                     // Rebote programado (sin alarma)
+LPP
+LDD<>  VD230, VD216
+ALD
+S      M7.6, 1                      // Choque inesperado: alarma
+
+Network 11 // FC DERECHO: corte inmediato del tren de pulsos hacia la derecha
+LD     I0.2
+A      Q0.2
+MOVB   16#00, SMB67
+PLS    0
+
+Network 12 // Rebote: con el PTO parado, retroceder VD288 pulsos a la izquierda a 2 kHz
+LD     M24.0
+AN     M24.2
+A      SM66.7
+RI     Q0.2, 1                      // DIR izquierda inmediata
+R      M13.4, 1
+MOVB   16#85, SMB67
+MOVW   +500, SMW68                  // 2 kHz
+MOVD   VD288, SMD72
+PLS    0
+S      M24.2, 1                     // Retroceso lanzado
+
+Network 13 // Fin del Rebote: FC liberado -> llegada a Seleccion (M13.4 = 1); FC aun pisado -> alarma
+LD     M24.2
+A      M13.4
+LPS
+AN     I0.2
+S      M24.3, 1                     // Aviso: Seleccion alcanzada por rebote
+LRD
+A      I0.2
+S      M7.6, 1
+LPP
+R      M24.0, 1
+R      M24.2, 1
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 5: SBR_MOVE_PTO (POSICIONAMIENTO ABSOLUTO PTO 0 CON LIMITES SOFTWARE)
+// ==============================================================================
+// Entrada: VD230 = cota absoluta objetivo. Salida: M13.4 = 1 al terminar (Evento 19).
+// Rechaza el movimiento (sin pulsos) si no hay referencia (M7.7) o si la cota esta
+// fuera de [VD226, VD222] o hacia un final de carrera ya accionado (M7.6).
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_MOVE_PTO:SBR5
+TITLE=DESPLAZAMIENTO ABSOLUTO POR PULSOS PTO 0 A 8.0 KHZ CON LIMITES
+BEGIN
+Network 1 // Sin referencia de homing: rechazar
+LDN    M13.3
+S      M7.7, 1
+CRET
+
+Network 2 // Cota fuera de los limites software: rechazar
+LDD<   VD230, VD226
+OD>    VD230, VD222
+S      M7.6, 1
+CRET
+
+Network 3 // Delta = Objetivo - Posicion actual
+LD     SM0.0
+MOVD   VD230, VD234
+-D     VD250, VD234
+
+Network 4 // Ya en posicion: fin inmediato
+LDD=   VD234, +0
+S      M13.4, 1
+CRET
+
+Network 5 // Hacia la derecha: DIR inmediata = 1 (antes de emitir pulsos)
+LDD>   VD234, +0
+SI     Q0.2, 1
+MOVD   VD234, SMD72
+
+Network 6 // Hacia la izquierda: DIR inmediata = 0, pulsos = |Delta|
+LDD<   VD234, +0
+RI     Q0.2, 1
+MOVD   +0, SMD72
+-D     VD234, SMD72
+
+Network 7 // No lanzar hacia un final de carrera ya accionado
+LD     I0.1
+AN     Q0.2
+LD     I0.2
+A      Q0.2
+OLD
+S      M7.6, 1
+CRET
+
+Network 8 // Disparo del tren de pulsos PTO 0 (Q0.0) a 8.0 kHz
+LD     SM0.0
+R      M13.4, 1
+R      M24.3, 1                     // Aviso "S alcanzada por rebote"
+MOVB   16#85, SMB67
+MOVW   +125, SMW68                  // 125 us = 8.0 kHz
+PLS    0
+MOVD   VD230, VD250                 // Posicion de destino (se invalida M13.3 si se interrumpe)
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 6: SBR_PPI_CARRUSEL (MAESTRO PPI PUERTO 1 - 10 TRANSACCIONES)
+// ==============================================================================
+// Byte de estado del descriptor: bit 7 D (hecho), bit 6 A (activo), bit 5 E (error),
+// bits 3..0 codigo (1 timeout, 2 recepcion, 3 offline, 4 cola, 5 sin modo maestro...).
+// Cada paso se lanza UNA vez (M21.0) y se cierra con D, E o watchdog T38 (1.0 s).
+// Comandos "envio unico": las solicitudes VB70n se copian al buffer al lanzar el NETW;
+// si la transaccion falla se reencolan. Asi un esclavo nunca recibe dos veces un pulso.
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_PPI_CARRUSEL:SBR6
+TITLE=GESTION SECUENCIAL NETR / NETW PUERTO 1 CON ENTREGA UNICA DE COMANDOS
+BEGIN
+Network 1 // Selector fisico en RUN (SM0.7 = 1): Puerto 1 = MAESTRO PPI y carrusel activo
+// Selector en TERM (SM0.7 = 0): Puerto 1 = esclavo PPI, sin NETR/NETW. El programa sigue en RUN
+// (pongalo en RUN desde Micro/WIN) y el PC queda como unico maestro del bus: puede
+// programar, ver la Tabla de Estado del PLC 1 y escanear los PLC 2..6.
+LD     SM0.7
+EU
+LD     SM0.1
+A      SM0.7
+OLD
+MOVB   2, SMB130                    // PPI maestro
+MOVW   +1, VW450
+R      M21.0, 1
+LD     SM0.7
+ED
+LD     SM0.1
+AN     SM0.7
+OLD
+MOVB   0, SMB130                    // PPI esclavo (modo de programacion)
+
+Network 2 // Selector en TERM: estaciones marcadas sin red (las esperas del manual no bloquean)
+LDN    SM0.7
+MOVB   16#7C, VB710                 // Nodos 2..6 sin comunicacion
+MOVB   0, VB507                     // Estados recibidos invalidados
+MOVB   0, VB547
+MOVB   0, VB587
+MOVB   0, VB627
+MOVB   0, VB667
+R      M21.0, 1
+CRET
+
+Network 3 // Watchdog de Transaccion (T38, 1.0 s)
+LD     M21.0
+TON    T38, +10
+
+Network 4 // Paso fuera de rango -> Paso 1
+LDW<   VW450, +1
+OW>    VW450, +10
+MOVW   +1, VW450
+R      M21.0, 1
+
+Network 5 // Datos de Nivel hacia PLC 5: modo VFD (VW1016) y sentido de cinta (VW1014) pedidos por el SCADA
+LD     SM0.0
+MOVB   VB1017, VB649                // VB102 remoto: 0 = sin cambio, 1 = Analogico, 2 = Modbus
+MOVB   VB1015, VB650                // VB103 remoto: sentido de cinta pedido por SCADA (40008): 0 = sin cambio, 1 = FWD, 2 = REV
+
+// ------------------------------ LANZAMIENTOS ----------------------------------
+Network 6 // Paso 1: NETR Nodo 2 (Alimentacion)
+LDW=   VW450, +1
+AN     M21.0
+NETR   VB500, 1
+S      M21.0, 1
+
+Network 7 // Paso 2: NETW Nodo 2 (CMD_AUTORIZAR_DOSIF / CMD_RETIRO_CONFIRMADO)
+LDW=   VW450, +2
+AN     M21.0
+MOVB   VB702, VB527
+MOVB   0, VB702
+NETW   VB520, 1
+S      M21.0, 1
+
+Network 8 // Paso 3: NETR Nodo 3 (Ensamblaje)
+LDW=   VW450, +3
+AN     M21.0
+NETR   VB540, 1
+S      M21.0, 1
+
+Network 9 // Paso 4: NETW Nodo 3 (CMD_PIEZA_ENTREGADA / CMD_RETIRO_CONFIRMADO)
+LDW=   VW450, +4
+AN     M21.0
+MOVB   VB703, VB567
+MOVB   0, VB703
+INCB   VB570                        // Contador de vida del maestro (VB103 en PLC 3: watchdog de la baliza)
+NETW   VB560, 1
+S      M21.0, 1
+
+Network 10 // Paso 5: NETR Nodo 4 (Procesamiento)
+LDW=   VW450, +5
+AN     M21.0
+NETR   VB580, 1
+S      M21.0, 1
+
+Network 11 // Paso 6: NETW Nodo 4 (Disparo de prensado / CMD_RETIRO_CONFIRMADO)
+LDW=   VW450, +6
+AN     M21.0
+MOVB   VB704, VB607
+MOVB   0, VB704
+NETW   VB600, 1
+S      M21.0, 1
+
+Network 12 // Paso 7: NETR Nodo 5 (Seleccion: estado, STAT_ROBOT_WAIT y telemetria VFD)
+LDW=   VW450, +7
+AN     M21.0
+NETR   VB620, 1
+S      M21.0, 1
+
+Network 13 // Paso 8: NETW Nodo 5 (Pieza entregada, BELT_PERMIT_RUN, tipo, modo VFD)
+LDW=   VW450, +8
+AN     M21.0
+MOVB   VB705, VB647
+MOVB   0, VB705
+NETW   VB640, 1
+S      M21.0, 1
+
+Network 14 // Paso 9: NETR Nodo 6 (Brazo: READY, BUSY, DONE, BELT_PERMIT_RUN, HOMED)
+LDW=   VW450, +9
+AN     M21.0
+NETR   VB660, 1
+S      M21.0, 1
+
+Network 15 // Paso 10: NETW Nodo 6 (Orden de recogida CMD_START / CMD_ESTOP)
+LDW=   VW450, +10
+AN     M21.0
+MOVB   VB706, VB687
+MOVB   0, VB706
+NETW   VB680, 1
+S      M21.0, 1
+
+// -------------------------------- CIERRES -------------------------------------
+Network 16 // Cierre Paso 1 (NETR Nodo 2). Fallo: VB507 = 0 para no decidir con datos viejos
+LDW=   VW450, +1
+A      M21.0
+LD     V500.7
+O      V500.5
+O      T38
+ALD
+LPS
+AN     V500.5
+AN     T38
+R      V710.2, 1
+LRD
+LD     V500.5
+O      T38
+ALD
+S      V710.2, 1
+MOVB   0, VB507
+LPP
+R      M21.0, 1
+R      T38, 1
+MOVW   +2, VW450
+
+Network 17 // Cierre Paso 2 (NETW Nodo 2). Fallo: reencolar comandos
+LDW=   VW450, +2
+A      M21.0
+LD     V520.7
+O      V520.5
+O      T38
+ALD
+LPS
+LD     V520.5
+O      T38
+ALD
+ORB    VB527, VB702
+S      V710.2, 1
+LPP
+MOVB   0, VB527
+R      M21.0, 1
+R      T38, 1
+MOVW   +3, VW450
+
+Network 18 // Cierre Paso 3 (NETR Nodo 3)
+LDW=   VW450, +3
+A      M21.0
+LD     V540.7
+O      V540.5
+O      T38
+ALD
+LPS
+AN     V540.5
+AN     T38
+R      V710.3, 1
+LRD
+LD     V540.5
+O      T38
+ALD
+S      V710.3, 1
+MOVB   0, VB547
+LPP
+R      M21.0, 1
+R      T38, 1
+MOVW   +4, VW450
+
+Network 19 // Cierre Paso 4 (NETW Nodo 3)
+LDW=   VW450, +4
+A      M21.0
+LD     V560.7
+O      V560.5
+O      T38
+ALD
+LPS
+LD     V560.5
+O      T38
+ALD
+ORB    VB567, VB703
+S      V710.3, 1
+LPP
+MOVB   0, VB567
+R      M21.0, 1
+R      T38, 1
+MOVW   +5, VW450
+
+Network 20 // Cierre Paso 5 (NETR Nodo 4)
+LDW=   VW450, +5
+A      M21.0
+LD     V580.7
+O      V580.5
+O      T38
+ALD
+LPS
+AN     V580.5
+AN     T38
+R      V710.4, 1
+LRD
+LD     V580.5
+O      T38
+ALD
+S      V710.4, 1
+MOVB   0, VB587
+LPP
+R      M21.0, 1
+R      T38, 1
+MOVW   +6, VW450
+
+Network 21 // Cierre Paso 6 (NETW Nodo 4)
+LDW=   VW450, +6
+A      M21.0
+LD     V600.7
+O      V600.5
+O      T38
+ALD
+LPS
+LD     V600.5
+O      T38
+ALD
+ORB    VB607, VB704
+S      V710.4, 1
+LPP
+MOVB   0, VB607
+R      M21.0, 1
+R      T38, 1
+MOVW   +7, VW450
+
+Network 22 // Cierre Paso 7 (NETR Nodo 5)
+LDW=   VW450, +7
+A      M21.0
+LD     V620.7
+O      V620.5
+O      T38
+ALD
+LPS
+AN     V620.5
+AN     T38
+R      V710.5, 1
+LRD
+LD     V620.5
+O      T38
+ALD
+S      V710.5, 1
+MOVB   0, VB627
+LPP
+R      M21.0, 1
+R      T38, 1
+MOVW   +8, VW450
+
+Network 23 // Cierre Paso 8 (NETW Nodo 5)
+LDW=   VW450, +8
+A      M21.0
+LD     V640.7
+O      V640.5
+O      T38
+ALD
+LPS
+LD     V640.5
+O      T38
+ALD
+ORB    VB647, VB705
+S      V710.5, 1
+LPP
+MOVB   0, VB647
+R      M21.0, 1
+R      T38, 1
+MOVW   +9, VW450
+
+Network 24 // Cierre Paso 9 (NETR Nodo 6)
+LDW=   VW450, +9
+A      M21.0
+LD     V660.7
+O      V660.5
+O      T38
+ALD
+LPS
+AN     V660.5
+AN     T38
+R      V710.6, 1
+LRD
+LD     V660.5
+O      T38
+ALD
+S      V710.6, 1
+MOVB   0, VB667
+LPP
+R      M21.0, 1
+R      T38, 1
+MOVW   +10, VW450
+
+Network 25 // Cierre Paso 10 (NETW Nodo 6) -> vuelta al Paso 1
+LDW=   VW450, +10
+A      M21.0
+LD     V680.7
+O      V680.5
+O      T38
+ALD
+LPS
+LD     V680.5
+O      T38
+ALD
+ORB    VB687, VB706
+S      V710.6, 1
+LPP
+MOVB   0, VB687
+R      M21.0, 1
+R      T38, 1
+MOVW   +1, VW450
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 7: SBR_MODBUS_SLAVE (SERVIDOR MODBUS RTU PUERTO 0 Y MAPEO SCADA)
+// ==============================================================================
+// Nota: el bit n de un registro Modbus VWxxxx corresponde a V(xxxx+1).n (byte bajo).
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_MODBUS_SLAVE:SBR7
+TITLE=ESCLAVO MODBUS RTU PUERTO 0 Y MAPEADO DE TELEMETRIA DE CELDA
+BEGIN
+Network 1 // Modbus Esclavo en Puerto 0 SOLO con el selector en RUN (Mode = VB285 = SM0.7)
+// En TERM el Puerto 0 vuelve a PPI: el PC puede conectarse aunque el programa este en RUN.
+// MBUS_INIT se re-ejecuta en el primer scan y en cada cambio del selector.
+LD     SM0.7
+MOVB   1, VB285
+LDN    SM0.7
+MOVB   0, VB285
+LD     SM0.7
+EU
+LD     SM0.7
+ED
+OLD
+O      SM0.1
+CALL   MBUS_INIT, VB285, 1, 19200, 0, 0, 128, 32, 128, &VB1000, M12.1, VB39
+
+Network 2 // Ejecucion Ciclica del Protocolo Modbus Esclavo (solo con el selector en RUN)
+LD     SM0.7
+CALL   MBUS_SLAVE, M12.0, VB38
+
+Network 3 // VW1020 STAT_GLOBAL_CELL
+LD     M6.0
+=      V1021.0                      // Bit 0: Celda en marcha
+LD     M6.1
+O      M13.0
+=      V1021.1                      // Bit 1: Pausa
+LD     I2.6
+=      V1021.2                      // Bit 2: Seta QS OK
+LD     M5.2
+=      V1021.3                      // Bit 3: Automatico
+LDW>   VW16, +0
+A      M5.2
+LDW>   VW12, +0
+AN     M5.2
+OLD
+=      V1021.4                      // Bit 4: Ciclo activo
+LDN    I2.6
+O      M4.1
+O      M7.2
+O      M7.6
+O      M7.7
+O      M8.2
+O      M10.7
+O      M20.3
+=      V1021.5                      // Bit 5: Alarma general
+LDN    M5.2
+=      V1021.6                      // Bit 6: Manual / Diagnostico
+
+Network 4 // VW1022 Estaciones Listas (bit 0 de cada VB200 remoto)
+LD     M13.3
+=      V1023.1                      // U1 Transporte referenciado
+LD     V507.0
+=      V1023.2
+LD     V547.0
+=      V1023.3
+LD     V587.0
+=      V1023.4
+LD     V627.0
+=      V1023.5
+LD     V667.0
+=      V1023.6
+
+Network 5 // VW1024..VW1036 Pasos de Estaciones y Tipo de Pieza
+LD     M5.2
+MOVW   VW16, VW1024
+LDN    M5.2
+MOVW   VW12, VW1024
+LD     SM0.0
+BTI    VB508, VW1026
+BTI    VB548, VW1028
+BTI    VB588, VW1030
+BTI    VB628, VW1032
+BTI    VB668, VW1034
+BTI    VB33, VW1036
+
+Network 6 // VW1038 FLAGS_INTERLOCK
+LD     V547.0
+=      V1039.0                      // Bit 0: Permiso entrega en Ensamblaje
+LD     V587.0
+=      V1039.1                      // Bit 1: Permiso entrega en Prensa
+LD     V627.0
+=      V1039.2                      // Bit 2: Permiso entrega en Seleccion
+LD     V667.6
+=      V1039.3                      // Bit 3: BELT_PERMIT_RUN del Brazo
+LD     M20.0
+=      V1039.4                      // Bit 4: Mision de recogida del Brazo activa
+
+Network 7 // VW1046 ALM_PROCESO_CELL
+LD     V507.5
+=      V1047.0                      // Bit 0: Silo Alimentacion vacio
+LD     V547.5
+=      V1047.1                      // Bit 1: Silo nucleos vacio
+LDN    M3.2
+=      V1047.2                      // Bit 2: Servo no listo (I1.2 = 0) - solo senalizacion
+LD     V627.5
+=      V1047.3                      // Bit 3: Falla comunicacion VFD (PLC 5)
+LD     I0.1
+O      I0.2
+O      M7.6
+=      V1047.4                      // Bit 4: Limites HW / software
+LDB<>  VB710, 0
+=      V1047.5                      // Bit 5: Error / timeout en carrusel PPI
+
+Network 8 // Telemetria VFD (PLC 5 VW204..VB211 -> VB631..VB638)
+LD     SM0.0
+MOVW   VW631, VW1132                // Frecuencia real (0.01 Hz)
+MOVW   VW635, VW1134                // Bus DC (0.1 V)
+MOVW   VW633, VW1136                // Corriente (0.01 A)
+MOVB   VB637, VB36
+ANDB   16#03, VB36                  // Bits 0..1 = modo (bit 5 sentido REV, bit 6 Auto, bit 7 emergencia del PLC 5)
+BTI    VB36, VW1144                 // Modo VFD activo (1 Analogico / 2 Modbus)
+BTI    VB638, VW1146                // Codigo de error Modbus del PLC 5
+MOVW   +5, VW1138                   // Estado: 5 = Paro
+LDW>   VW631, +0
+MOVW   +1, VW1138                   // Estado: 1 = Marcha FWD
+
+Network 9 // VW1180 Espejo de Sensores Fisicos
+LD     I2.0
+=      V1181.0
+LD     I2.1
+=      V1181.1
+LD     I2.2
+=      V1181.2
+LD     I0.0
+=      V1181.3                      // Inductivo HOME
+LD     I0.1
+=      V1181.4                      // FC izquierdo
+LD     I0.2
+=      V1181.5                      // FC derecho
+
+Network 10 // Contadores de Produccion por Carril (flanco de los capacitivos)
+LD     I2.0
+EU
+INCW   VW1182
+INCW   VW1190
+LD     I2.1
+EU
+INCW   VW1184
+INCW   VW1190
+LD     I2.2
+EU
+INCW   VW1186
+INCW   VW1190
+
+Network 11 // Cotas Escritas desde SCADA (VD1110..VD1122 distinto de la sombra): validar y aplicar
+LDD<>  VD1110, VD260
+LDD>=  VD1110, VD226
+AD<=   VD1110, VD222
+ALD
+MOVD   VD1110, VD204
+LDD<>  VD1114, VD264
+LDD>=  VD1114, VD226
+AD<=   VD1114, VD222
+ALD
+MOVD   VD1114, VD208
+LDD<>  VD1118, VD268
+LDD>=  VD1118, VD226
+AD<=   VD1118, VD222
+ALD
+MOVD   VD1118, VD212
+LDD<>  VD1122, VD272
+LDD>=  VD1122, VD226
+AD<=   VD1122, VD222
+ALD
+MOVD   VD1122, VD216
+
+Network 12 // Publicacion de Cotas Vigentes y Posicion (valores rechazados se restauran)
+LD     SM0.0
+MOVD   VD204, VD1110
+MOVD   VD208, VD1114
+MOVD   VD212, VD1118
+MOVD   VD216, VD1122
+MOVD   VD204, VD260
+MOVD   VD208, VD264
+MOVD   VD212, VD268
+MOVD   VD216, VD272
+MOVD   VD250, VD1126
+
+Network 13 // Parametros escritos desde el SCADA (40002..40007): validar y aplicar (sombras VD720..VD728)
+// VD1002 jog de calibracion (1..20000 p) -> VD280 | VD1006 rebote en FC derecho (0..10000 p) -> VD288
+// VD1010 retroceso del homing (500..20000 p) -> VD240. Un valor fuera de rango se descarta.
+LDD<>  VD1002, VD720
+LDD>=  VD1002, +1
+AD<=   VD1002, +20000
+ALD
+MOVD   VD1002, VD280
+LDD<>  VD1006, VD724
+LDD>=  VD1006, +0
+AD<=   VD1006, +10000
+ALD
+MOVD   VD1006, VD288
+LDD<>  VD1010, VD728
+LDD>=  VD1010, +500
+AD<=   VD1010, +20000
+ALD
+MOVD   VD1010, VD240
+
+Network 14 // Publicacion de Parametros Vigentes (los valores rechazados se restauran)
+LD     SM0.0
+MOVD   VD280, VD1002
+MOVD   VD288, VD1006
+MOVD   VD240, VD1010
+MOVD   VD280, VD720
+MOVD   VD288, VD724
+MOVD   VD240, VD728
+
+Network 15 // VW1040 ALARMAS DE TRANSPORTE (byte bajo V1041) y VW1060..VW1070 Delta-t de Transporte (ms)
+// bit0 atasco o viaje no concluido   bit1 homing fallido   bit2 limite / cota fuera de rango
+// bit3 movimiento sin referencia     bit4 timeout de maniobra   bit5 alarma de diagnostico manual
+// bit6 Brazo sin respuesta           bit7 alerta de fuga
+LD     SM0.0
+MOVB   0, VB1040
+MOVB   0, VB1041
+MOVW   VW20, VW1060                 // CilV descenso
+MOVW   VW22, VW1062                 // CilV elevacion
+MOVW   VW24, VW1064                 // CilDV extension
+MOVW   VW26, VW1066                 // CilDV retraccion
+MOVW   VW28, VW1068                 // Giro horario
+MOVW   VW30, VW1070                 // Pinza cierre
+LD     M4.1
+=      V1041.0
+LD     M7.2
+=      V1041.1
+LD     M7.6
+=      V1041.2
+LD     M7.7
+=      V1041.3
+LD     M8.2
+=      V1041.4
+LD     M10.7
+=      V1041.5
+LD     M20.3
+=      V1041.6
+LD     M4.0
+=      V1041.7
+
+Network 16 // IMAGEN EXTENDIDA PARA EL SCADA (40101..40128 = VW1200..VW1254)
+// VB1200 IB0  VB1201 IB1  VB1202 IB2  VB1203 QB0  VB1204 QB1  VB1205 maniobra (VB19)
+// VB1206 sub-etapa auto (VB18)  VB1207 sub-etapa manual (VB14)  VB1208 sub-etapa maniobra (VB34)
+// VB1209 nodos PPI sin red (VB710)  VB1210 banderas de Transporte  VB1211 fase de homing (VB15)
+// VB1212..VB1219 PLC 2 (VB507..VB514)   VB1220..VB1227 PLC 3 (VB547..VB554)
+// VB1228..VB1235 PLC 4 (VB587..VB594)   VB1236..VB1248 PLC 5 (VB627..VB639)
+// VB1250..VB1253 PLC 6 (VB667..VB670)   VB1254 contador de vida (VB570)   VB1255 baliza (VB37)
+LD     SM0.0
+MOVB   IB0, VB1200
+MOVB   IB1, VB1201
+MOVB   IB2, VB1202
+MOVB   QB0, VB1203
+MOVB   QB1, VB1204
+MOVB   VB19, VB1205
+MOVB   VB18, VB1206
+MOVB   VB14, VB1207
+MOVB   VB34, VB1208
+MOVB   VB710, VB1209
+MOVB   0, VB1210
+MOVB   VB15, VB1211
+MOVD   VD507, VD1212
+MOVD   VD511, VD1216
+MOVD   VD547, VD1220
+MOVD   VD551, VD1224
+MOVD   VD587, VD1228
+MOVD   VD591, VD1232
+MOVD   VD627, VD1236
+MOVD   VD631, VD1240
+MOVD   VD635, VD1244
+MOVB   VB639, VB1248
+MOVB   0, VB1249
+MOVD   VD667, VD1250
+MOVB   VB570, VB1254
+MOVB   VB37, VB1255
+
+Network 17 // VB1210 Banderas de Transporte
+// bit0 referenciado  bit1 homing pedido/en curso  bit2 maniobra en curso  bit3 viaje en curso
+// bit4 esperando a otra estacion  bit5 rebote en FC derecho  bit6 parada al final del ciclo  bit7 mision del Brazo
+LD     M13.3
+=      V1210.0
+LD     M7.0
+=      V1210.1
+LD     M8.0
+=      V1210.2
+LD     M23.0
+=      V1210.3
+LD     M27.0
+=      V1210.4
+LD     M24.0
+=      V1210.5
+LD     M6.2
+=      V1210.6
+LD     M20.0
+=      V1210.7
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 8: SBR_MAN_STEP (MODO MANUAL SECUENCIAL POR ESTACIONES CON SB1)
+// ==============================================================================
+// Cada pulsacion de SB1 ejecuta UNA accion. Las maniobras del manipulador usan
+// SBR_MANIOBRA (las mismas que en Automatico) y el PLC 1 envia por PPI las mismas
+// senales a las estaciones, que trabajan de forma autonoma en su propio Automatico.
+//   0  Reposo (SB1 -> 1, o Homing si no hay referencia; SB2 -> Homing)
+//   1  PICK en Alimentacion            -> CMD_RETIRO_CONFIRMADO a PLC 2
+//   2  Viaje a Ensamblaje (VD212)
+//   3  PLACE en nido de Ensamblaje     -> CMD_PIEZA_ENTREGADA a PLC 3 + CMD_AUTORIZAR_DOSIF a PLC 2
+//   4  PICK en Ensamblaje (SB1 bloqueado mientras PLC 3 esta ocupado) -> CMD_RETIRO_CONFIRMADO
+//      Tipo 5 (pieza negra, VB550 = 5) -> salta al Paso 8 (bypass a Seleccion)
+//   5  Viaje de retroceso a Procesamiento (VD208)
+//   6  PLACE en mordaza de prensa      -> CMD_PIEZA_ENTREGADA a PLC 4 (prensado)
+//   7  PICK en prensa (SB1 bloqueado mientras PLC 4 esta ocupado) -> CMD_RETIRO_CONFIRMADO
+//   8  Viaje a Seleccion (VD216). Si toca el FC derecho: rebote automatico VD288 y llegada
+//   9  PLACE en cinta (giro AH)        -> Tipo en VB648 + CMD_PIEZA_ENTREGADA a PLC 5
+//  10  Retorno a Alimentacion con re-referencia (Homing + viaje a VD204)
+//  90  Homing
+// Sub-etapas VB14 - Viaje: 0 lanzar, 1 en viaje, 2 espera SB1.
+//                 - Maniobra: 0 lanzar, 1 en curso, 2 espera SB1.
+// CALIBRACION DESDE TABLA DE ESTADO (en Paso 0 o esperando SB1, con referencia):
+//   VD280 = pulsos por toque (defecto 100); V284.0 = 1 jog derecha; V284.1 = 1 jog izquierda.
+//   VD250 muestra la posicion absoluta: copiarla a VD204/VD208/VD212/VD216 al alinear.
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_MAN_STEP:SBR8
+TITLE=SECUENCIADOR MANUAL: A -> E (DEJA/RECOGE) -> P (DEJA/RECOGE) -> S (REBOTE) -> RETORNO
+BEGIN
+Network 1 // Desalojo de FC Izquierdo I0.1 con SB1 (Jog a la Derecha, 6000 p a 4 kHz)
+LD     I0.1
+A      M5.0
+AN     M5.2
+SI     Q0.2, 1                      // DIR derecha inmediata
+S      M13.5, 1
+R      M13.4, 1
+R      M13.3, 1                     // Posicion perdida: requiere homing posterior
+MOVB   16#85, SMB67
+MOVW   +250, SMW68
+MOVD   +6000, SMD72
+PLS    0
+CRET
+
+Network 2 // Desalojo de FC Derecho I0.2 con SB1 (Jog a la Izquierda) - no durante el rebote automatico
+LD     I0.2
+A      M5.0
+AN     M5.2
+AN     M24.0
+RI     Q0.2, 1                      // DIR izquierda inmediata
+S      M13.5, 1
+R      M13.4, 1
+R      M13.3, 1
+MOVB   16#85, SMB67
+MOVW   +250, SMW68
+MOVD   +6000, SMD72
+PLS    0
+CRET
+
+Network 3 // Fin del Desalojo de Tope -> Paso 0
+LD     M13.5
+LD     M13.4
+O      SM66.7
+ALD
+R      M13.5, 1
+MOVW   +0, VW12
+MOVB   0, VB14
+R      M13.2, 1
+R      M13.4, 1
+CRET
+
+Network 4 // Bloqueo ante Seta QS o Final de Carrera Accionado (incluye el rebote en curso)
+LDN    I2.6
+O      I0.1
+O      I0.2
+CRET
+
+Network 5 // Reset Inmediato con SB2 si hay un Ciclo Activo (VW12 > 0) - limpia alarmas de maniobra
+LD     M5.1
+AW>    VW12, +0
+LPS
+AN     SM66.7                       // Si el PTO estaba en marcha la posicion es incierta
+R      M13.3, 1
+LPP
+MOVB   16#00, SMB67
+PLS    0
+MOVW   +0, VW12
+MOVB   0, VB14
+MOVB   0, VB34
+R      M8.0, 4                      // Maniobra: peticion, fin, timeout, transicion
+R      M4.0, 2                      // Fuga y atasco
+R      M13.0, 3
+R      M10.0, 8
+R      M14.0, 4                     // Electrovalvulas a reposo seguro
+R      M7.6, 1
+R      M24.0, 4                     // Rebote
+R      M26.0, 3                     // Memoria de SB1 y ocupacion vista
+CRET
+
+Network 6 // Temporizador de Diagnostico de Presion Neumatica (T41)
+LD     M10.0
+TON    T41, +25
+
+Network 7 // Alarma HL3 ante Fuga/Atasco
+LD     T41
+S      M10.7, 1
+
+Network 8 // Bloqueo de Pasos con Alarma Activa (diagnostico, atasco o timeout de maniobra): reset con SB2
+LD     M10.7
+O      M4.1
+O      M8.2
+CRET
+
+Network 9 // Movimiento Rechazado (sin referencia / cota fuera de limites / homing fallido) -> Paso 0
+LD     M7.6
+O      M7.7
+O      M7.2
+AW>    VW12, +0
+AW<>   VW12, +90
+MOVW   +0, VW12
+MOVB   0, VB14
+R      M13.2, 1
+CRET
+
+Network 10 // Calibracion: Jog desde Tabla de Estado (V284.0 derecha / V284.1 izquierda, VD280 pulsos)
+LD     M13.3                        // Con referencia
+A      SM66.7                       // PTO parado
+AN     M24.0
+LDW=   VW12, +0
+O      M13.2                        // En reposo o esperando SB1
+ALD
+LPS
+A      V284.0
+MOVD   VD250, VD230
++D     VD280, VD230
+CALL   SBR_MOVE_PTO
+LPP
+A      V284.1
+AN     V284.0
+MOVD   VD250, VD230
+-D     VD280, VD230
+CALL   SBR_MOVE_PTO
+
+Network 11 // Calibracion: las ordenes de jog son de un solo uso
+LD     SM0.0
+R      V284.0, 2
+
+// ------------------------------------------------------------------------------
+// PASO 0: REPOSO
+// ------------------------------------------------------------------------------
+Network 12 // Paso 0: SB1 -> mecanismo a reposo; sin referencia -> Paso 90 (el Network 22 pasa al Paso 1)
+LDW=   VW12, +0
+A      M5.0
+LPS
+MOVB   0, VB14
+R      M13.2, 1
+R      M14.0, 1                     // Vertical arriba
+R      M14.1, 1                     // Retraido
+R      M14.2, 1                     // Pinza abierta
+R      M14.3, 1                     // Giro horario
+R      M7.6, 1
+R      M7.7, 1
+MOVB   0, VB33
+LPP
+AN     M13.3
+MOVW   +90, VW12
+R      M26.2, 1
+CRET
+
+Network 13 // Paso 0: SB2 -> Homing (Paso 90)
+LDW=   VW12, +0
+A      M5.1
+MOVW   +90, VW12
+MOVB   0, VB14
+R      M7.6, 1
+CRET
+
+// ------------------------------------------------------------------------------
+// PASO 90: HOMING SOBRE INDUCTIVO I0.0 (EJECUTADO POR SBR_HOMING)
+// ------------------------------------------------------------------------------
+Network 14 // Paso 90 / Sub 0: Solicitar Homing
+LDW=   VW12, +90
+AB=    VB14, 0
+S      M7.0, 1
+R      M7.3, 1
+MOVB   1, VB14
+CRET
+
+Network 15 // Paso 90 / Sub 1: Homing Terminado -> Paso 0
+LDW=   VW12, +90
+AB=    VB14, 1
+A      M7.3
+R      M7.3, 1
+MOVW   +0, VW12
+MOVB   0, VB14
+CRET
+
+// ------------------------------------------------------------------------------
+// MANIOBRAS (PASOS 1, 3, 4, 6, 7, 9): LANZAMIENTO Y FIN COMUNES
+// ------------------------------------------------------------------------------
+Network 16 // Sub 0: Lanzar maniobra segun paso (1/4/7 PICK, 3/6 PLACE, 9 PLACE_CINTA)
+LDB=   VB14, 0
+LDW=   VW12, +1
+OW=    VW12, +4
+OW=    VW12, +7
+ALD
+MOVB   1, VB19
+S      M8.0, 1
+R      M8.1, 1
+MOVB   0, VB34
+S      M8.3, 1
+MOVB   1, VB14
+LDB=   VB14, 0
+LDW=   VW12, +3
+OW=    VW12, +6
+ALD
+MOVB   2, VB19
+S      M8.0, 1
+R      M8.1, 1
+MOVB   0, VB34
+S      M8.3, 1
+MOVB   1, VB14
+LDB=   VB14, 0
+AW=    VW12, +9
+MOVB   VB33, VB648                  // Tipo hacia Seleccion (5 = pieza negra) antes de entregar
+MOVB   3, VB19
+S      M8.0, 1
+R      M8.1, 1
+MOVB   0, VB34
+S      M8.3, 1
+MOVB   1, VB14
+
+Network 17 // Sub 1: Maniobra terminada -> Senales PPI a las estaciones y espera de SB1
+LDB=   VB14, 1
+A      M8.1
+LDW=   VW12, +1
+OW=    VW12, +3
+OW=    VW12, +4
+OW=    VW12, +6
+OW=    VW12, +7
+OW=    VW12, +9
+ALD
+LPS
+R      M8.1, 1
+MOVB   2, VB14
+S      M13.2, 1                     // Esperando SB1
+LRD
+AW=    VW12, +1
+S      V702.6, 1                    // PLC 2: CMD_RETIRO_CONFIRMADO (cuna libre)
+LRD
+AW=    VW12, +3
+S      V703.4, 1                    // PLC 3: CMD_PIEZA_ENTREGADA (inicia ensamble)
+S      V702.5, 1                    // PLC 2: CMD_AUTORIZAR_DOSIF (siguiente base)
+LRD
+AW=    VW12, +4
+S      V703.6, 1                    // PLC 3: CMD_RETIRO_CONFIRMADO
+MOVB   0, VB33
+AB=    VB550, 5                     // STAT_DATA PLC 3 = 5: pieza negra -> bypass
+MOVB   5, VB33
+LRD
+AW=    VW12, +6
+S      V704.4, 1                    // PLC 4: CMD_PIEZA_ENTREGADA (inicia prensado)
+LRD
+AW=    VW12, +7
+S      V704.6, 1                    // PLC 4: CMD_RETIRO_CONFIRMADO
+LPP
+AW=    VW12, +9
+S      V705.4, 1                    // PLC 5: CMD_PIEZA_ENTREGADA (arranque de cinta)
+
+// ------------------------------------------------------------------------------
+// VIAJES (PASOS 2, 5, 8): LANZAMIENTO Y LLEGADA COMUNES
+// ------------------------------------------------------------------------------
+Network 18 // Sub 0: Lanzar Viaje (2 -> VD212 Ensamblaje, 5 -> VD208 Procesamiento, 8 -> VD216 Seleccion)
+LDB=   VB14, 0
+LPS
+AW=    VW12, +2
+MOVD   VD212, VD230
+LRD
+AW=    VW12, +5
+MOVD   VD208, VD230
+LPP
+AW=    VW12, +8
+MOVD   VD216, VD230
+LDB=   VB14, 0
+LDW=   VW12, +2
+OW=    VW12, +5
+OW=    VW12, +8
+ALD
+R      M10.0, 1
+R      M13.4, 1
+CALL   SBR_MOVE_PTO
+MOVB   1, VB14
+R      M13.2, 1
+CRET
+
+Network 19 // Sub 1: Watchdog de Viaje T106 (16 s; 112000 p a 8 kHz = 14 s)
+LDB=   VB14, 1
+LDW=   VW12, +2
+OW=    VW12, +5
+OW=    VW12, +8
+ALD
+TON    T106, +160
+
+Network 20 // Sub 1: Llegada (Evento 19 o PTO parado) sin rebote en curso -> espera de SB1
+LDB=   VB14, 1
+LDW=   VW12, +2
+OW=    VW12, +5
+OW=    VW12, +8
+ALD
+AN     M24.0                        // No durante el rebote en el FC derecho
+LD     M13.4
+O      SM66.7
+O      T106
+ALD
+MOVB   2, VB14
+S      M13.2, 1
+R      M13.4, 1
+
+// ------------------------------------------------------------------------------
+// AVANCE ENTRE PASOS CON SB1 (SUB-ETAPA 2 = ACCION TERMINADA)
+// ------------------------------------------------------------------------------
+Network 21 // Memoria de SB1 (M26.2): pulsacion en reposo (Paso 0) o en espera (sub-etapa 2)
+// La pulsacion queda registrada y el paso se ejecuta en cuanto la estacion destino esta
+// lista; no hace falta volver a pulsar. SB2 (reset) o el cambio de paso la borran.
+LDB=   VB14, 2
+LDW=   VW12, +0
+OLD
+A      M5.0
+S      M26.2, 1
+LDB<>  VB14, 2
+AW<>   VW12, +0
+R      M26.2, 1
+
+Network 22 // Paso 0 -> 1 (recoger en Alimentacion): pieza lista en la cuna (PLC 2 STAT_DONE) o sin red
+LDW=   VW12, +0
+A      M26.2
+A      M13.3                        // Con referencia (si no, el Network 12 lanza el homing)
+LD     V507.2                       // PLC 2: pieza disponible en la cuna (STAT_DONE)
+LD     V509.4                       // O su sensor de cuna I0.4 con la estacion sin empujar
+AN     V507.1
+OLD
+O      V710.2                       // O nodo 2 sin comunicacion (TERM): decide el operario
+ALD
+MOVW   +1, VW12
+MOVB   0, VB14
+R      M26.2, 1
+CRET
+
+Network 23 // SB1 en Pasos 1, 4, 7, 9 (sin estacion destino que esperar): avance directo
+LDB=   VB14, 2
+A      M26.2
+LDW=   VW12, +1
+OW=    VW12, +7
+OW=    VW12, +9
+ALD
+LPS
+MOVB   0, VB14
+R      M13.2, 1
+R      M26.2, 1
+LPP
++I     +1, VW12
+CRET
+
+Network 24 // Paso 2 -> 3 (DEJAR en Ensamblaje): PLC 3 listo (STAT_READY) o sin red
+LDW=   VW12, +2
+AB=    VB14, 2
+A      M26.2
+LD     V547.0
+O      V710.3
+ALD
+MOVW   +3, VW12
+MOVB   0, VB14
+R      M13.2, 1
+R      M26.2, 1
+CRET
+
+Network 25 // Paso 3 -> 4 (RECOGER en Ensamblaje): ensamble terminado (PLC 3 STAT_DONE) o sin red
+LDW=   VW12, +3
+AB=    VB14, 2
+A      M26.2
+LD     V547.2
+O      V710.3
+ALD
+MOVW   +4, VW12
+MOVB   0, VB14
+R      M13.2, 1
+R      M26.2, 1
+CRET
+
+Network 26 // SB1 en Paso 4: Tipo 5 -> bypass a Seleccion (Paso 8); resto -> Procesamiento (Paso 5)
+LDW=   VW12, +4
+AB=    VB14, 2
+A      M26.2
+LPS
+MOVB   0, VB14
+R      M13.2, 1
+R      M26.2, 1
+LRD
+AB=    VB33, 5
+MOVW   +8, VW12
+LPP
+AB<>   VB33, 5
+MOVW   +5, VW12
+CRET
+
+Network 27 // Paso 5 -> 6 (DEJAR en la prensa): PLC 4 listo (STAT_READY) o sin red
+LDW=   VW12, +5
+AB=    VB14, 2
+A      M26.2
+LD     V587.0
+O      V710.4
+ALD
+MOVW   +6, VW12
+MOVB   0, VB14
+R      M13.2, 1
+R      M26.2, 1
+CRET
+
+Network 28 // Paso 6 -> 7 (RECOGER de la prensa): estampado terminado (PLC 4 STAT_DONE) o sin red
+LDW=   VW12, +6
+AB=    VB14, 2
+A      M26.2
+LD     V587.2
+O      V710.4
+ALD
+MOVW   +7, VW12
+MOVB   0, VB14
+R      M13.2, 1
+R      M26.2, 1
+CRET
+
+Network 29 // Paso 8 -> 9 (DEJAR en la cinta): Seleccion lista (PLC 5 STAT_READY, en Automatico) o sin red
+LDW=   VW12, +8
+AB=    VB14, 2
+A      M26.2
+LD     V627.0
+O      V710.5
+ALD
+MOVW   +9, VW12
+MOVB   0, VB14
+R      M13.2, 1
+R      M26.2, 1
+CRET
+
+// ------------------------------------------------------------------------------
+// PASO 10: RETORNO A ALIMENTACION CON RE-REFERENCIA (CORRIGE CUALQUIER DERIVA)
+// ------------------------------------------------------------------------------
+Network 30 // Paso 10 / Sub 0: Homing sobre I0.0
+LDW=   VW12, +10
+AB=    VB14, 0
+S      M7.0, 1
+R      M7.3, 1
+MOVB   1, VB14
+R      M13.2, 1
+CRET
+
+Network 31 // Paso 10 / Sub 1: Homing terminado -> viaje a la cota de Alimentacion VD204
+LDW=   VW12, +10
+AB=    VB14, 1
+A      M7.3
+R      M7.3, 1
+R      M13.4, 1
+MOVD   VD204, VD230
+CALL   SBR_MOVE_PTO
+MOVB   2, VB14
+CRET
+
+Network 32 // Paso 10 / Sub 2: En Alimentacion -> Paso 0 (listo para un nuevo ciclo)
+LDW=   VW12, +10
+AB=    VB14, 2
+LD     M13.4
+O      SM66.7
+ALD
+MOVW   +0, VW12
+MOVB   0, VB14
+R      M13.4, 1
+CRET
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 9: SBR_HOMING (REFERENCIADO SOBRE EL INDUCTIVO I0.0 - FASE VB15)
+// ==============================================================================
+// 10 Si I0.0 ya esta activo: salir 3000 p a la derecha (2 kHz)
+// 20 Busqueda rapida a la izquierda (8 kHz); el flanco de I0.0 detiene el PTO por
+//    interrupcion hardware (Evento 0 -> INT_HOME_I00), sin depender del scan
+// 30 Retroceso a la derecha VD240 pulsos (2 kHz)
+// 40 Aproximacion lenta a la izquierda (1 kHz) -> captura -> VD250 = 0, M13.3 = 1
+// 90 Falla (I0.0 no encontrado, FC izquierdo alcanzado o seta QS): M7.2 = 1
+// Los finales de carrera NUNCA se usan como referencia.
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_HOMING:SBR9
+TITLE=HOMING DE DOS VELOCIDADES SOBRE INDUCTIVO I0.0 CON CAPTURA POR INTERRUPCION
+BEGIN
+Network 1 // Abortar Homing ante Seta QS
+LD     M10.6
+AB<>   VB15, 0
+AB<>   VB15, 90
+MOVB   90, VB15
+
+Network 2 // Arranque: Solicitud M7.0 en Fase 0
+LD     M7.0
+AB=    VB15, 0
+R      M13.3, 1
+R      M7.2, 1
+R      M7.3, 1
+R      M7.4, 1
+R      M7.5, 1
+R      M13.4, 1
+MOVB   0, VB35
+MOVB   10, VB15
+
+Network 3 // Fase 10: Salir del Sensor si ya esta Activo (derecha 3000 p a 2 kHz) o ir a Fase 20
+LDB=   VB15, 10
+LPS
+A      M3.3
+SI     Q0.2, 1
+MOVB   16#85, SMB67
+MOVW   +500, SMW68                  // 500 us = 2 kHz
+MOVD   +3000, SMD72
+PLS    0
+MOVB   11, VB15
+LPP
+AN     M3.3
+MOVB   20, VB15
+
+Network 4 // Fase 11: Fin de la Salida -> Fase 20
+LDB=   VB15, 11
+A      M13.4
+R      M13.4, 1
+MOVB   20, VB15
+
+Network 5 // Fase 20: Busqueda Rapida a la Izquierda (8 kHz, max 500000 p) con Captura Armada
+LDB=   VB15, 20
+RI     Q0.2, 1
+R      M7.5, 1
+S      M7.4, 1
+R      M13.4, 1
+MOVB   16#85, SMB67
+MOVW   +125, SMW68
+MOVD   +500000, SMD72
+PLS    0
+MOVB   21, VB15
+
+Network 6 // Fase 21: Inductivo Capturado -> Fase 30; PTO agotado o FC Izquierdo -> Falla
+LDB=   VB15, 21
+A      M7.5
+MOVB   30, VB15
+LDB=   VB15, 21
+LD     M13.4
+O      I0.1
+ALD
+MOVB   16#00, SMB67
+PLS    0
+R      M7.4, 1
+MOVB   90, VB15
+
+Network 7 // Fase 30: Retroceso a la Derecha VD240 Pulsos (2 kHz)
+LDB=   VB15, 30
+SI     Q0.2, 1
+R      M13.4, 1
+MOVB   16#85, SMB67
+MOVW   +500, SMW68
+MOVD   VD240, SMD72
+PLS    0
+MOVB   31, VB15
+
+Network 8 // Fase 31: Fin del Retroceso -> Fase 40
+LDB=   VB15, 31
+A      M13.4
+R      M13.4, 1
+MOVB   40, VB15
+
+Network 9 // Fase 40: Aproximacion Lenta a la Izquierda (1 kHz, max VD240 + 1000 p)
+LDB=   VB15, 40
+AN     M3.3
+RI     Q0.2, 1
+R      M7.5, 1
+S      M7.4, 1
+R      M13.4, 1
+MOVB   16#85, SMB67
+MOVW   +1000, SMW68                 // 1000 us = 1 kHz
+MOVD   VD240, SMD72
++D     +1000, SMD72
+PLS    0
+MOVB   41, VB15
+// Sensor todavia activo tras el retroceso: repetir retroceso (max 3 veces)
+LDB=   VB15, 40
+A      M3.3
+INCB   VB35
+MOVB   30, VB15
+LDB=   VB15, 30
+AB>    VB35, 3
+MOVB   90, VB15
+
+Network 10 // Fase 41: Flanco Capturado -> CERO ABSOLUTO (VD250 = 0 = Cota Alimentacion)
+LDB=   VB15, 41
+A      M7.5
+MOVD   VD244, VD250                 // Cota del flanco de I0.0 (VD244 = 0 por defecto)
+S      M13.3, 1                     // Referencia valida
+S      M7.3, 1                      // Homing terminado
+R      M7.0, 1
+MOVB   0, VB15
+LDB=   VB15, 41
+LD     M13.4
+O      I0.1
+ALD
+MOVB   16#00, SMB67
+PLS    0
+R      M7.4, 1
+MOVB   90, VB15
+
+Network 11 // Fase 90: Falla de Homing
+LDB=   VB15, 90
+S      M7.2, 1
+S      M7.3, 1
+R      M7.0, 1
+R      M7.4, 1
+R      M13.3, 1
+MOVB   0, VB15
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 10: SBR_MANIOBRA (MANIPULADOR EN AUTOMATICO - SUB-ETAPA VB34)
+// ==============================================================================
+// VB19 = 1 PICK (toma) | 2 PLACE (entrega en nido) | 3 PLACE_CINTA (giro AH)
+// Peticion M8.0, fin M8.1. Cada sub-etapa se supervisa con T131 (2.0 s): si el
+// sensor no confirma se activa M8.2 + M4.1 (la celda se congela hasta SB1).
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_MANIOBRA:SBR10
+TITLE=SECUENCIAS PICK / PLACE / PLACE EN CINTA CON SUPERVISION POR SENSOR
+BEGIN
+Network 1 // Supervision de Sub-etapa (T131 2.0 s), reiniciada por M8.3 en cada transicion
+LD     M8.0
+AN     M8.3
+TON    T131, +20
+LD     SM0.0
+R      M8.3, 1
+LD     T131
+S      M8.2, 1
+S      M4.1, 1
+
+Network 2 // Entrada: PICK abre pinza; Tipos 1/2 -> verificar giro H (15); Tipo 3 -> giro AH (10)
+LD     M8.0
+AB=    VB34, 0
+LPS
+AB=    VB19, 1
+R      M14.2, 1
+LRD
+AB=    VB19, 3
+MOVB   10, VB34
+S      M8.3, 1
+LPP
+AB<>   VB19, 3
+MOVB   15, VB34
+S      M8.3, 1
+
+Network 3 // 10: Giro Antihorario hacia la Cinta (Q0.4) -> I0.5
+LD     M8.0
+AB=    VB34, 10
+S      M14.3, 1
+A      M2.5
+MOVB   20, VB34
+S      M8.3, 1
+
+Network 4 // 15: Giro Horario hacia la Bancada (Q0.5) -> I0.6
+LD     M8.0
+AB=    VB34, 15
+R      M14.3, 1
+A      M2.6
+MOVB   20, VB34
+S      M8.3, 1
+
+Network 5 // 20: Extender Doble Vastago (Q0.6) -> I0.7
+LD     M8.0
+AB=    VB34, 20
+S      M14.1, 1
+A      M2.7
+MOVB   30, VB34
+S      M8.3, 1
+
+Network 6 // 30: Descenso Vertical (Q0.3 = 0) -> I0.3
+LD     M8.0
+AB=    VB34, 30
+S      M14.0, 1
+A      M2.3
+MOVB   40, VB34
+S      M8.3, 1
+
+Network 7 // 40: PICK cierra pinza (I1.1 o 1.0 s) / PLACE abre pinza
+LD     M8.0
+AB=    VB34, 40
+LPS
+AB=    VB19, 1
+S      M14.2, 1
+TON    T133, +10
+LRD
+AB=    VB19, 1
+LD     M3.1
+O      T133
+ALD
+MOVB   45, VB34
+S      M8.3, 1
+LPP
+AB<>   VB19, 1
+R      M14.2, 1
+MOVB   45, VB34
+S      M8.3, 1
+
+Network 8 // 45: Asentamiento de Pinza (0.5 s)
+LD     M8.0
+AB=    VB34, 45
+TON    T132, +5
+A      T132
+MOVB   50, VB34
+S      M8.3, 1
+
+Network 9 // 50: Elevacion Vertical (Q0.3 = 1) -> I0.4
+LD     M8.0
+AB=    VB34, 50
+R      M14.0, 1
+A      M2.4
+MOVB   60, VB34
+S      M8.3, 1
+
+Network 10 // 60: Retraccion Doble Vastago (Q0.6 = 0) -> I1.0; Tipo 3 -> 70, resto -> 99
+LD     M8.0
+AB=    VB34, 60
+R      M14.1, 1
+A      M3.0
+LPS
+AB=    VB19, 3
+MOVB   70, VB34
+S      M8.3, 1
+LPP
+AB<>   VB19, 3
+MOVB   99, VB34
+S      M8.3, 1
+
+Network 11 // 70: Retorno de Giro a Horario (reposo) -> I0.6
+LD     M8.0
+AB=    VB34, 70
+R      M14.3, 1
+A      M2.6
+MOVB   99, VB34
+S      M8.3, 1
+
+Network 12 // 99: Maniobra Completada
+LD     M8.0
+AB=    VB34, 99
+S      M8.1, 1
+R      M8.0, 1
+MOVB   0, VB34
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 11: SBR_COORD_BRAZO (HANDSHAKE SELECCION <-> BRAZO 4-DOF VIA PPI)
+// ==============================================================================
+// 1. PLC 5 detiene una pieza Tipo 4/5 en VW318 y publica STAT_ROBOT_WAIT (VB627.6).
+// 2. PLC 1 envia CMD_START (orden de recogida) al PLC 6 (VB687.0 -> V100.0 remoto).
+// 3. PLC 6 acepta (STAT_BUSY VB667.1), aprisiona y eleva Y 5000 p -> BELT_PERMIT (VB667.6).
+// 4. PLC 1 releva el permiso al PLC 5 (VB647.6 -> V100.6 remoto): la cinta reanuda.
+// 5. PLC 5 libera STAT_ROBOT_WAIT: fin del handshake. STAT_DONE (VB667.2) cuenta pieza.
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_COORD_BRAZO:SBR11
+TITLE=COORDINACION DE RECOGIDA EN FIN DE CINTA Y RELEVO DE BELT_PERMIT_RUN
+BEGIN
+Network 1 // Nueva Mision: Seleccion espera y el Brazo esta listo y referenciado
+LD     V627.6                       // STAT_ROBOT_WAIT (PLC 5)
+AN     M20.0
+A      V667.0                       // STAT_READY (PLC 6 en Auto y en reposo; si falta homing lo hace solo)
+S      M20.0, 1                     // Mision activa
+R      M20.1, 1
+R      M20.2, 1
+S      V706.0, 1                    // CMD_START = orden de recogida (envio unico)
+
+Network 2 // El Brazo Acepto la Orden (STAT_BUSY)
+LD     M20.0
+A      V667.1
+S      M20.1, 1
+
+Network 3 // Re-envio de la Orden si no hay Aceptacion en 5 s (T134)
+LD     M20.0
+AN     M20.1
+TON    T134, +50
+LD     T134
+S      V706.0, 1
+R      T134, 1
+
+Network 4 // Pieza Elevada 5000 p: BELT_PERMIT_RUN del Brazo -> Relevo al PLC 5
+LD     M20.1
+A      V667.6
+AN     M20.2
+S      V705.6, 1                    // Permiso de cinta (envio unico) -> V100.6 en PLC 5
+S      M20.2, 1
+
+Network 5 // Re-envio del Permiso si Seleccion sigue esperando 3 s despues (T135)
+LD     M20.2
+A      V627.6
+TON    T135, +30
+LD     T135
+S      V705.6, 1
+R      T135, 1
+
+Network 6 // Fin del Handshake: Seleccion libero STAT_ROBOT_WAIT
+LD     M20.0
+AN     V627.6
+R      M20.0, 3
+
+Network 7 // Supervision: Brazo ocupado sin emitir el permiso en 30 s -> Alarma M20.3
+LD     M20.1
+AN     M20.2
+TON    T136, +300
+LD     T136
+S      M20.3, 1
+
+Network 8 // Contador de Piezas Evacuadas por el Brazo (flanco de STAT_DONE del PLC 6)
+LD     V667.2
+EU
+INCW   VW1188
+INCW   VW1190
+
+Network 9 // DIAGNOSTICO DEL ENLACE SELECCION -> BRAZO (VB286, espejo SCADA VW1052 = registro 40027)
+// bit0 Seleccion espera al Brazo (PLC 5 STAT_ROBOT_WAIT)   bit1 Brazo listo (PLC 6 en Auto y reposo)
+// bit2 Brazo referenciado    bit3 Brazo ocupado    bit4 sin red con PLC 5    bit5 sin red con PLC 6
+// bit6 orden de recogida enviada (M20.0)    bit7 permiso de cinta relevado (M20.2)
+LD     SM0.0
+MOVB   0, VB286
+LD     V627.6
+=      V286.0
+LD     V667.0
+=      V286.1
+LD     V667.7
+=      V286.2
+LD     V667.1
+=      V286.3
+LD     V710.5
+=      V286.4
+LD     V710.6
+=      V286.5
+LD     M20.0
+=      V286.6
+LD     M20.2
+=      V286.7
+LD     SM0.0
+MOVB   0, VB1052
+MOVB   VB286, VB1053
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 12: SBR_BALIZA_PLANTA (ESTADO GENERAL DE LA CELDA -> BALIZA GRANDE EN PLC 3)
+// ==============================================================================
+// Byte VB37 -> VB569 -> VB102 del PLC 3 (NETW nodo 3). Contador de vida en VB570 -> VB103.
+//   Bit 4 ROJA INTERMITENTE : alguna seta QS pulsada (PLC 1 I2.6, PLC 2/3/4 STAT bit 6,
+//                             PLC 5 VB210 bit 7)
+//   Bit 3 ROJA FIJA         : alarma critica en cualquier estacion (atasco, homing, limites,
+//                             maniobra, Brazo, VFD) o nodo PPI sin comunicacion (VB710 <> 0)
+//   Bit 0 VERDE             : celda produciendo en Automatico, sin alarmas
+//   Bit 2 AMARILLA INTERMIT.: pausa, alerta de fuga o silo vacio (compatible con la verde)
+//   Bit 1 AMARILLA FIJA     : celda detenida / Transporte en Manual, sin alarmas
+// Prioridad: roja intermitente > roja fija > verde/amarilla.
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_BALIZA_PLANTA:SBR12
+TITLE=CALCULO DEL ESTADO GENERAL DE PLANTA PARA LA BALIZA GRANDE
+BEGIN
+Network 1 // M25.0: Emergencia (seta QS) en cualquier estacion
+LDN    I2.6                         // PLC 1 Transporte
+O      V507.6                       // PLC 2 Alimentacion
+O      V547.6                       // PLC 3 Ensamblaje
+O      V587.6                       // PLC 4 Procesamiento
+O      V637.7                       // PLC 5 Seleccion (VB210 bit 7)
+=      M25.0
+
+Network 2 // M25.1: Alarma critica en cualquier estacion o perdida de comunicacion
+LD     M4.1
+O      M7.2
+O      M7.6
+O      M7.7
+O      M8.2
+O      M10.7
+O      M20.3
+O      V507.3                       // Atascos en estaciones (STAT bit 3)
+O      V547.3
+O      V587.3
+O      V627.3
+O      V627.5                       // Falla de comunicacion con el VFD
+LDB<>  VB710, 0                     // Nodo PPI sin respuesta
+OLD
+=      M25.1
+
+Network 3 // M25.2: Avisos (pausa, fugas, silos vacios)
+LD     M5.2
+A      M6.1
+O      M4.0
+O      V507.4
+O      V547.4
+O      V587.4
+O      V627.4
+O      V507.5                       // Silo de bases vacio
+O      V547.5                       // Silo de nucleos vacio
+=      M25.2
+
+Network 4 // M25.3: Celda produciendo (Transporte en Automatico y en marcha)
+LD     M5.2
+A      M6.0
+AN     M6.1
+=      M25.3
+
+Network 5 // Composicion del Byte de Baliza VB37
+LD     SM0.0
+MOVB   0, VB37
+LD     M25.0
+=      V37.4                        // Roja intermitente
+LD     M25.1
+AN     M25.0
+=      V37.3                        // Roja fija
+LD     M25.3
+AN     M25.0
+AN     M25.1
+=      V37.0                        // Verde
+LD     M25.2
+AN     M25.0
+=      V37.2                        // Amarilla intermitente
+LDN    M25.3
+AN     M25.0
+AN     M25.1
+AN     M25.2
+=      V37.1                        // Amarilla fija
+
+Network 6 // DIAGNOSTICO DE ESPERA DEL AUTOMATICO (VB287, espejo SCADA VW1054 = registro 40028)
+// bit0 espera pieza en Alimentacion (PLC 2)      bit1 espera Ensamblaje listo para dejar
+// bit2 espera fin de ensamble (PLC 3 DONE)        bit3 espera Procesamiento listo para dejar
+// bit4 espera fin de prensado (PLC 4 DONE)        bit5 espera Seleccion lista (en Automatico)
+// bit6 viaje o maniobra en curso                  bit7 homing en curso
+// M27.0 = esperando a otra estacion (bits 0..5): el foco verde del tablero parpadea.
+LD     SM0.0
+MOVB   0, VB287
+LD     M5.2
+LPS
+AW=    VW16, +10
+AB=    VB18, 2
+=      V287.0
+LRD
+AW=    VW16, +20
+AB=    VB18, 2
+=      V287.1
+LRD
+AW=    VW16, +22
+AB=    VB18, 0
+=      V287.2
+LRD
+AW=    VW16, +30
+AB=    VB18, 2
+=      V287.3
+LRD
+AW=    VW16, +32
+AB=    VB18, 0
+=      V287.4
+LRD
+AW=    VW16, +50
+AB=    VB18, 2
+=      V287.5
+LRD
+LD     M8.0
+O      M23.0
+ALD
+=      V287.6
+LPP
+AW=    VW16, +5
+=      V287.7
+LD     SM0.0
+MOVB   0, VB1054
+MOVB   VB287, VB1055
+LDB<>  VB287, 0
+AB<    VB287, 64                    // Solo bits 0..5
+O      V287.0
+=      M27.0
+
+Network 7 // Envio al PLC 3 (VB569 -> VB102 remoto) y espejo para el SCADA (VW1050 = registro 40026)
+LD     SM0.0
+MOVB   VB37, VB569
+MOVB   0, VB1050
+MOVB   VB37, VB1051
+
+Network 8 // DIAGNOSTICO DE LA BALIZA ROJA (VB292, espejo SCADA VW1056 = registro 40029)
+// bit0 alarma de Transporte (atasco, homing, limite, maniobra, FC)   bit1 Brazo sin respuesta (M20.3)
+// bit2 atasco Alimentacion   bit3 atasco Ensamblaje   bit4 atasco Procesamiento
+// bit5 atasco Seleccion o falla de comunicacion con el VFD
+// bit6 nodo PPI sin comunicacion (VB710: bit2 = PLC 2 ... bit6 = PLC 6)   bit7 seta QS en alguna estacion
+LD     SM0.0
+MOVB   0, VB292
+LD     M4.1
+O      M7.2
+O      M7.6
+O      M7.7
+O      M8.2
+O      M10.7
+=      V292.0
+LD     M20.3
+=      V292.1
+LD     V507.3
+=      V292.2
+LD     V547.3
+=      V292.3
+LD     V587.3
+=      V292.4
+LD     V627.3
+O      V627.5
+=      V292.5
+LDB<>  VB710, 0
+=      V292.6
+LD     M25.0
+=      V292.7
+LD     SM0.0
+MOVB   0, VB1056
+MOVB   VB292, VB1057
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// RUTINA DE INTERRUPCION 0: INT_TIMED_10MS
+// ==============================================================================
+INTERRUPT_BLOCK INT_TIMED_10MS:INT0
+TITLE=INTERRUPCION TEMPORIZADA DE 10 MS (RESERVADA)
+BEGIN
+Network 1
+LD     SM0.0
+CRETI
+END_INTERRUPT_BLOCK
+
+// ==============================================================================
+// RUTINA DE INTERRUPCION 1: INT_PTO_DONE (EVENTO 19 - PTO 0 COMPLETADO)
+// ==============================================================================
+INTERRUPT_BLOCK INT_PTO_DONE:INT1
+TITLE=INTERRUPCION HARDWARE PTO 0 COMPLETADO (EVENTO 19)
+BEGIN
+Network 1 // Bandera de fin de tren de pulsos
+LD     SM0.0
+S      M13.4, 1
+CRETI
+END_INTERRUPT_BLOCK
+
+// ==============================================================================
+// RUTINA DE INTERRUPCION 2: INT_HOME_I00 (EVENTO 0 - FLANCO ASCENDENTE I0.0)
+// ==============================================================================
+INTERRUPT_BLOCK INT_HOME_I00:INT2
+TITLE=CAPTURA DEL INDUCTIVO DE HOME: PARADA INSTANTANEA DEL PTO 0
+BEGIN
+Network 1 // Solo si el homing armo la captura (M7.4); en ciclo normal no actua
+LD     M7.4
+MOVB   16#00, SMB67
+PLS    0
+R      M7.4, 1
+S      M7.5, 1
+END_INTERRUPT_BLOCK

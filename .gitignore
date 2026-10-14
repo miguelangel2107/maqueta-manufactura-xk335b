@@ -1,21 +1,24 @@
-# Entornos y temporales de Python
+# Lo genera scripts/build-catalog.js (Cloudflare lo crea en cada despliegue)
+web/data/
+
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-env/
 venv/
 .venv/
 
-# Archivos de análisis temporal
-scratch_*.txt
+# Archivos temporales y de bloqueo
 *.tmp
+*.bak
+*.dwl
+*.dwl2
+*.ldb
+~$*
 
-# Archivos del sistema operativo
+# Sistema operativo
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Logs y trazas locales
-*.log
+# Configuración local del editor
+.claude/

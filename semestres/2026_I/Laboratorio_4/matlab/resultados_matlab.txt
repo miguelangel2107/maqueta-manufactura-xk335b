@@ -1,0 +1,64 @@
+>>> Procesando datos de: ADELANTE
+=========================================================
+   INFORME TÉCNICO: UNIDAD DE SELECCIÓN (ADELANTE)
+=========================================================
+A. MATRICES DE ESTADO (ETN1034):
+   x1 = Posición (Cuentas) | x2 = Velocidad (Cuentas/s)
+   A_ADELANTE = [0.0000  1.0000; 0.0000  -3.7638]
+   B_ADELANTE = [0.0000; 0.1642]
+
+B. ESTABILIDAD Y DINÁMICA:
+   Polos: s1 = 0.0000, s2 = -3.7638
+   Constante de tiempo (tau): 0.2657 segundos
+   Ganancia de velocidad (b/a): 0.0436 (cuentas/s por unidad de u)
+
+C. PROPIEDADES ESTRUCTURALES:
+   Rango Mc: 2 (Controlable: SÍ)
+   Rango Mo: 2 (Observable: SÍ)
+
+D. FUNCIÓN DE TRANSFERENCIA (ETN902):
+
+tf_sys =
+ 
+  From input "u1" to output "y1":
+     0.1642
+  -------------
+  s^2 + 3.764 s
+ 
+Continuous-time transfer function.
+Model Properties
+E. VALIDACIÓN:
+   Ajuste del modelo (Fit): 98.99%
+=========================================================
+>>> Procesando datos de: ATRAS
+=========================================================
+   INFORME TÉCNICO: UNIDAD DE SELECCIÓN (ATRAS)
+=========================================================
+A. MATRICES DE ESTADO (ETN1034):
+   x1 = Posición (Cuentas) | x2 = Velocidad (Cuentas/s)
+   A_ATRAS = [0.0000  1.0000; 0.0000  -3.7159]
+   B_ATRAS = [0.0000; -0.1618]
+
+B. ESTABILIDAD Y DINÁMICA:
+   Polos: s1 = 0.0000, s2 = -3.7159
+   Constante de tiempo (tau): 0.2691 segundos
+   Ganancia de velocidad (b/a): -0.0435 (cuentas/s por unidad de u)
+
+C. PROPIEDADES ESTRUCTURALES:
+   Rango Mc: 2 (Controlable: SÍ)
+   Rango Mo: 2 (Observable: SÍ)
+
+D. FUNCIÓN DE TRANSFERENCIA (ETN902):
+
+tf_sys =
+ 
+  From input "u1" to output "y1":
+     -0.1618
+  -------------
+  s^2 + 3.716 s
+ 
+Continuous-time transfer function.
+Model Properties
+E. VALIDACIÓN:
+   Ajuste del modelo (Fit): 98.92%
+=========================================================

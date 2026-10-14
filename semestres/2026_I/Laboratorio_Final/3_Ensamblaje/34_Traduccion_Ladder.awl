@@ -1,0 +1,456 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=UNIDAD DE ENSAMBLAJE - RED DE PETRI CIPN v2
+//  ===========================================================
+//  MODULO 0: SEGURIDAD - EMERGENCIA (Evaluado primero, cada scan)
+//  Si Seta = 0 (NC abierta) -> Reset total, fuerza P0, apaga salidas.
+//  ===========================================================
+BEGIN
+Network 1 //  SEG: Reset total por Seta de Emergencia
+
+
+
+
+LDN    I2.6
+R      M0.1, 14
+S      M0.0, 1
+R      Q0.0, 6
+Network 2 //  SEG: Salto a fin de programa si emergencia activa
+
+
+
+// ===========================================================
+// MODULO 1: INICIALIZACION
+// Ejecuta solo en el primer scan (SM0.1 = 1 unicamente en scan 1).
+// Establece marcado inicial: P0 activo, resto limpio.
+// ===========================================================
+LDN    I2.6
+JMP    1
+Network 3 //  INIT: Marcado inicial - P0 activo al arranque
+
+
+
+
+// ===========================================================
+// MODULO 2: EVENTOS (CAPTURA DE SENSORES)
+// Copia directa de entradas a marcas de evento para desacoplar
+// la logica secuencial de las senales fisicas.
+// ===========================================================
+LD     SM0.1
+S      M0.0, 1
+R      M0.1, 12
+Network 4 //  EV: Marcha 
+//  Solicitud de Marcha activado por boton o mediante solicitud de marcha en la marca V1.1
+
+
+LD     I2.5
+O      V1.1
+=      M2.0
+Network 5 // Desactivacion de la solicitud de marcha mediante acknowledgement
+LD     M2.0
+=      V0.1
+Network 6 //  EV: Stock en tubo (nivel bajo)
+
+
+LD     I0.0
+=      M2.1
+Network 7 //  EV: Pieza grande receptora presente
+
+
+LD     I0.4
+=      M2.2
+Network 8 //  EV: Cilindro superior extendido (sujetador OK)
+
+
+LD     I0.5
+=      M2.3
+Network 9 //  EV: Cilindro superior retraido
+
+
+LD     I0.6
+=      M2.4
+Network 10 //  EV: Cilindro inferior extendido
+
+
+LD     I0.7
+=      M2.5
+Network 11 //  EV: Cilindro inferior retraido (pieza liberada)
+
+
+LD     I1.0
+=      M2.6
+Network 12 //  EV: Giro antihorario alcanzado (posicion recogida)
+
+
+LD     I1.1
+=      M2.7
+Network 13 //  EV: Giro horario alcanzado (posicion origen)
+
+
+LD     I1.2
+=      M3.0
+Network 14 //  EV: Pinza cerrada (agarre OK)
+
+
+LD     I1.3
+=      M3.1
+Network 15 //  EV: Cilindro vertical abajo
+
+
+LD     I1.4
+=      M3.2
+Network 16 //  EV: Cilindro vertical arriba
+
+
+LD     I1.5
+=      M3.3
+Network 17 //  EV: Cilindro horizontal atras (origen)
+
+
+LD     I1.6
+=      M3.4
+Network 18 //  EV: Cilindro horizontal adelante (sobre pieza)
+
+
+LD     I1.7
+=      M3.5
+Network 19 //  EV: Parada por boton rojo (flanco de subida)
+
+
+
+LD     I2.4
+EU
+S      M6.0, 1
+Network 20 //  EV: Reset flag parada al volver a P0
+
+
+
+// ===========================================================
+// MODULO 3: CONDICIONES DE DISPARO (RECEPTIVIDADES)
+// Cada transicion Tn se habilita si su plaza de entrada
+// tiene marca AND se cumplen las condiciones sensoriales.
+// La parada (M6.0) bloquea T0 para no iniciar nuevo ciclo.
+// ===========================================================
+LD     M0.0
+R      M6.0, 1
+Network 21 //  T0: Inicio de ciclo (P0 -> P1)
+
+
+
+
+
+
+LD     M0.0
+LPS
+A      M2.0
+A      M2.1
+A      M2.2
+AN     M6.0
+=      M4.0
+LPP
+=      V0.2
+Network 22 //  T1: Sujecion de columna confirmada (P1 -> P2)
+// revisar esto, ya que el cilidro superior sujeta la pieza entonces no siempre se activa el sensor magnetico correspondiente
+
+
+
+LD     M0.1
+A      M2.3
+=      M4.1
+Network 23 //  T2: Pieza liberada, caida confirmada (P2 -> P3)
+
+
+
+LD     M0.2
+LPS
+A      M2.6
+A      T32
+=      M4.2
+LPP
+TON    T32, 1000
+Network 24 //  T3: Dosificador restaurado (P3 -> P4)
+
+
+
+
+LD     M0.3
+A      M2.5
+=      M4.3
+Network 25 //  T4: Mesa en posicion de recogida (P4 -> P5)
+
+
+
+LD     M0.4
+A      M3.0
+=      M4.4
+Network 26 //  T5: Garra en contacto con pieza (P5 -> P6)
+
+
+
+LD     M0.5
+A      M3.2
+=      M4.5
+Network 27 //  T6: Agarre de pieza confirmado (P6 -> P7)
+
+
+
+LD     M0.6
+A      M3.1
+=      M4.6
+Network 28 //  T7: Pieza secundaria elevada (P7 -> P8)
+
+
+
+LD     M0.7
+=      M4.7
+Network 29 //  T8: Brazo en punto de entrega (P8 -> P9)
+
+
+
+LD     M1.0
+A      M3.5
+=      M5.0
+Network 30 //  T9: Pieza posicionada en base grande (P9 -> P10)
+
+
+
+LD     M1.1
+A      M3.2
+=      M5.1
+Network 31 //  T10: Pinza abierta, pieza liberada (P10 -> P11)
+
+
+
+LD     M1.2
+AN     M3.1
+=      M5.2
+Network 32 //  T11: Garra retirada del ensamblaje (P11 -> P12)
+
+
+
+LD     M1.3
+=      M5.3
+Network 33 //  T12: Sistema en origen, fin de ciclo (P12 -> P0)
+// Adicionalmente activa la solicitud de Ensamblaje a Seleccion la cual sera leida por el maestro (Transporte)
+// Esta solicitud funciona como enclavamiento que impide volver al estado de reposo hasta que sea atendida
+
+
+
+
+
+// ===========================================================
+// MODULO 4: DINAMICA DE LA RED
+// Actualiza el marcado. Cada rung corresponde a una transicion.
+// SET plaza destino, RESET plaza origen.
+// Separados en redes individuales para evitar efecto avalancha.
+// ===========================================================
+LD     M1.4
+LPS
+A      M3.4
+A      M2.7
+AN     V0.0
+=      M5.4
+LPP
+EU
+S      V0.0, 1
+Network 34 // Reseteo de la solicitud por acknowledgement
+// La unidad de transporte activa V1.0 como acuse de recibo cuando atiende la solicitud V0.0
+// Por ende en necesario desactivar la solicitud para evitar repeticiones.
+LD     V1.0
+EU
+R      V0.0, 1
+Network 35 //  DIN T0: P0 -> P1 (Iniciar dosificacion)
+
+
+
+LD     M4.0
+R      M0.0, 1
+S      M0.1, 1
+Network 36 //  DIN T1: P1 -> P2 (Sujetador OK, liberar pieza)
+
+
+
+LD     M4.1
+R      M0.1, 1
+S      M0.2, 1
+Network 37 //  DIN T2: P2 -> P3 (Pieza caida, restaurar dosificador)
+
+
+
+LD     M4.2
+R      M0.2, 1
+S      M0.3, 1
+Network 38 //  DIN T3: P3 -> P4 (Dosificador listo, girar mesa)
+
+
+
+LD     M4.3
+R      M0.3, 1
+S      M0.4, 1
+Network 39 //  DIN T4: P4 -> P5 (Mesa en recogida, bajar garra)
+
+
+
+LD     M4.4
+R      M0.4, 1
+S      M0.5, 1
+Network 40 //  DIN T5: P5 -> P6 (Garra abajo, cerrar pinza)
+
+
+
+LD     M4.5
+R      M0.5, 1
+S      M0.6, 1
+Network 41 //  DIN T6: P6 -> P7 (Pinza cerrada, subir garra)
+
+
+
+LD     M4.6
+R      M0.6, 1
+S      M0.7, 1
+Network 42 //  DIN T7: P7 -> P8 (Garra arriba, trasladar horizontal)
+
+
+
+LD     M4.7
+R      M0.7, 1
+S      M1.0, 1
+Network 43 //  DIN T8: P8 -> P9 (Brazo adelante, bajar para ensamblar)
+
+
+
+LD     M5.0
+R      M1.0, 1
+S      M1.1, 1
+Network 44 //  DIN T9: P9 -> P10 (Garra abajo en base, abrir pinza)
+
+
+
+LD     M5.1
+R      M1.1, 1
+S      M1.2, 1
+Network 45 //  DIN T10: P10 -> P11 (Pinza abierta, subir garra)
+
+
+
+LD     M5.2
+R      M1.2, 1
+S      M1.3, 1
+Network 46 //  DIN T11: P11 -> P12 (Garra arriba, retornar a origen)
+
+
+
+LD     M5.3
+R      M1.3, 1
+S      M1.4, 1
+Network 47 //  DIN T12: P12 -> P0 (Sistema en origen, ciclo completado)
+
+
+
+
+// ===========================================================
+// MODULO 5: ACCIONES (ASIGNACION DE SALIDAS FISICAS)
+// Cada salida Q se activa por nivel segun las plazas activas.
+// El orden sigue el diseno de la CIPN (3_Diseno_Petri.md).
+// Este modulo solo se alcanza si NO hay emergencia activa.
+// ===========================================================
+LD     M5.4
+R      M1.4, 1
+S      M0.0, 1
+Network 48 //  ACT: Q0.1 Cilindro superior sujetador (P1 y P2)
+
+
+
+LD     M0.1
+O      M0.2
+O      M0.3
+=      Q0.1
+Network 49 //  ACT: Q0.0 Cilindro inferior liberador (solo P2)
+
+
+LDN    M0.2
+=      Q0.0
+Network 50 //  ACT: Q0.2 Giro antihorario - mesa (P4, P5, P6, P7)
+
+
+
+
+
+LD     M0.4
+O      M0.5
+O      M0.6
+O      M0.7
+=      Q0.2
+Network 51 //  ACT: Q0.4 Cilindro vertical bajar (P5, P6, P9, P10)
+
+
+
+
+
+LD     M0.5
+O      M0.6
+O      M1.1
+O      M1.2
+=      Q0.4
+Network 52 //  ACT: Q0.3 Valvula pinza cerrar (P6, P7, P8, P9)
+
+
+
+
+
+LD     M0.6
+O      M0.7
+O      M1.0
+O      M1.1
+=      Q0.3
+Network 53 //  ACT: Q0.5 Cilindro horizontal adelante (P8, P9, P10, P11)
+
+
+
+
+
+
+// ===========================================================
+// SENALIZACION DE BALIZA Y LEDS
+// ===========================================================
+LD     M1.0
+O      M1.1
+O      M1.2
+O      M1.3
+=      Q0.5
+Network 54 //  SEN: Q1.0 Baliza Verde - ciclo activo (cualquier plaza P1-P12)
+
+
+
+LDN    M0.0
+=      Q1.0
+=      Q1.6
+Network 55 //  SEN: Q0.6 Baliza Roja - sin stock en reposo
+
+
+
+
+LD     M0.0
+AN     M2.1
+=      Q0.6
+=      Q1.7
+Network 56 //  SEN: Q0.7 Baliza Amarilla - parada activa (M6.0)
+
+
+
+
+// ===========================================================
+// DESTINO DEL SALTO DE EMERGENCIA
+// LBL 1 debe estar en una red independiente (regla Step7 Micro/WIN)
+// ===========================================================
+LD     M6.0
+=      Q0.7
+=      Q1.5
+Network 57 //  DEST: Etiqueta destino del salto de emergencia
+
+LBL    1
+END_ORGANIZATION_BLOCK
+SUBROUTINE_BLOCK SBR_0:SBR0
+TITLE=
+BEGIN
+Network 1 
+END_SUBROUTINE_BLOCK

@@ -1,0 +1,36 @@
+# Entornos virtuales de Python
+scada/venv/
+venv/
+.venv/
+env/
+ENV/
+
+# Archivos compilados y cache de Python
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+
+# Base de datos local (creada automaticamente al arrancar el servidor)
+scada/piezas.db
+scada/piezas.db-journal
+scada/piezas.db-wal
+scada/piezas.db-shm
+
+# Directorios de configuracion de IDEs y editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Archivos temporales del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Bitacora local de desarrollo
+scada/ESTADO_SESION.md
+

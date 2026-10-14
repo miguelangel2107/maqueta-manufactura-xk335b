@@ -1,0 +1,1057 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=UNIDAD DE TRANSPORTE - RED DE PETRI CIPN
+//  ===========================================================
+//  MODULO 0: SEGURIDAD - Evaluado primero en cada scan.
+//  Si Seta = 0 (NC abierta): reset total, fuerza P_Homing,
+//  apaga salidas neumaticas. El servo se detiene porque
+//  Q0_0_CTRL deja de recibir EXECUTE.
+//  ===========================================================
+BEGIN
+Network 1 //  SEG: Reset total por Seta de Emergencia
+LDN    I2.6
+R      M0.1, 7
+R      M1.0, 6
+R      M5.1, 1
+S      M5.0, 1
+R      Q0.3, 1
+R      Q0.4, 1
+R      Q0.5, 1
+R      Q0.6, 1
+R      Q0.7, 1
+R      Q1.0, 1
+R      V0.0, 8
+R      V1.0, 8
+R      V2.0, 8
+R      V3.0, 8
+R      V4.0, 8
+R      V5.0, 8
+R      V6.0, 8
+R      V7.0, 8
+Network 2 //  SEG: Salto a fin si emergencia activa
+LDN    I2.6
+JMP    0
+Network 3 // Comunicacion red PPI
+LD     SM0.0
+CALL   SBR6, 1, M10.0, M10.1
+Network 4 //  MODULO 1: INICIALIZACION SM0.1 = 1 solo en el primer scan. Marcado inicial: P_Homing activo (M5.0). El brazo debe calibrarse antes de aceptar cualquier tarea. Coordenadas de estaciones cargadas en VD fijos.
+// INIT: Marcado inicial - Homing requerido al arranque
+LD     SM0.1
+S      M5.0, 1
+R      M5.1, 1
+R      M0.0, 4
+R      M1.0, 8
+R      M2.0, 3
+R      M8.0, 2
+R      M3.5, 2
+R      M6.0, 1
+R      M7.0, 3
+R      V0.0, 8
+R      V1.0, 8
+R      V2.0, 8
+R      V3.0, 8
+R      V4.0, 8
+R      V5.0, 8
+R      V6.0, 8
+R      V7.0, 8
+Network 5 // Inicializar libreria de comunicacion modbus
+LD     SM0.1
+CALL   SBR7, 1, 2, 19200, 2, 0, 24, 0, 40, &VB0, M10.2, VB26
+Network 6 // Ejecucion de comunicacion modbus
+LD     SM0.0
+CALL   SBR8, M10.3, VB30
+Network 7 //  INIT: Coordenada estacion Alimentacion (pulsos)
+// Iniciar con 9200
+LD     SM0.0
+MOVD   VD10, VD204
+Network 8 //  INIT: Coordenada estacion Procesamiento (pulsos)
+// Iniciar con 53000
+LD     SM0.0
+MOVD   VD14, VD208
+Network 9 //  INIT: Coordenada estacion Ensamblaje (pulsos)
+// Iniciar con 94000
+LD     SM0.0
+MOVD   VD18, VD212
+Network 10 //  INIT: Coordenada estacion Seleccion (pulsos)
+// Iniciar con 115000
+LD     SM0.0
+MOVD   VD22, VD216
+Network 11 // MODULO 2: EVENTOS (CAPTURA DE SENSORES) Desacopla la logica secuencial de las senales fisicas. M5.x reservado para estados de Homing y sistema. M2.x / M3.x para eventos de sensores.
+// EV: Marcha - flanco de subida del pulsador amarillo
+LD     I2.5
+EU
+S      M6.0, 1
+Network 12 //  EV: Reset flag marcha al completar homing
+LD     M0.0
+R      M6.0, 1
+Network 13 //  EV: Parada - flanco de subida del pulsador rojo
+LD     I2.4
+EU
+S      M6.1, 1
+Network 14 //  EV: Reset flag parada al volver a Homing o Reposo
+LD     M0.0
+R      M6.1, 1
+Network 15 //  EV: Sensor brazo abajo (cilindro vertical retraido)
+LD     I0.3
+=      M2.3
+Network 16 //  EV: Sensor brazo arriba (cilindro vertical extendido)
+LD     I0.4
+=      M2.4
+Network 17 //  EV: Sensor rotatorio posicion izquierda (antihorario)
+LD     I0.5
+=      M2.5
+Network 18 //  EV: Sensor rotatorio posicion derecha (horario)
+LD     I0.6
+=      M2.6
+Network 19 //  EV: Sensor doble vastago extendido
+LD     I0.7
+=      M2.7
+Network 20 //  EV: Sensor doble vastago retraido
+LD     I1.0
+=      M3.0
+Network 21 //  EV: Sensor pinza cerrada
+LD     I1.1
+=      M3.1
+Network 22 //  EV: Flag Done de la libreria MAP_SERV (posicion alcanzada)
+LD     V220.1
+=      M3.2
+Network 23 //  EV: Sensor origen servo (I0.0 segun libreria MAP_SERV)
+LD     I0.0
+=      M3.3
+Network 24 //   EV: Estado driver servo OK (Ready - no alarma)
+
+LD     I1.2
+=      M3.4
+Network 25 // MODULO 2B: GESTION DE SOLICITUDES (REQUERIMIENTOS)  Las solicitudes externas (o de prueba) se inyectan en  M0.1, M0.2, M0.3 desde fuera (Modbus, HMI, o prueba manual).  Este bloque las protege: solo se aceptan si el sistema  esta en Reposo (P0 = M0.0 activo)
+// Unidad de Alimentacion solicita servicio mediante la red (el destinatario debe estar disponible)
+LD     V2.2
+A      V0.0
+EU
+S      M0.1, 1
+R      V1.0, 1
+Network 26 // Unidad de Procesamiento solicita servicio mediante la red (el destinatario debe estar disponible)
+LD     V4.2
+A      V2.0
+EU
+S      M0.2, 1
+R      V3.0, 1
+Network 27 // Unidad de Ensamblaje solicita servicio mediante la red (el destinatario debe estar disponible)
+LD     V6.2
+A      V4.0
+EU
+S      M0.3, 1
+R      V5.0, 1
+Network 28 // MODULO 3: CONDICIONES DE DISPARO (RECEPTIVIDADES) HOMING: T_Homing_Start: arranque del homing (marcha presionada) T_Homing_Done:  sensor origen detectado ACEPTACION DE TAREA (priorizadas, mutuamente excluyentes): T_Acept_ES: P0 AND P3           (Prioridad 1 - Alta) T_Acept_PE: P0 AND P2 AND !P3   (Prioridad 2 - Media) T_Acept_AP: P0 AND P1 AND !P2 !P3 (Prioridad 3 - Baja) CICLO DE TAREA: Sub-plazas Pick (P11a..P11e) y Place (P13a..P13e) para modelar los 5 pasos de cada secuencia.
+//  T_Homing_Start: Iniciar homing (estado homing + marcha + servo OK)
+LD     M5.0
+A      M6.0
+A      M3.4
+=      M4.0
+Network 29 //  T_Homing_Done: Homing completado (sensor origen detectado)
+LD     M5.1
+A      M3.3
+=      M4.1
+Network 30 //  T_Acept_ES: Aceptar tarea Ensamblaje->Seleccion (Prioridad 1)
+LD     M0.0
+A      M0.3
+AN     M6.1
+=      M4.2
+Network 31 //  T_Acept_PE: Aceptar tarea Procesamiento->Ensamblaje (Prioridad 2)
+LD     M0.0
+A      M0.2
+AN     M0.3
+AN     M6.1
+=      M4.3
+Network 32 //  T_Acept_AP: Aceptar tarea Alimentacion->Procesamiento (Prioridad 3)
+LD     M0.0
+A      M0.1
+AN     M0.2
+AN     M0.3
+AN     M6.1
+=      M4.4
+Network 33 //  T_Origen_OK: Servo llego a coordenada de recogida
+LD     M1.0
+A      M3.2
+=      M4.5
+Network 34 //  T_Rot_Ori_OK: Rotacion orientada en origen (antes de extender)
+// el temporizador asegura la correcta posicion antes de proseguir
+LD     M1.1
+LPS
+A      M2.6
+A      T96
+=      M4.6
+LPP
+TON    T96, 1000
+Network 35 //  T_DV_Ext_Pick: Doble vastago extendido en pick
+LD     M1.2
+LPS
+A      M2.7
+A      T36
+=      M4.7
+LPP
+TON    T36, 100
+Network 36 //  T_CilV_Bajo_Pick: Brazo bajo en pick
+LD     M1.3
+A      M2.3
+=      M5.2
+Network 37 //  T_Pinza_Cer: Pinza cerrada (pieza agarrada)
+LD     M1.4
+A      M3.1
+=      M5.3
+Network 38 //  T_CilV_Arr_Pick: Brazo subio con pieza
+// el temporizador asegura la correcta posicion antes de proseguir
+LD     M1.5
+LPS
+A      M2.4
+A      T32
+=      M5.4
+LPP
+TON    T32, 500
+Network 39 //  T_DV_Ret_Pick: Doble vastago retraido (pick completo)
+LD     M1.6
+A      M3.0
+=      M5.5
+Network 40 //  T_Rot_Dest_OK: Rotacion orientada en destino (antes de extender)
+// Se cambio a antes de P12, para evitar choches al momento de girar en la unidad de seleccion.
+LD     M2.0
+LD     M2.6
+AN     M7.2
+LD     M2.5
+A      M7.2
+OLD
+ALD
+=      M5.7
+Network 41 //  T_Destino_OK: Servo llego a coordenada de entrega
+LD     M1.7
+A      M3.2
+=      M5.6
+Network 42 //  T_DV_Ext_Place: Doble vastago extendido en place
+LD     M2.1
+LPS
+A      M2.7
+A      T33
+=      M6.2
+LPP
+TON    T33, 100
+Network 43 //  T_CilV_Bajo_Place: Brazo bajo en place
+LD     M2.2
+A      M2.3
+=      M6.3
+Network 44 //  T_Pinza_Ab: Pinza abierta (pieza liberada)
+LD     M8.0
+AN     M3.1
+=      M6.4
+Network 45 //  T_CilV_Arr_Place: Brazo subio tras soltar
+LD     M8.1
+A      M2.4
+=      M6.5
+Network 46 //  T_DV_Ret_Place: Doble vastago retraido (place completo)
+LD     M3.5
+A      M3.0
+=      M6.6
+Network 47 //  T_Tarea_Fin: Retornar a reposo y liberar brazo
+//  
+LD     M3.6
+=      M6.7
+Network 48 //  MODULO 4: DINAMICA DE LA RED  Cada rung = una transicion. SET destino, RESET origen.  El marcado de contexto (cual solicitud se esta atendiendo)  se guarda en M7.0 (es A->P), M7.1 (es P->E), M7.2 (es E->S).  La orientacion de garra se decide por M7.2 (Seleccion=AH).
+// DIN T_Homing_Start: Espera -> Homing activo
+LD     M4.0
+R      M5.0, 1
+S      M5.1, 1
+Network 49 //  DIN T_Homing_Done: Homing activo -> Reposo (P0)
+LD     M4.1
+R      M5.1, 1
+S      M0.0, 1
+Network 50 //  DIN T_Acept_ES: P0+P3 -> P10 Viaje Origen + marcar contexto E->S
+LD     M4.2
+R      M0.0, 1
+S      M1.0, 1
+S      M7.2, 1
+MOVD   VD212, VD200
+Network 51 //  DIN T_Acept_PE: P0+P2 -> P10 Viaje Origen + marcar contexto P->E
+LD     M4.3
+R      M0.0, 1
+S      M1.0, 1
+S      M7.1, 1
+MOVD   VD208, VD200
+Network 52 //  DIN T_Acept_AP: P0+P1 -> P10 Viaje Origen + marcar contexto A->P
+LD     M4.4
+R      M0.0, 1
+S      M1.0, 1
+S      M7.0, 1
+MOVD   VD204, VD200
+Network 53 //  DIN T_Origen_OK: P10 -> P11a (Orientar garra en origen)
+LD     M4.5
+R      M1.0, 1
+S      M1.1, 1
+Network 54 //  DIN T_Rot_Ori_OK: P11a -> P11b (Extender doble vastago)
+LD     M4.6
+R      M1.1, 1
+S      M1.2, 1
+Network 55 //  DIN T_DV_Ext_Pick: P11b -> P11c (Bajar brazo)
+LD     M4.7
+R      M1.2, 1
+S      M1.3, 1
+Network 56 //  DIN T_CilV_Bajo_Pick: P11c -> P11d (Cerrar pinza)
+LD     M5.2
+R      M1.3, 1
+S      M1.4, 1
+Network 57 //  DIN T_Pinza_Cer: P11d -> P11e (Subir brazo)
+LD     M5.3
+R      M1.4, 1
+S      M1.5, 1
+Network 58 //  DIN T_CilV_Arr_Pick: P11e -> P11f (Retraer doble vastago)
+LD     M5.4
+R      M1.5, 1
+S      M1.6, 1
+Network 59 //  DIN T_DV_Ret_Pick: P11f -> P12 Viaje Destino + cargar coord destino
+LD     M5.5
+R      M1.6, 1
+S      M2.0, 1
+Network 60 //  DIN: Cargar coord destino Procesamiento (contexto A->P)
+LD     M5.7
+A      M7.0
+MOVD   VD208, VD200
+Network 61 //  DIN: Cargar coord destino Ensamblaje (contexto P->E)
+LD     M5.7
+A      M7.1
+MOVD   VD212, VD200
+Network 62 //  DIN: Cargar coord destino Seleccion (contexto E->S)
+LD     M5.7
+A      M7.2
+MOVD   VD216, VD200
+Network 63 //  DIN T_Rot_Dest_OK: P13a -> P13b (Extender doble vastago)
+LD     M5.7
+R      M2.0, 1
+S      M1.7, 1
+Network 64 //  DIN T_Destino_OK: P12 -> P13a (Orientar garra en destino)
+LD     M5.6
+R      M1.7, 1
+S      M2.1, 1
+Network 65 //  DIN T_DV_Ext_Place: P13b -> P13c (Bajar brazo)
+LD     M6.2
+R      M2.1, 1
+S      M2.2, 1
+Network 66 //  DIN T_CilV_Bajo_Place: P13c -> P13d (Abrir pinza)
+LD     M6.3
+
+R      M2.2, 1
+S      M8.0, 1
+Network 67 //  DIN T_Pinza_Ab: P13d -> P13e (Subir brazo)
+LD     M6.4
+R      M8.0, 1
+S      M8.1, 1
+
+Network 68 //  DIN T_CilV_Arr_Place: P13e -> P13f (Retraer doble vastago)
+LD     M6.5
+R      M8.1, 1
+
+S      M3.5, 1
+Network 69 //  DIN T_DV_Ret_Place: P13f -> P14 Finalizar
+LD     M6.6
+R      M3.5, 1
+S      M3.6, 1
+Network 70 //  DIN: Limpiar solicitud A->P al finalizar
+// Acuse de aviso para la solicitud atendida
+// y envio de solicitud de marcha para la unidad de Procesamiento
+LD     M6.7
+A      M7.0
+R      M0.1, 1
+S      V1.0, 1
+S      V3.1, 1
+Network 71 //  DIN: Limpiar solicitud P->E al finalizar
+// Acuse de aviso para la solicitud atendida
+// y envio de solicitud de marcha para la unidad de Ensamblaje
+LD     M6.7
+A      M7.1
+R      M0.2, 1
+S      V3.0, 1
+S      V5.1, 1
+Network 72 // DIN: Limpiar solicitud E->S al finalizar
+//  Acuse de aviso para la solicitud atendida
+// y envio de solicitud de marcha para la unidad de Seleccion
+LD     M6.7
+A      M7.2
+R      M0.3, 1
+S      V5.0, 1
+S      V7.1, 1
+Network 73 // Limpieza de solicitud de marcha hacia la Unidad de Procesamiento cuando ha sido atendida
+LD     V2.1
+EU
+R      V3.1, 1
+Network 74 // Limpieza de solicitud de marcha hacia la Unidad de Ensamblaje cuando ha sido atendida
+LD     V4.1
+EU
+R      V5.1, 1
+Network 75 // Limpieza de solicitud de marcha hacia la Unidad de Seleccion cuando ha sido atendida
+LD     V6.1
+EU
+R      V7.1, 1
+Network 76 //  DIN T_Tarea_Fin: P14 -> P0 Reposo + limpiar solicitud y contexto
+LD     M6.7
+R      M3.6, 1
+S      M0.0, 1
+R      M7.0, 3
+Network 77 // MODULO 5: ACCIONES (SALIDAS FISICAS) Solo se ejecuta si no hay emergencia (el JMP 2 lo omite). Las llamadas a la libreria MAP_SERV van aqui.
+// ACT: Q0_0_CTRL - debe llamarse en CADA scan (obligatorio)
+LD     SM0.0
+CALL   SBR3, 40000, 50000, 2.0, I0.2, I0.1, VD34
+Network 78 // ACT: Q0_0_Home - Busqueda de origen para el servomotor
+LD     SM0.0
+=      L60.0
+LD     M5.1
+EU
+=      L63.7
+LD     L60.0
+CALL   SBR0, L63.7, 0, SM0.0, V221.0, V221.1
+Network 79 //  ACT: Generar pulso EXECUTE de un solo scan para MoveAbsolute
+LD     M1.0
+O      M1.7
+EU
+=      V220.4
+Network 80 //  ACT: Q0_0_MoveAbsolute - mover servo a VD200
+LD     SM0.0
+=      L60.0
+LD     V220.4
+=      L63.7
+LD     L60.0
+CALL   SBR5, L63.7, VD200, 50000, V220.1
+Network 81 //  ACT: Q0.3 Valvula elevar brazo - activo = arriba, inactivo = baja
+//  Activo en: homing, reposo, orientacion, viaje origen, viaje destino.
+//  Se desactiva (baja) solo en P11c y P13c (pasos de bajar).
+// borrados: m2.4
+LD     M5.0
+O      M5.1
+O      M0.0
+
+O      M1.0
+O      M1.1
+O      M1.2
+O      M1.5
+O      M1.6
+O      M1.7
+O      M2.0
+O      M2.1
+O      M8.1
+O      M3.5
+O      M3.6
+=      Q0.3
+Network 82 //  ACT: Q0.6 Doble vastago extender (P11b, P11c, P11d, P13b, P13c, P13d)
+LD     M1.2
+O      M1.3
+
+O      M1.4
+O      M1.5
+O      M2.1
+O      M2.2
+O      M8.0
+=      Q0.6
+Network 83 //  ACT: Q1.0 Cerrar pinza (P11d y todo el trayecto hasta P13c)
+LD     M1.4
+O      M1.5
+O      M1.6
+O      M1.7
+O      M2.0
+O      M2.1
+O      M2.2
+=      Q1.0
+Network 84 //  ACT: Q0.7 Abrir pinza (P13d, P13e, P13f - hasta DV retraido)
+LD     M1.1
+O      M1.2
+O      M1.3
+O      M8.0
+O      M8.1
+O      M3.5
+=      Q0.7
+Network 85 //  ACT: Q0.5 Rotacion Horaria - tareas A->P y P->E (en orientacion de ambos extremos)
+//  Activo durante P11a (orientar en origen) y P13a (orientar en destino)
+//  para contextos A->P (M7.0) y P->E (M7.1).
+//  Para E->S (M7.2): horario en origen, antihorario en destino.
+LD     M7.0
+O      M7.1
+O      M7.2
+LD     M1.1
+O      M1.2
+A      P13a_Rot_Des:M2.0
+O      M1.4
+O      M1.5
+O      M1.6
+ALD
+LD     M7.0
+O      M7.1
+LD     M2.0
+O      M2.1
+O      M2.2
+O      M8.0
+O      M8.1
+O      M3.5
+ALD
+OLD
+=      Q0.5
+Network 86 //  ACT: Q0.4 Rotacion Antihoraria - destino Seleccion
+// ===========================================================
+// SENALIZACION
+// ===========================================================
+LD     M2.0
+O      M2.1
+O      M2.2
+O      M8.0
+O      M8.1
+O      M3.5
+A      M7.2
+=      Q0.4
+Network 87 //  SEN: Lampara Verde - ciclo activo (cualquier plaza de trabajo)
+LD     M1.0
+
+O      M1.1
+O      M1.2
+O      M1.3
+O      M1.4
+
+O      M1.5
+O      M1.6
+O      M1.7
+O      M2.0
+O      M2.1
+O      M2.2
+O      M8.0
+O      M8.1
+O      M3.5
+O      M3.6
+=      Q1.6
+Network 88 //  SEN: Lampara Amarilla - parada pendiente (M6.1) o homing activo
+LD     M6.1
+O      M5.1
+=      Q1.5
+Network 89 // debug para comunicaciones modbus
+// q1.1 se activa cuando no hay errores
+LD     M10.2
+=      Q1.1
+Network 90 
+// q1.2 se enciende cuando no hay errores
+LDB=   VB26, 0
+=      Q1.2
+Network 91 //  SEN: Lampara Roja - reposo en espera de solicitudes
+LD     M0.0
+=      Q1.7
+Network 92 //  DEST: Etiqueta destino salto de emergencia
+
+LBL    0
+END_ORGANIZATION_BLOCK
+SUBROUTINE_BLOCK Q0_0_Home:SBR0
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// Home seek operation
+// 
+// This routine will start the motor in the direction selected by Start_Dir, at the Homing_Fast_Spd (fast speed - default is 50% of max speed), looking for the reference point connected to I0.0 to turn on.  If it comes to a limit then it will decelerate and reverse the direction.  
+// When it finds the RP it will decelerate to the Homing_Slow_Spd (default is Start/Stop Speed), change to the direction selected by the Final_Dir parameter , and then look for the RP to turn off.  At this point it will stop and set the current position equal to the Position parameter input.
+// 
+// Homing_State:
+// 0 = RP found
+// 2 = start movement and look for RP or limits
+// 4 = oposite direction at Homing_Fast_Spd after finding a limit or RP
+// 6 = RP found, start deceleration
+// 7 = Final direction at Homing_Slow_Spd after finding the reference point at Homing_Fast_Spd
+// 10 = Error detected
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+EXECUTE:BOOL;	// Start the motion (should only be ON for one scan)
+Position:DINT;	// Absolute position when the reference signal is detected 
+Start_Dir:BOOL;	// Direction to start search (0=reverse/1=forward) 
+END_VAR
+VAR_OUTPUT
+Done:BOOL;	// Function complete
+Error:BOOL;
+END_VAR
+VAR
+tmp_b:BOOL;
+tmp_B:BYTE;
+tmp_DI:DINT;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_MoveRelative:SBR1
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0 
+// 
+// This routine will move a desired distance at a specified speed.
+// 
+// HSC0_Preset		SMD42
+// HSC0_CV		SMD38
+// 
+// PTO0_BUSY		SM170.0
+// PTO0_ABORTING		SM170.1
+// PT00_STATUS		SMB171
+// PTO0_DONE		SM171.7
+// PTO0_MAN_SPEED	SMD172
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+EXECUTE:BOOL;	// Start the motion (should only be ON for one scan)
+Num_Pulses:DINT;	// distance to travel (must be greater than 1)
+Velocity:DINT;	// Target velocity (between SS_SPEED and MAX_SPEED) (not necessarily reached)
+Direction:BOOL;	// 0=reverse/1=forward  
+END_VAR
+VAR_OUTPUT
+Done:BOOL;	// Function complete
+END_VAR
+VAR
+Temp_DI:DINT;
+Temp_R:REAL;
+Temp_R2:REAL;
+HSC_target_preset:DINT;
+Actual_Stopping_Dist:DINT;
+Max_Avail_Stop_Dist:DINT;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_LoadPos:SBR2
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// This function set the position-counter HC0 to the New_Pos value.
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+EXECUTE:BOOL;	// Start the function  (should only be ON for one scan)
+New_Pos:DINT;	// New position location
+END_VAR
+VAR_OUTPUT
+Done:BOOL;	// On when the PTO operation completes the command
+Error:BYTE;	// 0=No error / FF=error
+C_Pos:DINT;	// Current position
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_CTRL:SBR3
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0 
+// 
+// Q0_0_CTRL must be called every scan for the other functions to work
+// 
+// Limitations: It does not work well if the ramp time is set to less than 0.5 sec. 
+// 
+// This project is based on the built-in linear PTO function. It uses the manual function to control the speed and the HSC counter to count the pulses. It uses the software HSC interrupt to signal when to start the deceleration ramp instead of the exact pulse count. This reduces the amount of calculations that must be done in the user project but can introduce a deviation in the number of pulses.
+// 
+// Hardware Resources:
+// Q0.0 is used for the high speed pulse output
+// Q0.2 is used for the direction output
+// The forward and reverse limit switches are set by the user in Q0_0_CTRL
+// If the Homing function Q0_0_Home is used then I0.0 is used as the Reference Point position. 
+// 
+// Advanced calibration option:
+// The algorithm that is used to predict when to start the deceleration does not exactly match how the PTO actually works due to software timing issues. This difference is accounted for by the Tune_Factor variable. The optimal value for the Tune_Factor is dependent on the target velocity, Maximum speed, Start/Stop speed, and the maximal Acceleration/Deceleration time. With the default value (Tune_Factor=1) the positioning stops behind the target. To compensate this the bit Disable_Auto_Stop (default value=0) cuts off the deceleration ramp when the target is reached. If the cutting off is unwanted for an application (Disable_Auto_Stop=1) the Tune_Factor has to be modified to stop at the target position.
+// Steps to adjust the calibration:
+// 	Note: The CPU does not have to be connected to the motor to do this calibration.
+// 1.	Turn on the bit Disable_Auto_Stop
+// 2.	Load 0 to the current position using Q0_0_LoadPos.
+// 3.	Do a relative movement with your parameters (Velocity_SS, Velocity_Max, accel_dec_time, Velocity) and enough 	                Num_Pluses to reach Velocity.
+// 4.	Record the current position that is reached. The searched value for this application is:
+// 	Tune_Factor = (C_Pos - Num_Pulses + Est_Stopping_Dist) / Est_Stopping_Dist 
+// 5.	Control the new value by repeating the relative movement (from step 2). If the value for Tune_Factor is good then 	                the current position should be a few counts beyond the target location. Otherwise you have to reduce the found 	                value a little bit.
+// 6.	Add a network after Q0_0_CTRL that moves the new value in the VD location identified in the library as			Tune_Factor on the first scan.  This is necessary because Q0_0_CTRL restores the default value on every first			scan.  You have to use the absolute V address since you can not use the symbol name that is used in the			library.
+// 7.	Turn off the bit Disable_Auto_Stop 
+// 
+// 
+// Date: July 16, 2008
+// Version:  1.8          
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+Velocity_SS:DINT;	// Start/Stop velocity (pulses/sec)
+Velocity_Max:DINT;	// Maximum velocity (pulses/sec)
+accel_dec_time:REAL;	// Maximum Acceleration and Deceleration time in sec (0.5 to 32.0)
+Fwd_Limit:BOOL;	// Limit switch for forward movement
+Rev_Limit:BOOL;	// Limit switch for reverse movement
+END_VAR
+VAR_OUTPUT
+C_Pos:DINT;	// Current position (pulses)
+END_VAR
+VAR
+tint:REAL;
+fdelta:REAL;
+m:INT;
+Compute_Rate:DINT;
+temp_DI:DINT;
+temp_DI2:DINT;
+temp_Real:REAL;
+temp_I:INT;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_Compute_Rate:SBR4
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// This subroutine will be called by Q0_0_CTRL.
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+freq:REAL;
+fmax:DINT;
+fmin:DINT;
+r_time:REAL;
+END_VAR
+VAR_OUTPUT
+tint:REAL;
+fdelta:REAL;
+m:INT;
+Compute_Rate:DINT;
+END_VAR
+VAR
+Temp_DI:DINT;
+Temp_I:INT;
+Temp_B:BYTE;
+frate:REAL;
+Temp_R:REAL;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_MoveAbsolute:SBR5
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0 
+// 
+// This routine will move to a specified location at a specified speed.
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+EXECUTE:BOOL;	// Start the motion (should only be ON for one scan)
+Position:DINT;	// Target position for the motion in pulses
+Velocity:DINT;	// Value of the target velocity (always positive) (not necessarily reached) [p/s]
+END_VAR
+VAR_OUTPUT
+Done:BOOL;	// Function complete
+END_VAR
+VAR
+target_position:DINT;
+target_dir:BOOL;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK NET_EXE:SBR6
+TITLE=This POU was created by the NETR/NETW formula of the S7-200 Instruction Wizard.
+// To enable this configuration within the program, use SM0.0 to call this Subroutine from the MAIN program block every scan cycle.  
+// 
+// NETR       Operation 1 of 8
+// Local PLC Data Table        Remote PLC = 2    Operation Status
+//  VB0 - VB0              <---   VB0 - VB0           NETR1_Status:VB243
+// Data Length: 1 byte(s)
+// 
+// NETW       Operation 2 of 8
+// Local PLC Data Table        Remote PLC = 2    Operation Status
+//  VB1 - VB1              --->   VB1 - VB1           NETW2_Status:VB251
+// Data Length: 1 byte(s)
+// 
+// NETR       Operation 3 of 8
+// Local PLC Data Table        Remote PLC = 4    Operation Status
+//  VB2 - VB2              <---   VB0 - VB0           NETR3_Status:VB259
+// Data Length: 1 byte(s)
+// 
+// NETW       Operation 4 of 8
+// Local PLC Data Table        Remote PLC = 4    Operation Status
+//  VB3 - VB3              --->   VB1 - VB1           NETW4_Status:VB267
+// Data Length: 1 byte(s)
+// 
+// NETR       Operation 5 of 8
+// Local PLC Data Table        Remote PLC = 3    Operation Status
+//  VB4 - VB4              <---   VB0 - VB0           NETR5_Status:VB275
+// Data Length: 1 byte(s)
+// 
+// NETW       Operation 6 of 8
+// Local PLC Data Table        Remote PLC = 3    Operation Status
+//  VB5 - VB5              --->   VB1 - VB1           NETW6_Status:VB283
+// Data Length: 1 byte(s)
+// 
+// NETR       Operation 7 of 8
+// Local PLC Data Table        Remote PLC = 5    Operation Status
+//  VB6 - VB6              <---   VB0 - VB0           NETR7_Status:VB291
+// Data Length: 1 byte(s)
+// 
+// NETW       Operation 8 of 8
+// Local PLC Data Table        Remote PLC = 5    Operation Status
+//  VB7 - VB7              --->   VB1 - VB1           NETW8_Status:VB299
+// Data Length: 1 byte(s)
+// 
+// To modify the network operations for this configuration, re-run the NETR/NETW Wizard. To track the status of network operations, create a Status Chart containing the Operation Status symbols shown above. Consult online Help for a description of the possible error conditions for NETR and NETW instructions.
+VAR_INPUT
+Timeout:INT;	// Timeout timer 0=no timer; 1-32767=timer value in seconds.
+END_VAR
+VAR_OUTPUT
+Cycle:BOOL;	// Toggled each time all NET operations are completed.
+Error:BOOL;	// 0=No error; 1=Error (check NETR/NETW status byte for code number).
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK MBUS_INIT:SBR7
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+VAR_INPUT
+Mode:BYTE;	// 启动／停止（1 = 启动Modbus，0 = 停止Modbus）
+Addr:BYTE;	// 从属地址（1- 247）
+Baud:DWORD;	// 波特率（1200、2400、4800、9600、19200、38400、57600、115200）
+Parity:BYTE;	// 奇偶校验（0 = 无，1 = 奇数，2 = 偶数）
+Delay:INT;	// 附加字符间超时（默认值0毫秒）
+MaxIQ:INT;	// I和Q位最大数目（默认值128）
+MaxAI:INT;	// 输入寄存器最大数目（模拟输入字－16或32）
+MaxHold:INT;	// 保持寄存器最大数目（V内存字）
+HoldStart:DWORD;	// 保持寄存器在V内存中的起始地址（默认值&VB0）
+END_VAR
+VAR_OUTPUT
+Done:BOOL;	// 初始化完成旗标
+Error:BYTE;	// 初始化错误代码
+END_VAR
+VAR
+index1:INT;
+index2:INT;
+AC0save:DWORD;
+AC1save:DWORD;
+AC2save:DWORD;
+AC3save:DWORD;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK MBUS_SLAVE:SBR8
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+VAR_OUTPUT
+Done:BOOL;	// 如果是1，则处理Modbus讯息
+Error:BYTE;	// 错误代码（0 = 无错）
+END_VAR
+VAR
+start:INT;	// Fctn 1,2,3,4,5,6,15,16
+count:INT;	// Fctn 1,2,3,4,15
+functn:BYTE;	// Fctn 1,2,3,4
+shift_cnt:BYTE;	// Fctn 1,2
+offset:INT;	// Fctn 1,2
+index:INT;	// Fctn 1,2
+bit_count:INT;	// Fctn 1,2
+bit_number:BYTE;	// Fctn 5
+byte_count:BYTE;	// Fctn 16
+AC0save:DWORD;
+AC1save:DWORD;
+AC2save:DWORD;
+AC3save:DWORD;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK MBUS1:SBR9
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+VAR_OUTPUT
+crc:INT;
+END_VAR
+VAR
+count:INT;
+ptr:DWORD;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+INTERRUPT_BLOCK Q0_0_INT_Dec:INT0
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// Start PTO Deceleration when HC0 equals preset value
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_INTERRUPT_BLOCK
+INTERRUPT_BLOCK I0_0_Home_RP:INT1
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_INTERRUPT_BLOCK
+INTERRUPT_BLOCK Q0_0_INT_Stop:INT2
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_INTERRUPT_BLOCK
+INTERRUPT_BLOCK MBUS2:INT3
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_INTERRUPT_BLOCK
+INTERRUPT_BLOCK MBUS3:INT4
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_INTERRUPT_BLOCK

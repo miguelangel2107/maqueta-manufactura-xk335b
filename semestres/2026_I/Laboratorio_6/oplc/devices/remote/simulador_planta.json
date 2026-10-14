@@ -1,0 +1,594 @@
+{
+  "name": "simulador_planta",
+  "protocol": "modbus-tcp",
+  "modbusTcpConfig": {
+    "host": "127.0.0.1",
+    "port": 5020,
+    "timeout": 1000,
+    "slaveId": 1,
+    "ioGroups": [
+      {
+        "id": "5c333534-2611-41e3-9b89-d52d393e7b49",
+        "name": "Sensores",
+        "functionCode": "2",
+        "cycleTime": 50,
+        "offset": "0",
+        "length": 40,
+        "errorHandling": "set-to-zero",
+        "ioPoints": [
+          {
+            "id": "Entradas_0",
+            "name": "Entradas_0",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX0.0",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_1",
+            "name": "Entradas_1",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX0.1",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_2",
+            "name": "Entradas_2",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX0.2",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_3",
+            "name": "Entradas_3",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX0.3",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_4",
+            "name": "Entradas_4",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX0.4",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_5",
+            "name": "Entradas_5",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX0.5",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_6",
+            "name": "Entradas_6",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX0.6",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_7",
+            "name": "Entradas_7",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX0.7",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_8",
+            "name": "Entradas_8",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX1.0",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_9",
+            "name": "Entradas_9",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX1.1",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_10",
+            "name": "Entradas_10",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX1.2",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_11",
+            "name": "Entradas_11",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX1.3",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_12",
+            "name": "Entradas_12",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX1.4",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_13",
+            "name": "Entradas_13",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX1.5",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_14",
+            "name": "Entradas_14",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX1.6",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_15",
+            "name": "Entradas_15",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX1.7",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_16",
+            "name": "Entradas_16",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX2.0",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_17",
+            "name": "Entradas_17",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX2.1",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_18",
+            "name": "Entradas_18",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX2.2",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_19",
+            "name": "Entradas_19",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX2.3",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_20",
+            "name": "Entradas_20",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX2.4",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_21",
+            "name": "Entradas_21",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX2.5",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_22",
+            "name": "Entradas_22",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX2.6",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_23",
+            "name": "Entradas_23",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX2.7",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_24",
+            "name": "Entradas_24",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX3.0",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_25",
+            "name": "Entradas_25",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX3.1",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_26",
+            "name": "Entradas_26",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX3.2",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_27",
+            "name": "Entradas_27",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX3.3",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_28",
+            "name": "Entradas_28",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX3.4",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_29",
+            "name": "Entradas_29",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX3.5",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_30",
+            "name": "Entradas_30",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX3.6",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_31",
+            "name": "Entradas_31",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX3.7",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_32",
+            "name": "Entradas_32",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX4.0",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_33",
+            "name": "Entradas_33",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX4.1",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_34",
+            "name": "Entradas_34",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX4.2",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_35",
+            "name": "Entradas_35",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX4.3",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_36",
+            "name": "Entradas_36",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX4.4",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_37",
+            "name": "Entradas_37",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX4.5",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_38",
+            "name": "Entradas_38",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX4.6",
+            "alias": ""
+          },
+          {
+            "id": "Entradas_39",
+            "name": "Entradas_39",
+            "type": "Digital Input (Discrete Input)",
+            "iecLocation": "%IX4.7",
+            "alias": ""
+          }
+        ]
+      },
+      {
+        "id": "ea6d9cc6-6b38-4386-9594-e8a5965d1292",
+        "name": "Actuadores",
+        "functionCode": "15",
+        "cycleTime": 50,
+        "offset": "0",
+        "length": 40,
+        "errorHandling": "set-to-zero",
+        "ioPoints": [
+          {
+            "id": "Salidas_0",
+            "name": "Salidas_0",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX0.0",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_1",
+            "name": "Salidas_1",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX0.1",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_2",
+            "name": "Salidas_2",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX0.2",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_3",
+            "name": "Salidas_3",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX0.3",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_4",
+            "name": "Salidas_4",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX0.4",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_5",
+            "name": "Salidas_5",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX0.5",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_6",
+            "name": "Salidas_6",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX0.6",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_7",
+            "name": "Salidas_7",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX0.7",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_8",
+            "name": "Salidas_8",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX1.0",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_9",
+            "name": "Salidas_9",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX1.1",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_10",
+            "name": "Salidas_10",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX1.2",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_11",
+            "name": "Salidas_11",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX1.3",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_12",
+            "name": "Salidas_12",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX1.4",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_13",
+            "name": "Salidas_13",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX1.5",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_14",
+            "name": "Salidas_14",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX1.6",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_15",
+            "name": "Salidas_15",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX1.7",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_16",
+            "name": "Salidas_16",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX2.0",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_17",
+            "name": "Salidas_17",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX2.1",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_18",
+            "name": "Salidas_18",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX2.2",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_19",
+            "name": "Salidas_19",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX2.3",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_20",
+            "name": "Salidas_20",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX2.4",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_21",
+            "name": "Salidas_21",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX2.5",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_22",
+            "name": "Salidas_22",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX2.6",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_23",
+            "name": "Salidas_23",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX2.7",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_24",
+            "name": "Salidas_24",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX3.0",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_25",
+            "name": "Salidas_25",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX3.1",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_26",
+            "name": "Salidas_26",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX3.2",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_27",
+            "name": "Salidas_27",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX3.3",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_28",
+            "name": "Salidas_28",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX3.4",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_29",
+            "name": "Salidas_29",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX3.5",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_30",
+            "name": "Salidas_30",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX3.6",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_31",
+            "name": "Salidas_31",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX3.7",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_32",
+            "name": "Salidas_32",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX4.0",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_33",
+            "name": "Salidas_33",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX4.1",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_34",
+            "name": "Salidas_34",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX4.2",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_35",
+            "name": "Salidas_35",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX4.3",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_36",
+            "name": "Salidas_36",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX4.4",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_37",
+            "name": "Salidas_37",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX4.5",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_38",
+            "name": "Salidas_38",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX4.6",
+            "alias": ""
+          },
+          {
+            "id": "Salidas_39",
+            "name": "Salidas_39",
+            "type": "Digital Output (Multiple Coils)",
+            "iecLocation": "%QX4.7",
+            "alias": ""
+          }
+        ]
+      }
+    ]
+  }
+}

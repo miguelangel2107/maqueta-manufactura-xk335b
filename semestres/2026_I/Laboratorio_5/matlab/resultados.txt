@@ -1,0 +1,23 @@
+=========================================================
+   RESULTADOS DE DISEÑO - LABORATORIO 5
+=========================================================
+
+A. MATRICES DISCRETAS (Ts = 0.01s):
+Phi (Matriz de Transición):
+    1.0000    0.0098
+         0    0.9631
+
+Gamma (Matriz de Entrada):
+    0.0000
+    0.0016
+
+
+B. CONTROLADOR CONTINUO DISCRETIZADO:
+Ganancias Kc: [99.8782, 26.4080]
+Pre-compensación Na: 99.8782
+
+C. CONTROLADOR DISEÑADO EN Z:
+Ganancias Kd: [97.7436, 25.8460]
+Pre-compensación Nd: 97.7436
+
+Simulación completada. Ver gráfica para comparar desempeño.

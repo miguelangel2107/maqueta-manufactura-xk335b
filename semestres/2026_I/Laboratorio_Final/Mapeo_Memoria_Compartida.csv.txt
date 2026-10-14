@@ -1,0 +1,9 @@
+tipo; Memoria del Maestro (U. Transp); ...; Memoria del Esclavo; Esclavo; Direccion de puerto;
+NETR; VB0 ; <- ; VB0 ; TRANSPORTE; 2;
+NETW; VB1 ; -> ; VB1 ; TRANSPORTE; 2;
+NETR; VB2 ; <- ; VB0 ; PROCESAMIENTO; 4 ;
+NETW; VB3 ; -> ; VB1 ; PROCESAMIENTO; 4 ;
+NETR; VB4 ; <- ; VB0 ; ENSAMBLAJE ; 3 ;
+NETW; VB5 ; -> ; VB1 ; ENSAMBLAJE ; 3 ;
+NETR; VB6 ; <- ; VB0 ; SELECCION ; 5 ;
+NETW; VB7 ; -> ; VB1 ; SELECCION ; 5;

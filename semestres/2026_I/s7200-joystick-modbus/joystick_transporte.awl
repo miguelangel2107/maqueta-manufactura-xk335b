@@ -1,0 +1,574 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=CONTROL DE VELOCIDAD Y BRAZO CON JOYSTICK - ESTACION DE TRANSPORTE
+//  Este programa controla la cinta de transporte y el brazo neumatico manualmente con el joystick.
+//  Hace uso de las funciones MoveVelocity (SBR3) y Stop (SBR4) de la libreria MAP_SERV.
+BEGIN
+Network 1 //  Reset de seguridad - Fines de carrera y botones
+//  Si los fines de carrera o la seta de emergencia se activan, se fuerzan los flags de marcha a 0.
+LD     I2.4
+ON     I2.6
+R      V29.0, 8
+R      V10.0, 1
+
+
+
+Network 2 //  Inicializacion del esclavo Modbus RTU
+//  Llamada a MBUS_INIT una sola vez en el primer ciclo. Done -> M10.2, Error -> VB8
+LD     SM0.1
+CALL   SBR5, 1, 2, 19200, 2, 0, 24, 0, 40, &VB0, M10.2, VB8
+
+Network 3 //  Ejecucion del esclavo Modbus RTU
+//  Procesa las peticiones Modbus entrantes en cada ciclo. Done -> M10.3, Error -> VB9
+LD     SM0.0
+CALL   SBR6, M10.3, VB9
+
+Network 4 // Ejecucion de la comunicacion red PPI
+// Llama a NET_EXE (SBR8) para gestionar la lectura y escritura de bytes entre estaciones.
+// La entrada del selector es la que activa esta rutina para poder desactivarla cuando se requiera conectar en vivo a esta.
+
+
+LD     I2.7
+CALL   SBR8, 1, M10.0, M10.1
+Network 5 //   Solicitud de marcha para la Unidad de Alimentacion
+//   Cuando Python solicita arrancar Alimentacion (V28.0), se setea Marcha_A (V1.1).
+
+
+LD     V28.0
+EU
+S      V1.1, 1
+Network 6 //   Solicitud de marcha para la Unidad de Procesamiento
+//   Cuando Python solicita arrancar Procesamiento (V28.1), se setea Marcha_P (V3.1).
+
+
+LD     V28.1
+EU
+S      V3.1, 1
+Network 7 //   Solicitud de marcha para la Unidad de Ensamblaje
+//   Cuando Python solicita arrancar Ensamblaje (V28.2), se setea Marcha_E (V5.1).
+
+
+LD     V28.2
+EU
+S      V5.1, 1
+Network 8 //   Solicitud de marcha para la Unidad de Seleccion
+//   Cuando Python solicita arrancar Seleccion (V28.3), se setea Marcha_S (V7.1).
+
+
+LD     V28.3
+EU
+S      V7.1, 1
+Network 9 //   Limpieza de marcha Unidad de Alimentacion por acuse
+//   Al recibir el acuse Ack_MA (V0.1) de Alimentacion, se resetea la solicitud Marcha_A.
+
+
+
+LD     V0.1
+EU
+R      V1.1, 1
+Network 10 //   Limpieza de marcha Unidad de Procesamiento por acuse
+//   Al recibir el acuse Ack_MP (V2.1) de Procesamiento, se resetea la solicitud Marcha_P.
+
+
+
+LD     V2.1
+EU
+R      V3.1, 1
+Network 11 //   Limpieza de marcha Unidad de Ensamblaje por acuse
+//   Al recibir el acuse Ack_ME (V4.1) de Ensamblaje, se resetea la solicitud Marcha_E.
+
+
+
+LD     V4.1
+EU
+R      V5.1, 1
+Network 12 //   Limpieza de marcha Unidad de Seleccion por acuse
+//   Al recibir el acuse Ack_MS (V6.1) de Seleccion, se resetea la solicitud Marcha_S.
+
+
+
+LD     V6.1
+EU
+R      V7.1, 1
+Network 13 //   Acuse de recibo de solicitud Alimentacion a Procesamiento (Ack_AP)
+//   Copia el bit de acuse enviado por Python (V28.4) a Ack_AP (V1.0) para que Alimentacion retorne a reposo.
+
+
+LD     V28.4
+=      V1.0
+Network 14 //   Acuse de recibo de solicitud Procesamiento a Ensamblaje (Ack_PE)
+//   Copia el bit de acuse enviado por Python (V28.5) a Ack_PE (V3.0) para que Procesamiento retorne a reposo.
+
+
+LD     V28.5
+=      V3.0
+Network 15 //   Acuse de recibo de solicitud Ensamblaje a Seleccion (Ack_ES)
+//   Copia el bit de acuse enviado por Python (V28.6) a Ack_ES (V5.0) para que Ensamblaje retorne a reposo.
+
+
+LD     V28.6
+=      V5.0
+Network 16 //  Deteccion de cambio de direccion (caso A)
+//  Si esta corriendo a la derecha (V10.1=0) pero Python solicita izquierda (V29.1=1), se dispara la parada
+LD     V29.0
+A      V10.0
+A      V29.1
+AN     V10.1
+R      V10.0, 1
+
+Network 17 //  Deteccion de cambio de direccion (caso B)
+//  Si esta corriendo a la izquierda (V10.1=1) pero Python solicita derecha (V29.1=0), se dispara la parada
+LD     V29.0
+A      V10.0
+AN     V29.1
+A      V10.1
+R      V10.0, 1
+
+Network 18 //  Peticion de parada de usuario desde Python
+//  Si Python resetea V29.0, se detiene la marcha activa
+LDN    V29.0
+A      V10.0
+R      V10.0, 1
+
+Network 19 //  Arranque o reinicio del motor cuando esta parado y seguro
+//  Si el comando de marcha esta activo, el motor esta parado y el PTO no esta ocupado, se copian los estados
+LD     V29.0
+AN     V10.0
+AN     SM170.0
+MOVB   VB29, VB10
+
+Network 20 //  Deteccion de cambios de velocidad para actualizar MoveVelocity
+//  Si el motor esta corriendo y el buffer de velocidad (VD24) cambia respecto a la velocidad activa (VD20)
+LD     V10.0
+AD<>   VD24, VD20
+MOVD   VD24, VD20
+S      V10.2, 1                    // Solicita pulso de ejecucion de MoveVelocity
+
+Network 21 //  Deteccion de flanco de subida de marcha para disparar MoveVelocity
+LD     V10.0
+EU
+MOVD   VD24, VD20
+S      V10.2, 1                    // Solicita pulso de ejecucion de MoveVelocity
+
+Network 22 //  Deteccion de flanco de bajada de marcha para disparar Stop
+LDN    V10.0
+EU
+S      V10.3, 1                    // Solicita pulso de ejecucion de Stop
+
+Network 23 //  Llamada al controlador del servo
+//  Q0_0_CTRL debe ejecutarse en cada ciclo para monitorear limites y controlar el PTO
+LD     SM0.0
+CALL   SBR1, 1000, 50000, 0.2, I0.2, I0.1, VD40
+
+Network 24 //  Ejecutar MoveVelocity
+//  Llama a SBR3 (MoveVelocity) ante el pulso de V10.2. Done/Error mapeados a VB11, VD12.
+LD     SM0.0
+=      L60.0
+LD     V10.2
+=      L63.7
+LD     L60.0
+CALL   SBR3, L63.7, VD20, V10.1, VB11, VD12
+
+Network 25 //  Reset de bandera de ejecucion de MoveVelocity
+//  Resetea el bit de peticion de marcha en la red siguiente para que se convierta a Ladder
+LD     V10.2
+R      V10.2, 1
+
+Network 26 //  Ejecutar Stop
+//  Llama a SBR4 (Stop) ante el pulso de V10.3. Done mapeado a V16.0.
+LD     SM0.0
+=      L60.0
+LD     V10.3
+=      L63.7
+LD     L60.0
+CALL   SBR4, L63.7, V16.0
+
+Network 27 //  Reset de bandera de ejecucion de Stop
+//  Resetea el bit de peticion de parada en la red siguiente para que se convierta a Ladder
+LD     V10.3
+R      V10.3, 1
+
+Network 28 //  Control de cilindro vertical brazo Z-axis
+//  En emergencia (I2.6=0) se fuerza brazo arriba (Q0.3=1)
+LD     I2.6
+A      V29.4
+ON     I2.6
+=      Q0.3
+
+
+Network 29 //  Control de cilindro doble vastago
+//  En emergencia se fuerza retraido (Q0.6=0)
+LD     I2.6
+A      V29.5
+=      Q0.6
+
+Network 30 //  Control de actuador rotatorio izquierda AH
+//  En emergencia se fuerza apagado (Q0.4=0)
+LD     I2.6
+A      V29.2
+=      Q0.4
+
+Network 31 //  Control de actuador rotatorio derecha H
+//  En emergencia se fuerza apagado (Q0.5=0)
+LD     I2.6
+A      V29.3
+=      Q0.5
+
+Network 32 //  Control de pinza neumatica abierta
+//  En emergencia se fuerza pinza abierta (Q0.7=1)
+LD     I2.6
+A      V29.7
+ON     I2.6
+=      Q0.7
+
+
+Network 33 //  Control de pinza neumatica cerrada
+//  En emergencia se fuerza pinza cerrada apagada (Q1.0=0)
+LD     I2.6
+A      V29.6
+=      Q1.0
+
+END_ORGANIZATION_BLOCK
+SUBROUTINE_BLOCK SBR_0:SBR0
+TITLE=SUBROUTINE COMMENTS
+BEGIN
+Network 1 //  Network Title
+//  Network Comment
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_CTRL:SBR1
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0 
+// 
+// Q0_0_CTRL must be called every scan for the other functions to work
+// 
+// Limitations: It does not work well if the ramp time is set to less than 0.5 sec. 
+// 
+// This project is based on the built-in linear PTO function. It uses the manual function to control the speed and the HSC counter to count the pulses. It uses the software HSC interrupt to signal when to start the deceleration ramp instead of the exact pulse count. This reduces the amount of calculations that must be done in the user project but can introduce a deviation in the number of pulses.
+// 
+// Hardware Resources:
+// Q0.0 is used for the high speed pulse output
+// Q0.2 is used for the direction output
+// The forward and reverse limit switches are set by the user in Q0_0_CTRL
+// If the Homing function Q0_0_Home is used then I0.0 is used as the Reference Point position. 
+// 
+// Advanced calibration option:
+// The algorithm that is used to predict when to start the deceleration does not exactly match how the PTO actually works due to software timing issues. This difference is accounted for by the Tune_Factor variable. The optimal value for the Tune_Factor is dependent on the target velocity, Maximum speed, Start/Stop speed, and the maximal Acceleration/Deceleration time. With the default value (Tune_Factor=1) the positioning stops behind the target. To compensate this the bit Disable_Auto_Stop (default value=0) cuts off the deceleration ramp when the target is reached. If the cutting off is unwanted for an application (Disable_Auto_Stop=1) the Tune_Factor has to be modified to stop at the target position.
+// Steps to adjust the calibration:
+// 	Note: The CPU does not have to be connected to the motor to do this calibration.
+// 1.	Turn on the bit Disable_Auto_Stop
+// 2.	Load 0 to the current position using Q0_0_LoadPos.
+// 3.	Do a relative movement with your parameters (Velocity_SS, Velocity_Max, accel_dec_time, Velocity) and enough 	                Num_Pluses to reach Velocity.
+// 4.	Record the current position that is reached. The searched value for this application is:
+// 	Tune_Factor = (C_Pos - Num_Pulses + Est_Stopping_Dist) / Est_Stopping_Dist 
+// 5.	Control the new value by repeating the relative movement (from step 2). If the value for Tune_Factor is good then 	                the current position should be a few counts beyond the target location. Otherwise you have to reduce the found 	                value a little bit.
+// 6.	Add a network after Q0_0_CTRL that moves the new value in the VD location identified in the library as			Tune_Factor on the first scan.  This is necessary because Q0_0_CTRL restores the default value on every first			scan.  You have to use the absolute V address since you can not use the symbol name that is used in the			library.
+// 7.	Turn off the bit Disable_Auto_Stop 
+// 
+// 
+// Date: July 16, 2008
+// Version:  1.8          
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+Velocity_SS:DINT;	// Start/Stop velocity (pulses/sec)
+Velocity_Max:DINT;	// Maximum velocity (pulses/sec)
+accel_dec_time:REAL;	// Maximum Acceleration and Deceleration time in sec (0.5 to 32.0)
+Fwd_Limit:BOOL;	// Limit switch for forward movement
+Rev_Limit:BOOL;	// Limit switch for reverse movement
+END_VAR
+VAR_OUTPUT
+C_Pos:DINT;	// Current position (pulses)
+END_VAR
+VAR
+tint:REAL;
+fdelta:REAL;
+m:INT;
+Compute_Rate:DINT;
+temp_DI:DINT;
+temp_DI2:DINT;
+temp_Real:REAL;
+temp_I:INT;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_Compute_Rate:SBR2
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// This subroutine will be called by Q0_0_CTRL.
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+freq:REAL;
+fmax:DINT;
+fmin:DINT;
+r_time:REAL;
+END_VAR
+VAR_OUTPUT
+tint:REAL;
+fdelta:REAL;
+m:INT;
+Compute_Rate:DINT;
+END_VAR
+VAR
+Temp_DI:DINT;
+Temp_I:INT;
+Temp_B:BYTE;
+frate:REAL;
+Temp_R:REAL;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_MoveVelocity:SBR3
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// This routine will continuously move at a specified speed.
+// The speed can be changed while the motor is executing a Move Velocity command but the direction can not be changed.
+// To adjust the speed, first change the Velocity parameter then pulse the EXECUTE input for one scan.
+// 
+// Error Codes:
+// 0	No error
+// 1	Immediate STOP issued during move, STOP command completed successfully
+// 3	Execution error detected in the pulse generator or in the format of the PTO table
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+EXECUTE:BOOL;	// Start the motion  (should only be ON for one scan)
+Velocity:DINT;	// Target velocity (between SS_SPEED and MAX_SPEED)
+Direction:BOOL;	// 0=reverse/1=forward  
+END_VAR
+VAR_OUTPUT
+Error:BYTE;	// 0=No error. See POU comment for additional errors
+C_Pos:DINT;	//  Current position
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK Q0_0_Stop:SBR4
+TITLE=Library: Micro Automation Positioning - SERVo Q0.0
+// 
+// This routine will decelerate and stop the movement that is in progress.
+// 
+// Date: July 16, 2008
+// Version:  1.8           
+// 
+//  The SIMATIC S7-200 Application Tips are provided to give users of the 
+//  S7-200 some indication as to how, from the view of programming technique,
+//  certain tasks can be solved with this controller. These instructions do not 
+//  purport to cover all details or variations in equipment, nor to provide for 
+//  every possible contingency. Use of the S7-200 Application Tips is free.
+// 
+//  Siemens reserves the right to make changes in specifications shown herein
+//  or make improvements at any time without notice or obligation. It does not 
+//  relieve the user of responsibility to use sound practices in application, 
+//  installation, operation and maintenance of the equipment purchased. Should 
+//  a conflict arise between the general information contained in this publication
+//  and the contents of drawings or supplementary material or both, the latter 
+//  shall take precedence.
+// 
+//  Siemens is not liable, for whatever legal reason, for damages or personal 
+//  injury resulting from the use of the application tips.
+VAR_INPUT
+EXECUTE:BOOL;	// Start the function  (should only be ON for one scan)
+END_VAR
+VAR_OUTPUT
+Done:BOOL;	// Function complete
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK MBUS_INIT:SBR5
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+VAR_INPUT
+Mode:BYTE;	// 启动／停止（1 = 启动Modbus，0 = 停止Modbus）
+Addr:BYTE;	// 从属地址（1- 247）
+Baud:DWORD;	// 波特率（1200、2400、4800、9600、19200、38400、57600、115200）
+Parity:BYTE;	// 奇偶校验（0 = 无，1 = 奇数，2 = 偶数）
+Delay:INT;	// 附加字符间超时（默认值0毫秒）
+MaxIQ:INT;	// I和Q位最大数目（默认值128）
+MaxAI:INT;	// 输入寄存器最大数目（模拟输入字－16或32）
+MaxHold:INT;	// 保持寄存器最大数目（V内存字）
+HoldStart:DWORD;	// 保持寄存器在V内存中的起始地址（默认值&VB0）
+END_VAR
+VAR_OUTPUT
+Done:BOOL;	// 初始化完成旗标
+Error:BYTE;	// 初始化错误代码
+END_VAR
+VAR
+index1:INT;
+index2:INT;
+AC0save:DWORD;
+AC1save:DWORD;
+AC2save:DWORD;
+AC3save:DWORD;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK MBUS_SLAVE:SBR6
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+VAR_OUTPUT
+Done:BOOL;	// 如果是1，则处理Modbus讯息
+Error:BYTE;	// 错误代码（0 = 无错）
+END_VAR
+VAR
+start:INT;	// Fctn 1,2,3,4,5,6,15,16
+count:INT;	// Fctn 1,2,3,4,15
+functn:BYTE;	// Fctn 1,2,3,4
+shift_cnt:BYTE;	// Fctn 1,2
+offset:INT;	// Fctn 1,2
+index:INT;	// Fctn 1,2
+bit_count:INT;	// Fctn 1,2
+bit_number:BYTE;	// Fctn 5
+byte_count:BYTE;	// Fctn 16
+AC0save:DWORD;
+AC1save:DWORD;
+AC2save:DWORD;
+AC3save:DWORD;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK MBUS1:SBR7
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+VAR_OUTPUT
+crc:INT;
+END_VAR
+VAR
+count:INT;
+ptr:DWORD;
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+SUBROUTINE_BLOCK NET_EXE:SBR8
+TITLE=This POU was created by the NETR/NETW formula of the S7-200 Instruction Wizard.
+// To enable this configuration within the program, use SM0.0 to call this Subroutine from the MAIN program block every scan cycle.  
+// 
+// NETR       Operation 1 of 8
+// Local PLC Data Table        Remote PLC = 2    Operation Status
+//  VB0 - VB0              <---   VB0 - VB0           NETR1_Status:VB100
+// Data Length: 1 byte(s)
+// 
+// NETW       Operation 2 of 8
+// Local PLC Data Table        Remote PLC = 2    Operation Status
+//  VB1 - VB1              --->   VB1 - VB1           NETW2_Status:VB108
+// Data Length: 1 byte(s)
+// 
+// NETR       Operation 3 of 8
+// Local PLC Data Table        Remote PLC = 4    Operation Status
+//  VB2 - VB2              <---   VB0 - VB0           NETR3_Status:VB116
+// Data Length: 1 byte(s)
+// 
+// NETW       Operation 4 of 8
+// Local PLC Data Table        Remote PLC = 4    Operation Status
+//  VB3 - VB3              --->   VB1 - VB1           NETW4_Status:VB124
+// Data Length: 1 byte(s)
+// 
+// NETR       Operation 5 of 8
+// Local PLC Data Table        Remote PLC = 3    Operation Status
+//  VB4 - VB4              <---   VB0 - VB0           NETR5_Status:VB132
+// Data Length: 1 byte(s)
+// 
+// NETW       Operation 6 of 8
+// Local PLC Data Table        Remote PLC = 3    Operation Status
+//  VB5 - VB5              --->   VB1 - VB1           NETW6_Status:VB140
+// Data Length: 1 byte(s)
+// 
+// NETR       Operation 7 of 8
+// Local PLC Data Table        Remote PLC = 5    Operation Status
+//  VB6 - VB6              <---   VB0 - VB0           NETR7_Status:VB148
+// Data Length: 1 byte(s)
+// 
+// NETW       Operation 8 of 8
+// Local PLC Data Table        Remote PLC = 5    Operation Status
+//  VB7 - VB7              --->   VB1 - VB1           NETW8_Status:VB156
+// Data Length: 1 byte(s)
+// 
+// To modify the network operations for this configuration, re-run the NETR/NETW Wizard. To track the status of network operations, create a Status Chart containing the Operation Status symbols shown above. Consult online Help for a description of the possible error conditions for NETR and NETW instructions.
+VAR_INPUT
+Timeout:INT;	// Timeout timer 0=no timer; 1-32767=timer value in seconds.
+END_VAR
+VAR_OUTPUT
+Cycle:BOOL;	// Toggled each time all NET operations are completed.
+Error:BOOL;	// 0=No error; 1=Error (check NETR/NETW status byte for code number).
+END_VAR
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_SUBROUTINE_BLOCK
+INTERRUPT_BLOCK INT_0:INT0
+TITLE=INTERRUPT ROUTINE COMMENTS
+BEGIN
+Network 1 //  Network Title
+//  Network Comment
+END_INTERRUPT_BLOCK
+INTERRUPT_BLOCK MBUS2:INT1
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_INTERRUPT_BLOCK
+INTERRUPT_BLOCK MBUS3:INT2
+TITLE=该代码是Siemens Energy & Automation, Inc.的财产，属于扩充包Modbus协议库的一部分。
+BEGIN
+Network 1 // This POU is password-protected against editing and viewing.
+
+END_INTERRUPT_BLOCK

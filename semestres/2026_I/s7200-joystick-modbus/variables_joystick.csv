@@ -1,0 +1,64 @@
+Symbol;Address;Comment
+Sens_Origen;I0.0;Sensor inductivo de origen para homing del servo
+FC_Derecha;I0.1;Final de carrera derecho limite fisico forward
+FC_Izquierda;I0.2;Final de carrera izquierdo limite fisico reverse
+CilV_Abajo;I0.3;Sensor brazo vertical en posicion abajo
+CilV_Arriba;I0.4;Sensor brazo vertical en posicion arriba
+Giro_Izquierda;I0.5;Sensor actuador rotatorio posicion izquierda antihoraria
+Giro_Derecha;I0.6;Sensor actuador rotatorio posicion derecha horaria
+CilDV_Ext;I0.7;Sensor doble vastago extendido
+CilDV_Ret;I1.0;Sensor doble vastago retraido
+Pinza_Cer;I1.1;Confirmacion de pinza cerrada pieza sujeta
+Estado_Servo;I1.2;Driver servo en estado listo para operar Ready
+Btn_Paro;I2.4;Boton de paro panel de operador
+Btn_Marcha;I2.5;Boton de marcha panel de operador
+Seta_Emerg;I2.6;Seta de emergencia fisica NC
+Selector;I2.7;Selector de modo panel de operador
+Servo_Pulsos;Q0.0;Tren de pulsos PTO para servo motor lineal
+Servo_Dir;Q0.2;Direccion del servo gestionado por MAP_SERV
+V_Cil_Vert;Q0.3;Valvula cilindro vertical brazo arriba
+V_Giro_AH;Q0.4;Valvula actuador rotatorio sentido antihorario
+V_Giro_H;Q0.5;Valvula actuador rotatorio sentido horario
+V_Cil_DV;Q0.6;Valvula doble vastago extendido
+V_Pinza_Abre;Q0.7;Valvula apertura de pinza neumatica
+V_Pinza_Cierra;Q1.0;Valvula cierre de pinza neumatica
+Joy_Run_Flag;V29.0;Bit de marcha de la cinta de transporte
+Joy_Dir_Flag;V29.1;Bit de direccion de la cinta de transporte
+Joy_Rot_L_Flag;V29.2;Bit de giro antihorario del brazo
+Joy_Rot_R_Flag;V29.3;Bit de giro horario del brazo
+Joy_Cil_Vert_Flag;V29.4;Bit de cilindro vertical brazo arriba
+Joy_Cil_DV_Flag;V29.5;Bit de cilindro doble vastago extendido
+Joy_Grip_Close_Flag;V29.6;Bit de cierre de pinza neumatica
+Joy_Grip_Open_Flag;V29.7;Bit de apertura de pinza neumatica
+done_modbus;M10.2;marca done para libreria modbus (init)
+error_modbus;VB8;byte de error para libreria modbus (init)
+done_modbus2;M10.3;marca done para libreria modbus
+error_modbus2;VB9;byte de error para libreria modbus
+direccion;V10.1;direccion de movimiento de la cinta de transporte
+error;VB11;error de la funcion MoveVelocity
+c_pos;VD12;posicion de la funcion MoveVelocity
+done_paro;V16.0;bit de hecho de la funcion Stop
+velocidad;VD20;velocidad para la funcion MoveVelocity
+velocidad_buff;VD24;buffer para la escritura dinamica de la velocidad en MoveVelocity
+Servo_C_Pos;VD40;Posicion actual del servo en pulsos (salida Q0_0_CTRL)
+Sol_AP;V0.0;Solicitud Alimentacion a Procesamiento
+Ack_AP;V1.0;Reconocimiento AP
+Sol_PE;V2.0;Solicitud Procesamiento a Ensamblaje
+Ack_PE;V3.0;Reconocimiento PE
+Sol_ES;V4.0;Solicitud Ensamblaje a Seleccion
+Ack_ES;V5.0;Reconocimiento ES
+Ack_MA;V0.1;Reconocimiento marcha Unidad de Alimentacion
+Marcha_A;V1.1;Solicitud de marcha para la Unidad de Alimentacion
+Ack_MP;V2.1;Reconocimiento marcha Unidad de Procesammiento
+Marcha_P;V3.1;Solicitud de marcha para la Unidad de Procesamiento
+Ack_ME;V4.1;Reconocimiento marcha Unidad de Ensamblaje
+Marcha_E;V5.1;Solicitud de marcha para la Unidad de Ensamblaje
+Ack_MS;V6.1;Reconocimiento marcha Unidad de Seleccion
+Marcha_S;V7.1;Solicitud de marcha para la Unidad de Seleccion
+Alim_OK;V0.2;Unidad de Alimentacion disponible
+Proc_OK;V2.2;Unidad de Procesamiento disponible
+Ens_OK;V4.2;Unidad de Ensamblaje disponible
+Sel_OK;V6.2;Unidad de Seleccion disponible
+Pieza_Metal;V6.3;Pieza identificada por la unidad de seleccion es totalmente metalica
+Pieza_Mixta;V6.4;Pieza identificada por la unidad de seleccion es totalmente mixta
+Pieza_Plastica;V6.5;Pieza identificada por la unidad de seleccion es totalmente plastica

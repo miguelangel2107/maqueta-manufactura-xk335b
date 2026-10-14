@@ -1,0 +1,1546 @@
+ORGANIZATION_BLOCK MAIN:OB1
+TITLE=UNIDAD 5: SELECCION Y VFD - ARQUITECTURA MODULAR XL-335B (REV. AUDITADA)
+// ==============================================================================
+// SISTEMA: CELDA DE MANUFACTURA FLEXIBLE XL-335B + VFD POWTRAN + BRAZO 4-DOF
+// MODULO: UNIDAD 5 - SELECCION, CLASIFICACION Y CINTA TRANSPORTADORA CON VARIADOR
+// CPU: SIEMENS SIMATIC S7-200 CPU 224XP-CN (2 PUERTOS RS-485 + I/O ANALOGICA AQW0)
+// PUERTO 0: ESCLAVO EN BUS PPI (DIRECCION DE ESTACION 5, 19200 BPS, 8-E-1)
+// PUERTO 1: MAESTRO MODBUS RTU HACIA VFD POWTRAN PI9100A (19200 BPS, 8-N-1, ID 1)
+// ==============================================================================
+// REVISION AUDITADA - CORRECCIONES PRINCIPALES:
+//   [C1] Colision de memoria: los pasos Auto/Manual vivian en VW100/VW102, solapados
+//        con el buffer PPI de comandos VB100..VB103 escrito por NETW del PLC 1.
+//        Reubicados: Paso Auto = VW330, Paso Manual = VW332.
+//   [C2] Colision con la libreria Modbus: los bytes de error VB4100/VB4101 caian
+//        DENTRO del area de trabajo de la libreria (VB4000..VB4285). Reubicados a
+//        VB345 (MBUS_CTRL_P1) y VB344 (MBUS_MSG_P1). Area VB4000+ queda intacta.
+//   [C3] F0.11 (Fuente de Comando) se escribia en 40018 = 0x0011 = F0.17 (Ajuste de
+//        portadora, rango 0..1): el VFD respondia excepcion y NUNCA pasaba a mando
+//        por comunicacion. Direccion correcta segun manual Powtran (F3.12 -> F30C):
+//        F0.11 -> 0xF00B -> RAM 0x000B -> Modbus 40012.
+//   [C4] Bloqueo VW340 en Pasos 20/30/40: el EN de MBUS_MSG_P1 caia a 0 en el
+//        segundo scan (AN M14.4 tras S M14.4) y el bloque nunca devolvia Done.
+//        Nueva maquina con UNA sola instancia MBUS_MSG_P1 (EN = M14.2 sostenido
+//        hasta Done), First de un solo scan, watchdog T45, reintentos y salto
+//        limpio al Paso 100.
+//   [C5] Automatico Modo 2: la red de pausa forzaba VW350 = 0 en cada scan (error
+//        de pila LPP/LDW=) y la cinta nunca arrancaba. La orden VW350 se calcula
+//        ahora en un unico punto (SBR_ACTUADORES).
+//   [C6] T44 de prueba manual (Paso 70): 3.0 s fijos desde la transicion, aun sin
+//        trama enviada. Ahora cuenta VW388 (10.0 s) DESDE la confirmacion de marcha
+//        (Modo 1 inmediata, Modo 2 eco Modbus) con watchdog de despacho T48 (6.0 s).
+// ==============================================================================
+// MODOS DE GOBIERNO DEL VARIADOR (CONMUTABLES EN RAM, SIN DESGASTE DE EEPROM):
+//   MODO 2 (Defecto - Modbus Puro, VW308 = 2):
+//     RAM 0x0003 (F0.03) = 9 [40004]  Frecuencia por comunicacion
+//     RAM 0x000B (F0.11) = 2 [40012]  Comandos por comunicacion
+//     Marcha/Paro 0x2000 [48193]: 1 = Run FWD, 6 = Paro decelerado, 5 = Inercia
+//     Consigna    0x1000 [44097]: 6000 = 30.0 Hz (VW366), 3600 = 18.0 Hz (VW368)
+//     Q0.0 = 0 y AQW0 = 0 permanentes.
+//   MODO 1 (Analogico/Digital, VW308 = 1):
+//     RAM 0x0003 (F0.03) = 2 [40004]  Frecuencia por AI1 (0-10 V)
+//     RAM 0x000B (F0.11) = 1 [40012]  Comandos por bornes DI
+//     Marcha Q0.0 = 1, Consigna AQW0: +19200 = 30.0 Hz (VW370), +11520 = 18.0 Hz (VW372)
+//     Puerto 1 SOLO telemetria (lectura 0x1001..0x1004 cada 200 ms).
+//   Rampas en RAM (F0.15 = 1, base 0.1 s): 0x000D = VW362 (10 = 1.0 s), 0x000E = VW364 (5 = 0.5 s)
+// ==============================================================================
+// MAPA DE MEMORIA V (TODO POR DEBAJO DE VB1000; LIBRERIA MODBUS EN VB4000+):
+//   VB100..VB103 : Buffer PPI de bajada (escrito por PLC 1 via NETW, 4 bytes)
+//                  VB100 = CMD_CONTROL, VB101 = TIPO (5 = negra), VB102 = Modo VFD pedido
+//   VB200..VB211 : Buffer PPI de subida (leido por PLC 1 via NETR, 12 bytes)
+//                  VB200 STAT, VB201 PASO, VB202 IB0, VB203 CARRIL,
+//                  VW204 Frec. real (0.01 Hz), VW206 Corriente (0.01 A),
+//                  VW208 Bus DC (0.1 V), VB210 Modo VFD activo, VB211 Error Modbus
+//   VW220..VW224 : Delta-t desviadores (ms)
+//   VW300        : Tipo de pieza en curso (1..5)
+//   VW308        : Modo VFD activo (1 = Analogico, 2 = Modbus)
+//   VW310..VW328 : Cotas HSC0 (inspeccion, finales y reduccion)
+//   VW330 / VW332: Paso Automatico / Paso Manual
+//   VW340        : Paso maquina de estados Modbus
+//   VB343..VB347 : Reintentos max., error MSG, error CTRL, contador reintentos, -
+//   VW350 / VW352: Orden VFD solicitada / Orden VFD confirmada (0 Paro,1 30Hz,2 18Hz,3 Inercia)
+//   VW354..VW358 : Orden en despacho / copia de paso / ultimo paso fallido
+//   VW360        : Buffer de escritura Modbus (1 registro)
+//   VW362..VW372 : Rampas, consignas Modbus y analogicas (ajustables en vivo)
+//   VB374..VD382 : Parametros de la instancia unica MBUS_MSG_P1
+//   VW386        : Consigna analogica calculada (unica escritura a AQW0)
+//   VW388        : Duracion de la prueba manual de cinta (x 100 ms)
+//   VW400..VW406 : Telemetria VFD (0x1001 Frec, 0x1002 Bus DC, 0x1003 V salida, 0x1004 Corriente)
+//   VB4000..VB4299 : RESERVADO - Memoria de libreria Modbus Maestro (asignar en Micro/WIN)
+// ==============================================================================
+BEGIN
+
+Network 1 // Modulo 0: Inicializacion General en Primer Scan (SM0.1)
+LD     SM0.1
+CALL   SBR_INIT
+
+Network 2 // Modulo 1: Escaneo de Entradas Digitales, Flancos EU y Mandos PPI (SM0.0)
+LD     SM0.0
+CALL   SBR_IO_SCAN
+
+Network 3 // Modulo 2: Supervision de Seguridad Fail-Safe y Rearme Local (SM0.0)
+LD     SM0.0
+CALL   SBR_SEGURIDAD
+
+Network 4 // Modulo 3: Diagnostico Neumatico Delta-t y Deteccion de Atascos (SM0.0)
+LD     SM0.0
+CALL   SBR_DIAGNOSTICO
+
+Network 5 // Modulo 4: Secuenciador Manual Paso a Paso (Activo si SA1 = 0 / Manual)
+LDN    M5.2                         // Selector SA1 en Manual / Diagnostico (I1.5 = 0)
+CALL   SBR_MAN_STEP
+
+Network 6 // Modulo 5: Secuenciador Automatico y Control por HSC0 (Activo si SA1 = 1 / Auto)
+LD     M5.2                         // Selector SA1 en Modo Automatico (I1.5 = 1)
+CALL   SBR_SECUENCIA_AUTO
+
+Network 7 // Modulo 6: Orden de Cinta VW350, Q0.0/AQW0 (Modo 1), Desviadores y Balizas (SM0.0)
+LD     SM0.0
+CALL   SBR_ACTUADORES
+
+Network 8 // Modulo 7: Maestro Modbus RTU Puerto 1 - Configuracion RAM, Despacho y Telemetria
+LD     SM0.0
+CALL   SBR_VFD_MODBUS
+
+Network 9 // Modulo 8: Sincronizacion de Buffers de Red PPI Nodo 5 (SM0.0)
+LD     SM0.0
+CALL   SBR_COMMS_PPI
+
+END_ORGANIZATION_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 0: SBR_INIT (INICIALIZACION EN PRIMER SCAN)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_INIT:SBR0
+TITLE=INICIALIZACION GENERAL DE VARIABLES, REGISTROS, COTAS Y BUFFERS
+BEGIN
+
+Network 1 // Maquinas de Estados en Reposo (Paso 0) y Salida Analogica a 0 V
+LD     SM0.0
+MOVW   +0, VW330                    // Paso Automatico = 0 (Reposo)
+MOVW   +0, VW332                    // Paso Manual = 0 (Reposo)
+MOVW   +0, VW300                    // Tipo de pieza clasificada en curso (0..5)
+MOVW   +0, VW386                    // Consigna analogica calculada = 0
+MOVW   +0, AQW0                     // Consigna analogica a 0 V en reposo
+
+Network 2 // Modo VFD por Defecto: MODO 2 (MODBUS PURO) y Maquina Modbus en Paso 0
+LD     SM0.0
+MOVW   +2, VW308                    // VW308 = 2: Modo Modbus Puro por defecto
+MOVW   +0, VW350                    // Orden VFD solicitada: 0 = Paro decelerado
+MOVW   +99, VW352                   // Orden confirmada invalida: fuerza despacho inicial de paro
+MOVW   +0, VW354                    // Orden en despacho
+MOVW   +0, VW340                    // Paso Modbus 0: espera de MBUS_CTRL_P1
+MOVW   +0, VW358                    // Ultimo paso Modbus fallido
+MOVB   3, VB343                     // Reintentos maximos por trama = 3
+MOVB   0, VB344                     // Error MBUS_MSG_P1
+MOVB   0, VB345                     // Error MBUS_CTRL_P1
+MOVB   0, VB346                     // Contador de reintentos
+
+Network 3 // Parametros Ajustables del VFD (Rampas RAM, Consignas Modbus y Analogicas)
+LD     SM0.0
+MOVW   +10, VW362                   // Rampa aceleracion RAM 0x000D: 10 = 1.0 s (F0.15 = 0.1 s)
+MOVW   +5, VW364                    // Rampa deceleracion RAM 0x000E: 5 = 0.5 s
+MOVW   +6000, VW366                 // Consigna Modbus transito 0x1000: 6000 = 60.00% de 50 Hz = 30.0 Hz
+MOVW   +3600, VW368                 // Consigna Modbus aproximacion 0x1000: 3600 = 18.0 Hz
+MOVW   +19200, VW370                // Consigna AQW0 transito: +19200 = 6.0 V = 30.0 Hz
+MOVW   +11520, VW372                // Consigna AQW0 aproximacion: +11520 = 3.6 V = 18.0 Hz
+MOVW   +100, VW388                  // Duracion prueba manual Paso 70: 100 x 100 ms = 10.0 s
+MOVW   +2, VW390                    // SENTIDO DE GIRO: 1 = Forward, 2 = Reverse (banco: el motor giraba al reves con 1)
+MOVB   0, VB392                     // Calibracion de cinta deshabilitada (V392.0 = 1 la arma)
+MOVW   +7, VW394                    // Asentamiento antes de empujar: 7 x 100 ms = 0.7 s (cinta detenida)
+MOVB   1, VB374                     // Esclavo Modbus del Powtran = 1
+
+Network 4 // Cotas de Posicionamiento HSC0: Inspeccion y Cotas Finales de Parada
+LD     SM0.0
+// CALIBRADAS EN BANCO 2026-10-12, 2 corridas (encoder en cuadratura x4, pieza metalica a 18 Hz):
+//   Inductivo I0.5: 1860..2263 / 1990..2170     Fibra I0.4: 1803..~2267 / 1875..2322
+//   Carril 1: 2866 / 2808 -> 2837   Carril 2: 4320 / 4524 -> 4422   Carril 3: 5976 / 6113 -> 6045
+//   Fin de cinta (toma del Brazo): 7769   Frenada a 18 Hz: 83 / 115 -> 100 cuentas
+//   Cota final = posicion media - 100 (la cinta para centrada); reduccion = final - 500.
+MOVW   +2080, VW310                 // Cota Inspeccion: centro de la zona donde AMBOS sensores ven la pieza (1990..2170)
+MOVW   +2737, VW312                 // Cota Final Carril 1: 2837 - 100 (Tipo 1)
+MOVW   +4322, VW314                 // Cota Final Carril 2: 4422 - 100 (Tipo 2)
+MOVW   +5945, VW316                 // Cota Final Carril 3: 6045 - 100 (Tipo 3)
+MOVW   +7769, VW318                 // Cota Final Fin Cinta: 7769 medido en corrida 2 (Tipos 4 y 5, toma del Brazo)
+
+Network 5 // Cotas de Anticipacion y Reduccion a Velocidad Lenta (Cota Final - 500 cuentas)
+LD     SM0.0
+MOVW   +2237, VW322                 // Cota Reduccion Carril 1: 2737 - 500 (despues de la inspeccion 2080)
+MOVW   +3822, VW324                 // Cota Reduccion Carril 2: 4322 - 500
+MOVW   +5445, VW326                 // Cota Reduccion Carril 3: 5945 - 500
+MOVW   +7269, VW328                 // Cota Reduccion Fin Cinta: 7769 - 500
+
+Network 6 // Valores Nominales Calibrados de Tiempos Neumaticos Delta-t (ms)
+LD     SM0.0
+MOVW   +180, VW220                  // Delta-t nominal Desviador 1 (180 ms)
+MOVW   +180, VW222                  // Delta-t nominal Desviador 2 (180 ms)
+MOVW   +180, VW224                  // Delta-t nominal Desviador 3 (180 ms)
+
+Network 7 // Limpieza de Banderas de Control, Alarmas y Salidas
+LD     SM0.0
+R      M1.0, 8                      // Flags auxiliares M1.0..M1.7
+R      M2.0, 8                      // M2.0 = SEGURIDAD_OK, M2.1 = ESPERA_REARME, M2.2 = EMERGENCIA_ACTIVA
+R      M4.0, 8                      // M4.0 = ALM_FUGA, M4.1 = ALM_ATASCO
+R      M5.0, 8                      // M5.0 = PULSO_SB1, M5.1 = PULSO_SB2, M5.2 = MODO_AUTO
+R      M6.0, 8                      // M6.1 PAUSA, M6.2 ESTOP_REMOTO, M6.3 ACK, M6.4 PIEZA, M6.5 TIPO5, M6.6 PERMISO
+R      M7.0, 8                      // Pulsos de flanco de comandos PPI
+R      M11.0, 8                     // Permisos paso a paso manual (M11.1..M11.6) y M11.7 marcha confirmada
+R      M12.0, 8                     // Flags auxiliares de paso manual
+R      M14.0, 8                     // Flags de control Modbus maestro M14.0..M14.7
+R      M15.0, 8                     // Flags de la maquina Modbus M15.0..M15.7
+R      Q0.0, 8                      // Desenergizacion de salidas digitales
+R      Q1.0, 8
+
+Network 8 // Inicializacion de Buffers de Red PPI (Nodo 5)
+LD     SM0.0
+MOVB   0, VB100                     // CMD_CONTROL limpio
+MOVB   0, VB101                     // TIPO de pieza informado = 0
+MOVB   0, VB102                     // Modo VFD pedido por red = 0 (sin cambio)
+MOVB   0, VB103                     // Reservado
+MOVB   0, VB200                     // STAT_GLOBAL
+MOVB   0, VB201                     // STAT_PASO
+MOVB   0, VB202                     // STAT_INPUTS
+MOVB   0, VB203                     // STAT_DATA (Carril asignado)
+MOVW   +0, VW204                    // Telemetria frecuencia
+MOVW   +0, VW206                    // Telemetria corriente
+MOVW   +0, VW208                    // Telemetria bus DC
+MOVB   2, VB210                     // Modo VFD activo
+MOVB   0, VB211                     // Error Modbus
+
+Network 9 // Configuracion Inicial de Seguridad Fail-Safe al Energizar
+LD     I1.4
+=      M2.1                         // M2.1 = Espera Rearme si seta desenclavada
+LDN    I1.4
+=      M2.2                         // M2.2 = Emergencia Activa fisica si seta accionada
+
+Network 10 // Llamada a Configuracion de Hardware de Contador Rapido HSC0
+LD     SM0.0
+CALL   SBR_HSC0_CONFIG
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 1: SBR_IO_SCAN (CAPTURA DE ENTRADAS, FLANCOS EU Y COMANDOS PPI)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_IO_SCAN:SBR1
+TITLE=CAPTURA DE ENTRADAS, FILTRADO DE FLANCOS EU Y DESACOPLO DE COMANDOS PPI
+BEGIN
+
+Network 1 // Captura del Selector de Modo SA1 (I1.5)
+LD     I1.5
+=      M5.2                         // 1 = Modo Automatico, 0 = Modo Manual / Diagnostico
+
+Network 2 // Flanco Ascendente (EU) de Marcha / Avance SB1 (I1.3, NA)
+LD     I1.3
+EU
+=      M5.0                         // M5.0 = Pulso de un scan para SB1
+
+Network 3 // Flanco Ascendente (EU) de Parada / Reset SB2 (I1.2, NA)
+LD     I1.2
+EU
+=      M5.1                         // M5.1 = Pulso de un scan para SB2
+
+Network 4 // Captura de Sensores Fisicos de Entrada, Inspeccion y Desviadores
+LD     I0.3
+=      M2.3                         // Sensor fotoelectrico presencia en entrada de cinta
+LD     I0.4
+=      M2.4                         // Fibra optica vertical a 10 cm (nucleo)
+LD     I0.5
+=      M2.5                         // Inductivo lateral a 10 cm (base metalica)
+LD     I0.7
+=      M2.7                         // Reed Desviador Carril 1 extendido
+LD     I1.0
+=      M3.0                         // Reed Desviador Carril 2 extendido
+LD     I1.1
+=      M3.1                         // Reed Desviador Carril 3 extendido
+
+Network 5 // Flancos de Comandos PPI desde Maestro PLC 1 (VB100)
+// El PLC 1 entrega cada bit de VB100 en modo "envio unico" (1 durante un ciclo NETW,
+// luego 0). Aqui se detecta el flanco EU: NO se borra VB100 localmente, de modo que
+// una reescritura del maestro nunca genera ordenes duplicadas.
+LD     V100.0
+EU
+=      M7.0                         // CMD_START: quitar pausa / estop remoto
+LD     V100.1
+EU
+=      M7.1                         // CMD_PAUSE
+LD     V100.2
+EU
+=      M7.2                         // CMD_ESTOP (seta QS de la celda en PLC 1)
+LD     V100.3
+EU
+=      M7.3                         // CMD_ACK_RESET
+LD     V100.4
+EU
+=      M7.4                         // CMD_PIEZA_ENTREGADA (Transporte deposito en cinta)
+LD     V100.6
+EU
+=      M7.6                         // BELT_PERMIT_RUN relevado por PLC 1 desde el Brazo 4-DOF
+
+Network 6 // Enclavamiento de Ordenes Remotas en Marcas de Proceso
+LD     M7.1
+S      M6.1, 1                      // Pausa remota
+LD     M7.2
+S      M6.2, 1                      // Estop remoto: paro por inercia y retencion
+S      M6.1, 1
+LD     M7.0
+R      M6.1, 1                      // Reanudar
+R      M6.2, 1
+LD     M7.3
+S      M6.3, 1                      // ACK_RESET remoto (consumido en SBR_SEGURIDAD)
+LD     M7.4
+S      M6.4, 1                      // Pieza entregada en la entrada de la cinta
+LD     M7.6
+S      M6.6, 1                      // Permiso de cinta del Brazo (consumido en Paso 60)
+
+Network 7 // Conmutacion de Modo VFD pedida por Red (VB102): 1 = Analogico, 2 = Modbus
+// Solo con la cinta parada y confirmada (VW350 = 0 y VW352 = 0) para no conmutar en marcha.
+// No se toca VW340: la maquina Modbus detecta M14.3 = 0 en Paso 100 y reconfigura la RAM
+// sin abortar ninguna trama en curso.
+LDB=   VB102, 1
+AW<>   VW308, +1
+AW=    VW350, +0
+AW=    VW352, +0
+MOVW   +1, VW308                    // Conmutar a Modo 1 Analogico/Digital
+R      M14.3, 1                     // Exigir reconfiguracion RAM (F0.03 = 2, F0.11 = 1)
+LDB=   VB102, 2
+AW<>   VW308, +2
+AW=    VW350, +0
+AW=    VW352, +0
+MOVW   +2, VW308                    // Conmutar a Modo 2 Modbus Puro
+R      M14.3, 1                     // Exigir reconfiguracion RAM (F0.03 = 9, F0.11 = 2)
+MOVW   +99, VW352                   // Forzar re-despacho explicito del paro por Modbus
+
+Network 8 // Sentido de Cinta pedido por el SCADA via PLC 1 (VB103): 0 = sin cambio, 1 = Forward, 2 = Reverse
+// Igual que el modo: solo con la cinta parada y confirmada. Se aplica a la siguiente orden de marcha.
+LDB=   VB103, 1
+AW<>   VW390, +1
+AW=    VW350, +0
+AW=    VW352, +0
+MOVW   +1, VW390
+LDB=   VB103, 2
+AW<>   VW390, +2
+AW=    VW350, +0
+AW=    VW352, +0
+MOVW   +2, VW390
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 2: SBR_SEGURIDAD (LOGICA QS FAIL-SAFE Y REARME POR SB1)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_SEGURIDAD:SBR2
+TITLE=LOGICA DE PARADA DE EMERGENCIA FAIL-SAFE QS (I1.4) Y REARME POR SB1
+BEGIN
+
+Network 1 // Parada de Emergencia Activa (I1.4 = 0, seta NC fail-safe)
+// La orden de cinta (VW350 = 3 Inercia) y las salidas Q0.0/AQW0 se resuelven en
+// SBR_ACTUADORES a partir de M2.2; aqui solo se aborta la secuencia.
+LDN    I1.4
+LPS
+S      M2.2, 1                      // Emergencia activa
+R      M2.0, 1                      // Cancelar Seguridad OK
+R      M2.1, 1                      // Cancelar espera de rearme
+MOVW   +0, VW330                    // Abortar ciclo Automatico a Reposo (Paso 0)
+MOVW   +0, VW332                    // Abortar ciclo Manual a Reposo (Paso 0)
+R      M6.4, 1                      // Descartar pieza entregada pendiente
+R      M6.6, 1                      // Descartar permiso de cinta pendiente
+R      M11.0, 8                     // Reset permisos manuales
+LRD
+RI     Q0.0, 1                      // Corte inmediato de marcha fisica VFD (DI1)
+R      Q0.1, 1                      // Sentido VFD (DI2) desenergizado
+R      Q0.4, 3                      // Retraer los 3 desviadores neumaticos
+LPP
+R      V200.1, 1                    // Reset STAT_BUSY
+R      V200.2, 1                    // Reset STAT_DONE
+R      V200.6, 1                    // Reset STAT_ROBOT_WAIT
+
+Network 2 // Seta Desenclavada (I1.4 = 1) - Transicion a Espera de Rearme
+LD     I1.4
+A      M2.2
+R      M2.2, 1                      // Seta liberada fisicamente
+S      M2.1, 1                      // Espera de Rearme
+R      M2.0, 1                      // Operacion bloqueada hasta SB1
+
+Network 3 // Rearme Seguro por SB1 (I1.3 -> M5.0) o ACK_RESET remoto, solo en Espera de Rearme
+LD     M5.0                         // Operario pulsa fisicamente Marcha SB1
+O      M6.3                         // O comando remoto ACK_RESET desde Maestro
+A      M2.1                         // Solo si se espera el rearme
+A      I1.4                         // Seta desenclavada
+LPS
+S      M2.0, 1                      // SEGURIDAD_OK
+R      M2.1, 1                      // Fin de Espera de Rearme
+R      M2.2, 1                      // Limpiar Emergencia Activa
+R      M4.0, 2                      // Reset alarmas Fuga (M4.0) y Atasco (M4.1)
+R      M14.6, 1                     // Reset alarma de comunicacion VFD
+R      V200.3, 1                    // Reset STAT_ALM_ATASCO PPI
+R      V200.4, 1                    // Reset STAT_ALM_FUGA PPI
+LRD
+R      M6.1, 1                      // Reset pausa
+R      M6.2, 1                      // Reset estop remoto
+R      M6.3, 1                      // Consumir ACK_RESET
+MOVW   +0, VW330                    // Confirmar Paso 0 Reposo
+MOVW   +0, VW332
+LPP
+R      M5.0, 1                      // Consumir el pulso SB1: el rearme NO arranca el Paso 10 manual
+
+Network 4 // ACK_RESET remoto con la estacion ya rearmada: solo borra alarmas (los pasos NO se reinician)
+// El PLC 1 lo envia con cada SB1 de Transporte en Automatico: no debe interrumpir la cinta.
+LD     M6.3
+A      M2.0
+R      M4.0, 2
+R      M14.6, 1
+R      V200.3, 1
+R      V200.4, 1
+LD     M6.3
+R      M6.3, 1                      // Consumir (tambien durante una emergencia)
+
+Network 5 // Reset Manual con Pulsador SB2 (I1.2 -> M5.1)
+LD     M5.1
+LPS
+MOVW   +0, VW330                    // Reset Auto a Paso 0
+MOVW   +0, VW332                    // Reset Manual a Paso 0 (aborta tambien la prueba Paso 70)
+R      M4.0, 2                      // Borrar alarmas Atasco y Fuga
+R      M14.6, 1                     // Borrar alarma de comunicacion VFD
+R      V200.3, 1
+R      V200.4, 1
+LRD
+R      M11.0, 8
+R      M6.4, 1
+R      M6.6, 1
+LPP
+R      Q0.4, 3                      // Retraer los 3 desviadores
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 3: SBR_DIAGNOSTICO (SUPERVISION NEUMATICA DELTA-T Y ATASCOS)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_DIAGNOSTICO:SBR3
+TITLE=SUPERVISION NEUMATICA, MEDICION DELTA-T (VW220..VW224) Y ALARMAS DE ATASCO
+BEGIN
+
+Network 1 // Delta-t Extension Desviador Carril 1 (T33 base 10 ms) -> VW220
+// Desviador 1 activo en Auto Paso 30 o Manual Paso 10
+LD     I0.7
+EU
+LDW=   VW330, +30
+OW=    VW332, +10
+ALD
+MOVW   T33, VW220                   // Cuentas de 10 ms
+*I     +10, VW220                   // Conversion a ms
+AW>    VW220, +350                  // Umbral alerta preventiva de fuga (>350 ms)
+S      M4.0, 1
+
+LDW=   VW330, +30
+OW=    VW332, +10
+AN     I0.7
+TON    T33, +32767
+
+LDW>   T33, +150                    // 1.5 s sin confirmacion
+AN     I0.7
+S      M4.1, 1                      // Alarma Atasco Critico Neumatico
+
+Network 2 // Delta-t Extension Desviador Carril 2 (T34 base 10 ms) -> VW222
+LD     I1.0
+EU
+LDW=   VW330, +40
+OW=    VW332, +30
+ALD
+MOVW   T34, VW222
+*I     +10, VW222
+AW>    VW222, +350
+S      M4.0, 1
+
+LDW=   VW330, +40
+OW=    VW332, +30
+AN     I1.0
+TON    T34, +32767
+
+LDW>   T34, +150
+AN     I1.0
+S      M4.1, 1
+
+Network 3 // Delta-t Extension Desviador Carril 3 (T35 base 10 ms) -> VW224
+LD     I1.1
+EU
+LDW=   VW330, +50
+OW=    VW332, +50
+ALD
+MOVW   T35, VW224
+*I     +10, VW224
+AW>    VW224, +350
+S      M4.0, 1
+
+LDW=   VW330, +50
+OW=    VW332, +50
+AN     I1.1
+TON    T35, +32767
+
+LDW>   T35, +150
+AN     I1.1
+S      M4.1, 1
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 4: SBR_MAN_STEP (MODO MANUAL PASO A PASO POR PALABRA VW332)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_MAN_STEP:SBR4
+TITLE=SECUENCIADOR MANUAL PASO A PASO (VW332) CON PULSADOR SB1 Y PRUEBA DE CINTA VFD
+BEGIN
+
+Network 1 // Transicion Paso 0 (Reposo) -> Paso 10 (Extender Desviador 1)
+LDW=   VW332, +0
+A      M2.0
+AN     M4.1
+A      M5.0                         // Operario presiona SB1 (I1.3)
+MOVW   +10, VW332                   // Paso 10: Extender Desviador 1 (Q0.4 = 1)
+R      M11.1, 1
+
+Network 2 // Paso 10: Confirmacion de Extension Desviador 1 (I0.7)
+LDW=   VW332, +10
+A      I0.7
+AN     M4.1
+S      M11.1, 1
+
+Network 3 // Transicion Paso 10 -> Paso 20 (Retraer Desviador 1)
+LDW=   VW332, +10
+A      M11.1
+A      M5.0
+AN     M4.1
+MOVW   +20, VW332                   // Paso 20: Retraer Desviador 1 (Q0.4 = 0)
+R      M11.1, 1
+R      M11.2, 1
+
+Network 4 // Paso 20: Retraccion Desviador 1 (400 ms con T40 y Reed I0.7 desactivado)
+LDW=   VW332, +20
+TON    T40, +4                      // 400 ms (base 100 ms)
+LDW=   VW332, +20
+AN     I0.7
+A      T40
+AN     M4.1
+S      M11.2, 1
+
+Network 5 // Transicion Paso 20 -> Paso 30 (Extender Desviador 2)
+LDW=   VW332, +20
+A      M11.2
+A      M5.0
+AN     M4.1
+MOVW   +30, VW332                   // Paso 30: Extender Desviador 2 (Q0.5 = 1)
+R      M11.2, 1
+R      M11.3, 1
+
+Network 6 // Paso 30: Confirmacion de Extension Desviador 2 (I1.0)
+LDW=   VW332, +30
+A      I1.0
+AN     M4.1
+S      M11.3, 1
+
+Network 7 // Transicion Paso 30 -> Paso 40 (Retraer Desviador 2)
+LDW=   VW332, +30
+A      M11.3
+A      M5.0
+AN     M4.1
+MOVW   +40, VW332                   // Paso 40: Retraer Desviador 2 (Q0.5 = 0)
+R      M11.3, 1
+R      M11.4, 1
+
+Network 8 // Paso 40: Retraccion Desviador 2 (400 ms con T41 y Reed I1.0 desactivado)
+LDW=   VW332, +40
+TON    T41, +4
+LDW=   VW332, +40
+AN     I1.0
+A      T41
+AN     M4.1
+S      M11.4, 1
+
+Network 9 // Transicion Paso 40 -> Paso 50 (Extender Desviador 3)
+LDW=   VW332, +40
+A      M11.4
+A      M5.0
+AN     M4.1
+MOVW   +50, VW332                   // Paso 50: Extender Desviador 3 (Q0.6 = 1)
+R      M11.4, 1
+R      M11.5, 1
+
+Network 10 // Paso 50: Confirmacion de Extension Desviador 3 (I1.1)
+LDW=   VW332, +50
+A      I1.1
+AN     M4.1
+S      M11.5, 1
+
+Network 11 // Transicion Paso 50 -> Paso 60 (Retraer Desviador 3)
+LDW=   VW332, +50
+A      M11.5
+A      M5.0
+AN     M4.1
+MOVW   +60, VW332                   // Paso 60: Retraer Desviador 3 (Q0.6 = 0)
+R      M11.5, 1
+R      M11.6, 1
+
+Network 12 // Paso 60: Retraccion Desviador 3 (400 ms con T43 y Reed I1.1 desactivado)
+LDW=   VW332, +60
+TON    T43, +4
+LDW=   VW332, +60
+AN     I1.1
+A      T43
+AN     M4.1
+S      M11.6, 1
+
+Network 13 // Transicion Paso 60 -> Paso 70 (Marcha de Prueba de Cinta VFD a 30 Hz)
+// La orden de marcha NO se escribe aqui: SBR_ACTUADORES calcula VW350 = 1 en Paso 70.
+//   Modo 1: Q0.0 = 1 y AQW0 = VW370 (+19200) en el mismo scan.
+//   Modo 2: SBR_VFD_MODBUS despacha 0x1000 = VW366 y 0x2000 = 1 en cuanto queda libre.
+LDW=   VW332, +60
+A      M11.6
+A      M5.0
+AN     M4.1
+MOVW   +70, VW332                   // Paso 70: Marcha prueba cinta VFD
+R      M11.6, 1
+R      M11.7, 1                     // M11.7 = Marcha confirmada (se evalua en Network 14)
+R      M12.1, 1                     // M12.1 = Movimiento real verificado por telemetria
+
+Network 14 // Paso 70 - Confirmacion de Marcha (Modo 1 inmediata / Modo 2 eco Modbus VW352 = 1)
+LDW=   VW332, +70
+AN     M11.7
+LDW=   VW308, +1                    // Modo 1: Q0.0 y AQW0 se aplican en este mismo scan
+LDW=   VW308, +2
+AW=    VW352, +1                    // Modo 2: el VFD acepto 0x1000 y 0x2000 = 1 (Run FWD)
+OLD
+ALD
+S      M11.7, 1
+
+Network 15 // Paso 70 - Watchdog de Despacho T48 (6.0 s sin confirmacion)
+LDW=   VW332, +70
+AN     M11.7
+TON    T48, +60
+
+Network 16 // Paso 70 - Ventana de Prueba T44 (VW388 = 100 -> 10.0 s) contada DESDE la confirmacion
+// Rampa de 1.0 s + 9.0 s de movimiento estable visible a 30 Hz.
+LDW=   VW332, +70
+A      M11.7
+TON    T44, VW388
+
+Network 17 // Paso 70 - Verificacion de Movimiento Real (frecuencia de salida > 5.00 Hz)
+LDW=   VW332, +70
+A      M11.7
+LDW>   VW400, +500                  // VW400 = 0x1001 frecuencia real (0.01 Hz), cualquier sentido
+OW<    VW400, -500
+ALD
+S      M12.1, 1
+
+Network 18 // Paso 70 - Fin de Prueba por T44 -> Paso 0 (VW350 vuelve a 0 = Paro decelerado)
+LDW=   VW332, +70
+A      M11.7
+A      T44
+MOVW   +0, VW332
+R      M11.7, 1
+
+Network 19 // Paso 70 - Falla de Despacho (T48): Alarma de Comunicacion VFD y Retorno a Reposo
+LDW=   VW332, +70
+A      T48
+S      M14.6, 1                     // Alarma VFD (HL3 intermitente, STAT bit 5)
+MOVW   +0, VW332
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 5: SBR_SECUENCIA_AUTO (MODO AUTOMATICO POR PALABRA VW330 Y HSC0)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_SECUENCIA_AUTO:SBR5
+TITLE=SECUENCIADOR AUTOMATICO (VW330) Y CLASIFICACION DINAMICA
+BEGIN
+
+Network 1 // CALIBRACION DE COTAS DE CINTA (Pasos 90/91) - Contador en vivo y sensores de inspeccion
+// Posiciones del encoder HSC0 (HC0) guardadas en memoria V (formato CON SIGNO en la Tabla de Estado):
+//   VD412 contador en vivo         VD416 pieza deja la entrada I0.3 (flanco de bajada)
+//   VD420 inductivo I0.5 detecta   VD424 inductivo I0.5 deja de detectar
+//   VD428 fibra I0.4 detecta       VD432 fibra I0.4 deja de detectar
+// Solo se guarda el PRIMER flanco de cada sensor (VB393 = sensores ya capturados).
+LDW=   VW330, +90
+OW=    VW330, +91
+MOVD   HC0, VD412
+LD     I0.3
+ED
+AW=    VW330, +90
+AN     V393.0
+MOVD   HC0, VD416
+S      V393.0, 1
+LD     I0.5
+EU
+AW=    VW330, +90
+AN     V393.1
+MOVD   HC0, VD420
+S      V393.1, 1
+LD     I0.5
+ED
+AW=    VW330, +90
+AN     V393.2
+MOVD   HC0, VD424
+S      V393.2, 1
+LD     I0.4
+EU
+AW=    VW330, +90
+AN     V393.3
+MOVD   HC0, VD428
+S      V393.3, 1
+LD     I0.4
+ED
+AW=    VW330, +90
+AN     V393.4
+MOVD   HC0, VD432
+S      V393.4, 1
+
+Network 2 // CALIBRACION - SB1 durante la marcha: 1a = Carril 1, 2a = Carril 2, 3a = Carril 3, 4a = Fin de cinta
+// Pulsar cuando el centro de la pieza pasa frente a cada desviador y frente al punto de toma
+// del Brazo. La 4a pulsacion detiene la cinta. VB456 = pulsaciones registradas.
+LDW=   VW330, +90
+A      M5.0
+LPS
+INCB   VB456
+LRD
+AB=    VB456, 1
+MOVD   HC0, VD436                   // Carril 1
+LRD
+AB=    VB456, 2
+MOVD   HC0, VD440                   // Carril 2
+LRD
+AB=    VB456, 3
+MOVD   HC0, VD444                   // Carril 3
+LPP
+AB=    VB456, 4
+MOVD   HC0, VD448                   // Fin de cinta (toma del Brazo)
+MOVW   +91, VW330                   // Frenar la cinta
+
+Network 3 // CALIBRACION - Entrada: Automatico en reposo + SB1 con V392.0 = 1 (Tabla de Estado) o con SB2 mantenido
+// La cinta marcha a 18 Hz (VW350 = 2). Contador a cero y PV fuera de alcance: no hay clasificacion.
+LDW=   VW330, +0
+A      M5.2
+A      M2.0
+AN     M4.1
+A      M5.0
+LD     V392.0                       // Habilitado desde la Tabla de Estado
+O      I1.2                         // O SB2 mantenido mientras se pulsa SB1
+ALD
+LPS
+MOVW   +90, VW330
+MOVB   0, VB456
+MOVB   0, VB393
+FILL   +0, VW412, 22                // Borra VD412..VD455 (resultados anteriores)
+R      V392.0, 1
+R      M6.4, 1
+LPP
+MOVD   +0, SMD38                    // CV = 0 en la posicion de partida
+MOVD   +32000, SMD42                // PV inalcanzable: sin interrupciones de clasificacion
+MOVB   16#F8, SMB37
+HSC    0
+
+Network 4 // CALIBRACION - Limite de seguridad: |HC0| > 15000 cuentas detiene la cinta
+LDW=   VW330, +90
+LDD>   HC0, +15000
+OD<    HC0, -15000
+ALD
+MOVW   +91, VW330
+
+Network 5 // CALIBRACION - Paso 91: cinta frenando; a los 2.0 s guarda la posicion final (VD452) y vuelve a reposo
+LDW=   VW330, +91
+TON    T49, +20
+LDW=   VW330, +91
+A      T49
+MOVD   HC0, VD452                   // Posicion final detenida (incluye la frenada)
+MOVW   +0, VW330
+
+Network 6 // Pausa y Reanudacion Local en Automatico
+// La pausa (M6.1) detiene la cinta via VW350 (SBR_ACTUADORES) sin perder el paso.
+LD     M5.0                         // SB1 local: reanudar
+A      M2.0
+R      M6.1, 1
+R      M6.2, 1
+
+Network 7 // Transicion Paso 0 (Reposo) -> Paso 10 (Arranque de Cinta hacia Inspeccion)
+// Disparo: CMD_PIEZA_ENTREGADA del PLC 1 (M6.4) o, en prueba local, SB1 con pieza en I0.3.
+LDW=   VW330, +0
+A      M2.0
+AN     M4.1
+AN     M6.1
+LD     M6.4
+LD     M5.0
+A      M2.3
+OLD
+ALD
+LPS
+R      M6.4, 1                      // Consumir orden de arranque
+R      M6.6, 1                      // Descartar permisos antiguos del Brazo
+// Reset de HSC0 y carga inicial de PV = VW310 (cota de inspeccion)
+MOVD   +0, SMD38                    // CV = 0
+ITD    VW310, SMD42                 // PV = cota de inspeccion
+MOVB   16#F8, SMB37                 // Habilitar HSC0, actualizar CV y PV, contar arriba
+HSC    0
+LRD
+AB=    VB101, 5                     // Tipo 5 informado por PLC 1 (pieza negra, bypass)
+S      M6.5, 1
+LRD
+AB<>   VB101, 5
+R      M6.5, 1
+LPP
+MOVW   +10, VW330                   // Paso 10: transito a 30 Hz hacia la inspeccion
+S      V200.1, 1                    // STAT_BUSY = 1
+R      V200.2, 1                    // STAT_DONE = 0
+R      V200.6, 1                    // STAT_ROBOT_WAIT = 0
+
+// Pasos 10, 15 y 20: la clasificacion, el cambio a 18 Hz y la parada final se
+// ejecutan en INT_HSC0_CVPV (Evento 12) con independencia del tiempo de scan.
+
+Network 8 // Paso 25: Cinta Frenando - el desviador NO actua hasta que la pieza queda quieta frente al piston
+// La orden de paro sale en la cota final (VW312/314/316); la cinta recorre ~100 cuentas mas
+// mientras desacelera. Tras VW394 (0.7 s) se activa el desviador del carril asignado (VW300).
+LDW=   VW330, +25
+TON    T50, VW394
+LDW=   VW330, +25
+A      T50
+LPS
+AW=    VW300, +1
+MOVW   +30, VW330                   // Carril 1: expulsion Q0.4
+LRD
+AW=    VW300, +2
+MOVW   +40, VW330                   // Carril 2: expulsion Q0.5
+LPP
+AW=    VW300, +3
+MOVW   +50, VW330                   // Carril 3: expulsion Q0.6
+
+Network 9 // Paso 30: Expulsion Carril 1 confirmada por Reed I0.7
+LDW=   VW330, +30
+A      I0.7
+AN     M4.1
+MOVW   +32, VW330                   // Paso 32: retraer Desviador 1
+
+Network 10 // Paso 32: Retraccion Desviador 1 y Ventana de 2.0 s (T37)
+LDW=   VW330, +32
+TON    T37, +20
+LDW=   VW330, +32
+A      T37
+AN     M4.1
+LPS
+S      V200.2, 1                    // STAT_DONE = 1
+R      V200.1, 1                    // STAT_BUSY = 0
+LPP
+MOVW   +0, VW330
+
+Network 11 // Paso 40: Expulsion Carril 2 confirmada por Reed I1.0
+LDW=   VW330, +40
+A      I1.0
+AN     M4.1
+MOVW   +42, VW330
+
+Network 12 // Paso 42: Retraccion Desviador 2 y Ventana de 2.0 s (T38)
+LDW=   VW330, +42
+TON    T38, +20
+LDW=   VW330, +42
+A      T38
+AN     M4.1
+LPS
+S      V200.2, 1
+R      V200.1, 1
+LPP
+MOVW   +0, VW330
+
+Network 13 // Paso 50: Expulsion Carril 3 confirmada por Reed I1.1
+LDW=   VW330, +50
+A      I1.1
+AN     M4.1
+MOVW   +52, VW330
+
+Network 14 // Paso 52: Retraccion Desviador 3 y Ventana de 2.0 s (T39)
+LDW=   VW330, +52
+TON    T39, +20
+LDW=   VW330, +52
+A      T39
+AN     M4.1
+LPS
+S      V200.2, 1
+R      V200.1, 1
+LPP
+MOVW   +0, VW330
+
+Network 15 // Paso 60: Fin de Cinta (VW318) - Espera BELT_PERMIT_RUN del Brazo 4-DOF via PLC 1
+// STAT_ROBOT_WAIT (V200.6) = 1 mientras VW330 = 60. El PLC 1 ordena la recogida al
+// PLC 6 y, cuando el brazo eleva 5000 pulsos en Y, reenvia el permiso (V100.6 -> M6.6).
+// SB1 local permite liberar a mano si la pieza se retiro manualmente (puesta en marcha).
+LDW=   VW330, +60
+LD     M6.6                         // BELT_PERMIT_RUN recibido
+O      M5.0                         // O liberacion manual local con SB1
+ALD
+LPS
+R      M6.6, 1                      // Consumir permiso
+R      V200.6, 1                    // Fin de espera de robot
+S      V200.2, 1                    // STAT_DONE = 1
+R      V200.1, 1                    // STAT_BUSY = 0
+LPP
+MOVW   +0, VW330                    // Reposo: lista para la siguiente pieza
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 6: SBR_ACTUADORES (ORDEN VFD, SALIDAS FISICAS Y BALIZAS)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_ACTUADORES:SBR6
+TITLE=ORDEN DE CINTA VW350, MARCHA Q0.0 / CONSIGNA AQW0, DESVIADORES Y BALIZAS
+BEGIN
+
+Network 1 // Calculo Centralizado de la Orden de Cinta VW350 (unico punto de escritura en scan)
+// 0 = Paro decelerado, 1 = Transito 30 Hz, 2 = Aproximacion 18 Hz, 3 = Paro por inercia
+LD     SM0.0
+MOVW   +0, VW350
+// Automatico: Pasos 10 y 15 en transito rapido
+LD     M5.2
+LDW=   VW330, +10
+OW=    VW330, +15
+ALD
+MOVW   +1, VW350
+// Automatico: Paso 20 en aproximacion lenta
+LD     M5.2
+AW=    VW330, +20
+MOVW   +2, VW350
+// Calibracion de cotas (Paso 90): marcha continua a 18 Hz
+LD     M5.2
+AW=    VW330, +90
+MOVW   +2, VW350
+// Manual: Paso 70 marcha de prueba
+LDN    M5.2
+AW=    VW332, +70
+MOVW   +1, VW350
+// Pausa en Automatico, atasco o seguridad no rearmada -> Paro decelerado
+LD     M5.2
+A      M6.1
+O      M4.1
+ON     M2.0
+MOVW   +0, VW350
+// Emergencia local (QS) o estop remoto de la celda -> Paro por inercia
+LD     M2.2
+ON     I1.4
+O      M6.2
+MOVW   +3, VW350
+
+Network 2 // Marcha por Bornes - EXCLUSIVO MODO 1: Q0.0 -> DI1 (FWD) si VW390 = 1, Q0.1 -> DI2 (REV) si VW390 = 2
+// En Modo 2 ambas salidas permanecen en 0 (F0.11 = 2: el VFD ignora los bornes).
+LDW=   VW308, +1
+LDW=   VW350, +1
+OW=    VW350, +2
+ALD
+LPS
+AW=    VW390, +1
+=      Q0.0
+LPP
+AW=    VW390, +2
+=      Q0.1
+
+Network 3 // Enclavamiento: nunca DI1 y DI2 simultaneos
+LD     Q0.0
+A      Q0.1
+R      Q0.0, 2
+
+Network 4 // Consigna Analogica AQW0 (Borne AI1 0-10 V) - EXCLUSIVO MODO 1
+// Se calcula en VW386 y se escribe UNA sola vez por scan (AQW es de escritura inmediata).
+LD     SM0.0
+MOVW   +0, VW386
+LDW=   VW308, +1
+AW=    VW350, +1
+MOVW   VW370, VW386                 // 30.0 Hz: +19200
+LDW=   VW308, +1
+AW=    VW350, +2
+MOVW   VW372, VW386                 // 18.0 Hz: +11520
+LD     SM0.0
+MOVW   VW386, AQW0
+
+Network 5 // Desviador Neumatico Carril 1 Q0.4 (Auto Paso 30 / Manual Paso 10)
+LDW=   VW330, +30
+A      M5.2
+LDW=   VW332, +10
+AN     M5.2
+OLD
+A      M2.0
+AN     M4.1
+=      Q0.4
+
+Network 6 // Desviador Neumatico Carril 2 Q0.5 (Auto Paso 40 / Manual Paso 30)
+LDW=   VW330, +40
+A      M5.2
+LDW=   VW332, +30
+AN     M5.2
+OLD
+A      M2.0
+AN     M4.1
+=      Q0.5
+
+Network 7 // Desviador Neumatico Carril 3 Q0.6 (Auto Paso 50 / Manual Paso 50)
+LDW=   VW330, +50
+A      M5.2
+LDW=   VW332, +50
+AN     M5.2
+OLD
+A      M2.0
+AN     M4.1
+=      Q0.6
+
+Network 8 // Baliza Verde HL1 (Q1.0): Cinta / Clasificacion en Marcha Normal
+LDW>   VW330, +0
+A      M5.2
+AN     M6.1
+LDW>   VW332, +0
+AN     M5.2
+OLD
+A      M2.0
+AN     M2.2
+AN     M4.1
+=      Q1.0
+
+Network 9 // Baliza Amarilla HL2 (Q0.7): Espera Manual, Pausa, Espera de Brazo o Alerta
+LDW=   VW332, +0
+AN     M5.2
+LD     M5.2
+A      M6.1
+OLD
+LD     M5.2
+AW=    VW330, +60                   // Esperando recogida del Brazo 4-DOF
+OLD
+O      M4.0                         // Alerta preventiva de fuga
+O      M2.1                         // Esperando rearme
+A      SM0.5                        // Intermitente 1 Hz
+AN     M2.2
+A      I1.4
+=      Q0.7
+
+Network 10 // Baliza Roja HL3 (Q1.1): Emergencia o Atasco (fija), Falla Comunicacion VFD (intermitente)
+LDN    I1.4
+O      M2.2
+O      M4.1
+LD     M14.6
+A      SM0.5
+OLD
+=      Q1.1
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 7: SBR_HSC0_CONFIG (CONFIGURACION ENCODER HSC0 EN MODO 9 Y EVENTO 12)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_HSC0_CONFIG:SBR7
+TITLE=CONFIGURACION DEL CONTADOR RAPIDO HSC0 EN MODO 9 (CUADRATURA A/B)
+BEGIN
+
+Network 1 // Definicion de Contador Rapido HSC0 en Modo 9 (I0.0 = A, I0.1 = B)
+LD     SM0.0
+HDEF   0, 9
+
+Network 2 // Parametros Iniciales: SMB37 = 16#F8 (habilitar, actualizar CV/PV, contar arriba)
+LD     SM0.0
+MOVB   16#F8, SMB37
+MOVD   +0, SMD38                    // CV inicial = 0 pulsos
+ITD    VW310, SMD42                 // PV inicial = cota de inspeccion (VW310)
+HSC    0
+
+Network 3 // Interrupcion Hardware Evento 12 (HSC0 CV = PV) -> INT_HSC0_CVPV
+LD     SM0.0
+ATCH   INT_HSC0_CVPV, 12
+ENI
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 8: SBR_VFD_MODBUS (MAESTRO MODBUS RTU PUERTO 1 - MAQUINA VW340)
+// ==============================================================================
+// PASOS DE LA MAQUINA DE ESTADOS VW340:
+//     0 : Espera de inicializacion de MBUS_CTRL_P1 (M14.0 = 1 y VB345 = 0)
+//    10 : RAM 0x000D (F0.13 Aceleracion)  <- VW362     [40014]
+//    20 : RAM 0x000E (F0.14 Deceleracion) <- VW364     [40015]
+//    30 : RAM 0x0003 (F0.03 Fuente Frec.) <- 9 / 2     [40004]
+//    40 : RAM 0x000B (F0.11 Fuente Cmd.)  <- 2 / 1     [40012]
+//   100 : Reposo / Despacho (prioridad: Config RAM > Orden Modo 2 > Telemetria)
+//   110 : 0x1000 <- VW366 (30.0 Hz)  -> 112
+//   112 : 0x2000 <- VW390 (1 FWD / 2 REV) -> 100 (orden confirmada)
+//   120 : 0x1000 <- VW368 (18.0 Hz)  -> 112
+//   130 : 0x2000 <- 6 (Paro decel.)  -> 132
+//   132 : 0x1000 <- 0                -> 100 (orden confirmada)
+//   140 : 0x2000 <- 5 (Inercia)      -> 100 (orden confirmada)
+//   200 : Lectura 0x1001..0x1004 (4 registros) -> VW400..VW406 -> 100
+// GESTION DE ERRORES: cada trama se reintenta VB343 veces (error de libreria o
+// watchdog T45 de 3.0 s). Agotados los reintentos se activa M14.6, se guarda el
+// paso en VW358 y la maquina SIEMPRE vuelve a avanzar:
+//   - Config RAM: se salta el parametro, se marca M15.1 y se reintenta la
+//     configuracion completa cada 10 s (T46) mientras la cinta este parada.
+//   - Orden de marcha/paro: vuelve a Paso 100 sin confirmar (VW352 <> VW350) y se
+//     re-despacha tras 1.0 s de espera (T47).
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_VFD_MODBUS:SBR8
+TITLE=MAESTRO MODBUS P1: CONFIGURACION RAM, DESPACHO DE ORDENES CON REINTENTOS Y TELEMETRIA
+BEGIN
+
+Network 1 // Protocolo Modbus Maestro en Puerto 1 (19200 bps, sin paridad, timeout 1000 ms)
+// Debe ejecutarse en cada scan. Done = M14.0, Error = VB345 (fuera del area VB4000+).
+LD     SM0.0
+CALL   MBUS_CTRL_P1, SM0.0, 19200, 0, 1000, M14.0, VB345
+
+Network 2 // Modo 1: Marcha/Paro por bornes; la orden se considera confirmada localmente
+// Mantiene VW352 = VW350 para que la telemetria nunca quede bloqueada en Modo 1.
+LDW=   VW308, +1
+MOVW   VW350, VW352
+
+Network 3 // Watchdog de Transaccion T45 (3.0 s) - Respaldo del timeout interno de la libreria
+LD     M14.2
+TON    T45, +30
+
+Network 4 // Base de Tiempo de Telemetria T42 (200 ms, autorreseteable)
+LDN    T42
+TON    T42, +2
+LD     T42
+S      M15.5, 1                     // Telemetria pendiente
+
+Network 5 // PASO 0: Espera de MBUS_CTRL_P1 inicializado sin error -> Paso 100
+LDW=   VW340, +0
+A      M14.0
+AB=    VB345, 0
+MOVW   +100, VW340
+
+Network 6 // PASO 100 (a): Prioridad 1 - Configuracion de RAM pendiente -> Paso 10
+LDW=   VW340, +100
+AN     M14.2
+AN     M14.3
+R      M15.1, 1                     // Nueva pasada de configuracion sin fallos
+R      M15.0, 1
+MOVW   +10, VW340
+
+Network 7 // PASO 100 (b): Prioridad 2 - Orden de cinta nueva en Modo 2 (VW350 <> VW352)
+LDW=   VW340, +100
+AN     M14.2
+AW=    VW308, +2
+AN     M15.2                        // Sin espera de reintento tras fallo
+AW<>   VW350, VW352
+LPS
+MOVW   VW350, VW354                 // Congelar la orden en despacho
+R      M15.0, 1
+AW=    VW350, +1
+MOVW   +110, VW340                  // Marcha transito 30 Hz
+LRD
+AW=    VW350, +2
+MOVW   +120, VW340                  // Marcha aproximacion 18 Hz
+LRD
+AW=    VW350, +0
+MOVW   +130, VW340                  // Paro decelerado
+LPP
+AW=    VW350, +3
+MOVW   +140, VW340                  // Paro por inercia
+
+Network 8 // PASO 100 (c): Prioridad 3 - Telemetria periodica (Modo 1 y Modo 2)
+LDW=   VW340, +100
+AN     M14.2
+A      M15.5
+R      M15.5, 1
+R      M15.0, 1
+MOVW   +200, VW340
+
+Network 9 // Carga de Peticion: Direccion Modbus y Valor segun Paso (solo con M15.0 = 0)
+LDW=   VW340, +10
+AN     M15.0
+MOVD   +40014, VD376                // RAM 0x000D F0.13 Aceleracion
+MOVW   VW362, VW360
+LDW=   VW340, +20
+AN     M15.0
+MOVD   +40015, VD376                // RAM 0x000E F0.14 Deceleracion
+MOVW   VW364, VW360
+LDW=   VW340, +30
+AN     M15.0
+MOVD   +40004, VD376                // RAM 0x0003 F0.03 Fuente de frecuencia
+MOVW   +9, VW360                    // Modo 2: 9 = Comunicacion
+LDW=   VW340, +30
+AN     M15.0
+AW=    VW308, +1
+MOVW   +2, VW360                    // Modo 1: 2 = AI1 (0-10 V)
+LDW=   VW340, +40
+AN     M15.0
+MOVD   +40012, VD376                // RAM 0x000B F0.11 Fuente de comandos (CORREGIDO, antes 40018)
+MOVW   +2, VW360                    // Modo 2: 2 = Comunicacion
+LDW=   VW340, +40
+AN     M15.0
+AW=    VW308, +1
+MOVW   +1, VW360                    // Modo 1: 1 = Bornes DI
+
+Network 10 // Carga de Peticion: Ordenes de Marcha/Paro y Consignas (solo con M15.0 = 0)
+LDW=   VW340, +110
+AN     M15.0
+MOVD   +44097, VD376                // 0x1000 Consigna
+MOVW   VW366, VW360                 // 6000 = 30.0 Hz
+LDW=   VW340, +112
+AN     M15.0
+MOVD   +48193, VD376                // 0x2000 Comando
+MOVW   VW390, VW360                 // Marcha en el sentido configurado (1 FWD / 2 REV)
+LDW=   VW340, +120
+AN     M15.0
+MOVD   +44097, VD376
+MOVW   VW368, VW360                 // 3600 = 18.0 Hz
+LDW=   VW340, +130
+AN     M15.0
+MOVD   +48193, VD376
+MOVW   16#0006, VW360               // Paro con deceleracion
+LDW=   VW340, +132
+AN     M15.0
+MOVD   +44097, VD376
+MOVW   +0, VW360                    // Consigna 0 Hz
+LDW=   VW340, +140
+AN     M15.0
+MOVD   +48193, VD376
+MOVW   16#0005, VW360               // Paro libre por inercia
+LDW=   VW340, +200
+AN     M15.0
+MOVD   +44098, VD376                // 0x1001 Frecuencia real (lectura de 4 registros)
+
+Network 11 // Carga de Peticion: Sentido de Transferencia, Cantidad y Puntero de Datos
+LDW=   VW340, +200
+AN     M15.0
+MOVB   0, VB375                     // RW = 0 Lectura (funcion 03)
+MOVW   +4, VW380                    // 4 registros: 0x1001..0x1004
+MOVD   &VB400, VD382                // Destino VW400..VW406
+LDW<>  VW340, +200
+AN     M15.0
+MOVB   1, VB375                     // RW = 1 Escritura (funcion 06)
+MOVW   +1, VW380                    // 1 registro
+MOVD   &VB360, VD382                // Origen VW360
+
+Network 12 // Armado de la Transaccion: EN sostenido (M14.2) y First de un solo scan (M14.4)
+LDW<>  VW340, +0
+AW<>   VW340, +100
+AN     M15.0
+S      M15.0, 1                     // Peticion cargada para este paso
+S      M14.2, 1                     // EN de MBUS_MSG_P1 sostenido hasta Done
+S      M14.4, 1                     // First (solo este scan)
+R      T45, 1                       // Reinicio del watchdog de trama
+
+Network 13 // Instancia UNICA de MBUS_MSG_P1 (Done = M14.1, Error = VB344)
+LD     M14.2
+CALL   MBUS_MSG_P1, M14.4, VB374, VB375, VD376, VW380, VD382, M14.1, VB344
+
+Network 14 // Evaluacion del Resultado (excluye el scan de disparo para no leer un Done antiguo)
+LD     M14.2
+AN     M14.4
+A      M14.1                        // Done (con o sin error)
+LPS
+AB=    VB344, 0
+S      M15.3, 1                     // Trama correcta
+LPP
+AB<>   VB344, 0
+S      M15.7, 1                     // Trama con error (excepcion, CRC, sin respuesta...)
+
+Network 15 // Watchdog Vencido: Abortar Transaccion como Error 99
+LD     M14.2
+A      T45
+AN     M15.3                        // Salvo que la trama haya terminado bien en este scan
+MOVB   99, VB344
+S      M15.7, 1
+
+Network 16 // First Solo Durante el Scan de Disparo
+LD     SM0.0
+R      M14.4, 1
+
+Network 17 // EXITO: Liberar Instancia y Avanzar segun Paso (VW356 = copia del paso)
+LD     M15.3
+MOVW   VW340, VW356
+R      M14.2, 1
+R      M15.0, 1
+R      M14.6, 1                     // Comunicacion VFD restablecida
+MOVB   0, VB346
+LDW=   VW356, +10
+A      M15.3
+MOVW   +20, VW340
+LDW=   VW356, +20
+A      M15.3
+MOVW   +30, VW340
+LDW=   VW356, +30
+A      M15.3
+MOVW   +40, VW340
+LDW=   VW356, +110
+A      M15.3
+MOVW   +112, VW340
+LDW=   VW356, +120
+A      M15.3
+MOVW   +112, VW340
+LDW=   VW356, +130
+A      M15.3
+MOVW   +132, VW340
+LDW=   VW356, +200
+A      M15.3
+MOVW   +100, VW340
+
+Network 18 // EXITO: Fin de Configuracion RAM (Paso 40) -> Paso 100
+LDW=   VW356, +40
+A      M15.3
+S      M14.3, 1                     // Pasada de configuracion completada
+MOVW   +99, VW352                   // Forzar re-despacho de la orden vigente tras reconfigurar
+MOVW   +100, VW340
+
+Network 19 // EXITO: Orden Confirmada por el VFD (Pasos 112, 132, 140) -> Paso 100
+LDW=   VW356, +112
+OW=    VW356, +132
+OW=    VW356, +140
+A      M15.3
+MOVW   VW354, VW352                 // VW352 = orden aceptada por el variador
+MOVW   +100, VW340
+
+Network 20 // EXITO: Consumir Bandera
+LD     SM0.0
+R      M15.3, 1
+
+Network 21 // ERROR: Reintento de la Misma Trama mientras VB346 < VB343
+LD     M15.7
+R      M14.2, 1                     // Soltar EN (aborta la instancia)
+INCB   VB346
+LD     M15.7
+AB<    VB346, VB343
+R      M15.0, 1                     // Re-armar el mismo paso en el siguiente scan
+R      M15.7, 1
+
+Network 22 // ERROR DEFINITIVO: Alarma, Registro del Paso y Salida Limpia (sin bloqueo)
+LD     M15.7
+S      M14.6, 1                     // Alarma de comunicacion VFD
+MOVW   VW340, VW358                 // Ultimo paso fallido (diagnostico)
+MOVW   VW340, VW356
+MOVB   0, VB346
+R      M15.0, 1
+// Config RAM (10..40): saltar al siguiente parametro y marcar pasada incompleta
+LDW=   VW356, +10
+A      M15.7
+S      M15.1, 1
+MOVW   +20, VW340
+LDW=   VW356, +20
+A      M15.7
+S      M15.1, 1
+MOVW   +30, VW340
+LDW=   VW356, +30
+A      M15.7
+S      M15.1, 1
+MOVW   +40, VW340
+LDW=   VW356, +40
+A      M15.7
+S      M15.1, 1
+S      M14.3, 1                     // Pasada terminada (incompleta): habilita despacho y telemetria
+MOVW   +99, VW352
+MOVW   +100, VW340
+// Ordenes (110..140): volver a Paso 100 sin confirmar y esperar T47 antes de re-despachar
+LDW>=  VW356, +110
+AW<=   VW356, +140
+A      M15.7
+S      M15.2, 1
+MOVW   +100, VW340
+// Telemetria (200): descartar lectura y volver a Paso 100
+LDW=   VW356, +200
+A      M15.7
+MOVW   +100, VW340
+
+Network 23 // ERROR: Consumir Bandera
+LD     SM0.0
+R      M15.7, 1
+
+Network 24 // Espera de 1.0 s (T47) antes de Re-despachar una Orden Fallida
+LD     M15.2
+TON    T47, +10
+LD     T47
+R      M15.2, 1
+
+Network 25 // Reintento de Configuracion RAM Incompleta cada 10 s (solo con cinta parada)
+LD     M14.3
+A      M15.1
+AW=    VW350, +0
+AW=    VW352, +0
+TON    T46, +100
+LD     T46
+R      M14.3, 1                     // Paso 100 relanzara la pasada completa 10..40
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// SUBRUTINA 9: SBR_COMMS_PPI (SINCRONIZACION BUFFER RED PPI ESCLAVO NODO 5)
+// ==============================================================================
+SUBROUTINE_BLOCK SBR_COMMS_PPI:SBR9
+TITLE=MAPEO DE ESTADO Y TELEMETRIA VFD HACIA MAESTRO PLC 1 (VB200..VB211)
+BEGIN
+
+Network 1 // VB200 (STAT_GLOBAL): Bitmask de Estado General de la Estacion
+// Bit 0: STAT_READY (Automatico, Paso 0, sin pausa ni fallas: acepta nueva pieza)
+LDW=   VW330, +0
+A      M5.2
+A      M2.0
+AN     M4.1
+AN     M6.1
+AN     M6.4                         // Sin pieza pendiente de arranque
+=      V200.0
+
+// Bit 1: STAT_BUSY (Secuencia de clasificacion o prueba en ejecucion)
+LDW>   VW330, +0
+A      M5.2
+LDW>   VW332, +0
+AN     M5.2
+OLD
+=      V200.1
+
+// Bit 2: STAT_DONE gestionado por SBR_SECUENCIA_AUTO (Pasos 32, 42, 52, 60)
+
+// Bit 3: STAT_ALM_ATASCO
+LD     M4.1
+=      V200.3
+
+// Bit 4: STAT_ALM_FUGA
+LD     M4.0
+=      V200.4
+
+// Bit 5: STAT_ALM_VFD (Falla de comunicacion Modbus con el Powtran)
+LD     M14.6
+=      V200.5
+
+// Bit 6: STAT_ROBOT_WAIT (Pieza Tipo 4/5 detenida en VW318 esperando al Brazo)
+LDW=   VW330, +60
+A      M5.2
+=      V200.6
+
+// Bit 7: STAT_HOMED (Seguridad OK y desviadores retraidos)
+LD     M2.0
+AN     Q0.4
+AN     Q0.5
+AN     Q0.6
+=      V200.7
+
+Network 2 // VB201 (STAT_PASO): Byte bajo del Paso Activo (VB331 Auto / VB333 Manual)
+LD     M5.2
+MOVB   VB331, VB201
+LDN    M5.2
+MOVB   VB333, VB201
+
+Network 3 // VB202 (STAT_INPUTS): Espejo de Entradas Fisicas IB0
+LD     SM0.0
+MOVB   IB0, VB202
+
+// VB203 (STAT_DATA): Carril asignado 1..4, escrito en INT_HSC0_CVPV
+
+Network 4 // VW204..VB212: Telemetria del VFD y salidas Hacia PLC 1 (NETR de 13 bytes)
+LD     SM0.0
+MOVW   VW400, VW204                 // 0x1001 Frecuencia real (0.01 Hz)
+MOVW   VW406, VW206                 // 0x1004 Corriente de salida (0.01 A)
+MOVW   VW402, VW208                 // 0x1002 Tension bus DC (0.1 V)
+MOVB   VB309, VB210                 // Modo VFD activo (byte bajo de VW308)
+LDN    I1.4
+O      M2.2
+=      V210.7                       // Bit 7: emergencia en Seleccion -> baliza de planta (PLC 1)
+LD     SM0.0
+MOVB   0, VB211
+LD     M14.6
+MOVB   VB344, VB211                 // Ultimo codigo de error Modbus mientras hay alarma
+LD     I1.5
+=      V210.6                       // Bit 6: selector en Automatico (para el SCADA)
+LDW=   VW390, +2
+=      V210.5                       // Bit 5: sentido de cinta REV (VW390 = 2)
+LD     SM0.0
+MOVB   QB0, VB212                   // VB212: salidas Q0.0..Q0.7 (marcha, sentido, desviadores, focos); el PLC 1 lee 13 bytes
+
+END_SUBROUTINE_BLOCK
+
+// ==============================================================================
+// RUTINA DE INTERRUPCION 0: INT_HSC0_CVPV (EVENTO 12: CV = PV EN HSC0)
+// ==============================================================================
+INTERRUPT_BLOCK INT_HSC0_CVPV:INT0
+TITLE=INTERRUPCION HARDWARE POR COINCIDENCIA DE PULSOS ENCODER HSC0 (EVENTO 12)
+BEGIN
+
+Network 1 // CASO 1 - PASO 10 (PV = VW310): Inspeccion al Vuelo y Asignacion de Tipo
+// Lectura inmediata (AI/ANI) de los sensores: no depende de la imagen del scan.
+// 1A: Tipo 5 (pieza negra informada por PLC 1 y enclavada en M6.5 al arrancar)
+LDW=   VW330, +10
+A      M6.5
+MOVW   +5, VW300
+MOVB   4, VB203                     // Destino: fin de cinta hacia Brazo 4-DOF
+ITD    VW328, SMD42                 // PV = Cota de reduccion fin de cinta
+// 1B: Tipo 1 (Base metal I0.5 = 1, Nucleo metal I0.4 = 1)
+LDW=   VW330, +10
+AN     M6.5
+AI     I0.5
+AI     I0.4
+MOVW   +1, VW300
+MOVB   1, VB203
+ITD    VW322, SMD42
+// 1C: Tipo 2 (Base plastica I0.5 = 0, Nucleo plastico I0.4 = 0)
+LDW=   VW330, +10
+AN     M6.5
+ANI    I0.5
+ANI    I0.4
+MOVW   +2, VW300
+MOVB   2, VB203
+ITD    VW324, SMD42
+// 1D: Tipo 3 (Base plastica I0.5 = 0, Nucleo metal I0.4 = 1)
+LDW=   VW330, +10
+AN     M6.5
+ANI    I0.5
+AI     I0.4
+MOVW   +3, VW300
+MOVB   3, VB203
+ITD    VW326, SMD42
+// 1E: Tipo 4 (Base metal I0.5 = 1, Nucleo plastico I0.4 = 0)
+LDW=   VW330, +10
+AN     M6.5
+AI     I0.5
+ANI    I0.4
+MOVW   +4, VW300
+MOVB   4, VB203
+ITD    VW328, SMD42
+
+Network 2 // CASO 1 - Cargar PV de Reduccion sin Alterar CV y Avanzar a Paso 15
+LDW=   VW330, +10
+MOVB   16#A8, SMB37                 // Habilitar, actualizar PV, contar arriba
+HSC    0
+MOVW   +15, VW330
+CRETI
+
+Network 3 // CASO 2 - PASO 15 (Cota de Reduccion): Velocidad de Aproximacion 18 Hz
+LDW=   VW330, +15
+AW=    VW308, +1
+MOVW   VW372, AQW0                  // Modo 1: +11520 inmediato
+LDW=   VW330, +15
+MOVW   +2, VW350                    // Ambos modos: orden 2 (Modo 2 la despacha SBR_VFD_MODBUS)
+// Cargar Cota Final segun tipo
+LDW=   VW330, +15
+AW=    VW300, +1
+ITD    VW312, SMD42                 // Carril 1
+LDW=   VW330, +15
+AW=    VW300, +2
+ITD    VW314, SMD42                 // Carril 2
+LDW=   VW330, +15
+AW=    VW300, +3
+ITD    VW316, SMD42                 // Carril 3
+LDW=   VW330, +15
+AW>=   VW300, +4
+ITD    VW318, SMD42                 // Tipos 4 y 5: fin de cinta
+
+Network 4 // CASO 2 - Cargar PV Final y Avanzar a Paso 20
+LDW=   VW330, +15
+MOVB   16#A8, SMB37
+HSC    0
+MOVW   +20, VW330
+CRETI
+
+Network 5 // CASO 3 - PASO 20 (Cota Final): Freno Inmediato de Cinta
+LDW=   VW330, +20
+LPS
+RI     Q0.0, 1                      // Modo 1: corte inmediato de DI1
+RI     Q0.1, 1                      // Modo 1: corte inmediato de DI2 (sentido inverso)
+MOVW   +0, AQW0                     // Modo 1: consigna a 0 V
+LPP
+MOVW   +0, VW350                    // Modo 2: paro decelerado (0x2000 = 6) en el siguiente despacho
+
+Network 6 // CASO 3 - Paso Siguiente segun Tipo de Pieza
+LDW=   VW330, +20
+AW>=   VW300, +1
+AW<=   VW300, +3
+MOVW   +25, VW330                   // Carriles 1..3: Paso 25 = frenando; el desviador espera a la cinta parada
+LDW=   VW330, +20
+AW>=   VW300, +4
+R      M6.6, 1                      // Descartar permisos antiguos
+S      V200.6, 1                    // STAT_ROBOT_WAIT = 1 hacia PLC 1
+MOVW   +60, VW330                   // Paso 60: espera de recogida por Brazo 4-DOF
+
+END_INTERRUPT_BLOCK

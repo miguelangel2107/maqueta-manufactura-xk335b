@@ -1,0 +1,56 @@
+Symbol;Address;Comment
+Enc_A;I0.0;Encoder Fase A
+Enc_B;I0.1;Encoder Fase B
+Enc_C;I0.2;Encoder Fase C (Indice)
+Sens_Objeto;I0.3;Sensor deteccion de pieza en entrada
+Sens_Fibra;I0.4;Sensor fibra Omron (Clasificacion)
+Sens_Mag;I0.5;Sensor magnetico (Clasificacion)
+Extendido_C1;I0.7;Confirmacion extension cilindro rampa 1
+Extendido_C2;I1.0;Confirmacion extension cilindro rampa 2
+Extendido_C3;I1.1;Confirmacion extension cilindro rampa 3
+Btn_Paro;I1.2;Pulsador rojo de paro
+Btn_Marcha;I1.3;Pulsador verde de marcha
+Seta_Emerg;I1.4;Zeta de emergencia (NC)
+Selector;I1.5;Selector rotatorio de modo
+Motor_Cinta;Q0.0;Mando marcha variador
+Motor_Dir;Q0.1;Mando de direccion del motor
+V_Cil1;Q0.4;Valvula cilindro rampa 1
+V_Cil2;Q0.5;Valvula cilindro rampa 2
+V_Cil3;Q0.6;Valvula cilindro rampa 3
+Lamp_Amarilla;Q0.7;Luz de advertencia
+Lamp_Verde;Q1.0;Luz de marcha
+Lamp_Roja;Q1.1;Luz de paro o falla
+Salida_Analog;AQW0;Consigna velocidad variador (0-32000)
+Pos_Real;VD100;Posicion actual en cuentas (REAL)
+Pos_Last;VD104;Posicion ciclo anterior (REAL)
+Vel_Actual;VD108;Velocidad calculada en cuentas/s (REAL)
+Setpoint;VD112;Posicion objetivo para el controlador (REAL)
+Accion_Ctrl;VD116;U calculada por realimentacion estados (REAL)
+K1;VD120;Ganancia de posicion (REAL)
+K2;VD124;Ganancia de velocidad (REAL)
+N;VD132;Ganancia de pre-compensacion (REAL)
+U_Abs;VD128;Magnitud absoluta de accion de control (REAL)
+Coord_Rampa;VD300;Coordenada de rampa seleccionada (REAL)
+P0_Reposo;M0.0;Estado de espera inicial
+P1_Avanzar;M0.1;Movimiento hacia zona de sensores
+P2_Ident;M0.2;Clasificacion al vuelo (Posicion 500)
+P3_Viaje;M0.3;Movimiento hacia rampa objetivo
+P4_Expulsar;M0.4;Activacion de cilindro empujador
+P5_Final;M0.5;Retorno de actuadores y reset
+T0_Inicio;M1.0;Disparo: Marcha + Pieza
+T1_Pos500;M1.1;Disparo: Llegada a cuenta 500
+T2_Clasificado;M1.2;Disparo: Carga de coordenada terminada
+T3_Target;M1.3;Disparo: Llegada a rampa objetivo
+T4_Push_OK;M1.4;Disparo: Expulsion confirmada
+T5_Fin_Ciclo;M1.5;Disparo: Sistema restaurado
+Ev_Marcha;M2.0;Evento: Orden de inicio y Seta OK
+Ev_Pieza_In;M2.1;Evento: Pieza detectada en entrada
+Ev_P500;M2.2;Evento: Encoder >= 500
+Ev_PRampa;M2.3;Evento: Encoder >= Coordenada Rampa
+Ev_Cil_Ext;M2.4;Evento: Uno de los cilindros extendido
+Ack_MS;V0.1;Reconocimiento marcha Unidad de Seleccion
+Marcha_S;V1.1;Solicitud de marcha para la Unidad de Seleccion
+Sel_OK;V0.2;Unidad de Seleccion disponible
+Pieza_Metal;V0.3;Indica si la pieza atendida es totalmente metalica
+Pieza_Mixta;V0.4;Indica si la pieza atendida es mixta (metal-plastico o plastico-metal)
+Pieza_Plastica;V0.5;Indica si la pieza atendida es totalemnte plastica

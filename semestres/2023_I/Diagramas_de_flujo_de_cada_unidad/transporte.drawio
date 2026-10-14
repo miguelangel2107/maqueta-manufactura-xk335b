@@ -1,0 +1,314 @@
+<mxfile host="app.diagrams.net" modified="2023-06-03T22:11:52.807Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36" etag="jegt5tgNGUyZ-ROnZVYz" version="21.3.7" type="google">
+  <diagram name="Página-1" id="Ufe1_sKGFIm294W5NWwL">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-1" value="" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-2" target="-fSHUaFSVhEKHxJ1xGdS-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="70" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-2" value="Transporte" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="70" y="30" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-4" target="-fSHUaFSVhEKHxJ1xGdS-7">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="130" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-4" value="Mantener estáticos la plataforma y brazo robótico" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-5" value="Si" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-7" target="-fSHUaFSVhEKHxJ1xGdS-9">
+          <mxGeometry x="0.2" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="130" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-6" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-7" target="-fSHUaFSVhEKHxJ1xGdS-4">
+          <mxGeometry x="-0.6098" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="240" y="210" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="240" y="195" />
+              <mxPoint x="240" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-7" value="alimentación indica fin?" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=1;" vertex="1" parent="1">
+          <mxGeometry x="75" y="160" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-9" target="-fSHUaFSVhEKHxJ1xGdS-39">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="130" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-9" value="Llevar la plataforma hasta la posición inicial" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingRight=2;spacingLeft=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="260" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-29" target="-fSHUaFSVhEKHxJ1xGdS-31">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-29" value="Girar el brazo hacia la dirección de las unidades" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="690" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-31" target="-fSHUaFSVhEKHxJ1xGdS-32">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-31" value="Extender el cilindro doble aproximándose a la unidad" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="750" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-32" value="Cerrar la pinza sujetando la pieza de la unidad" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="810" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-32" target="-fSHUaFSVhEKHxJ1xGdS-35">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="130" y="1025" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-35" target="-fSHUaFSVhEKHxJ1xGdS-37">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-35" value="Elevar el brazo robótico activando el pistón delgado" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="870" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-37" target="-fSHUaFSVhEKHxJ1xGdS-38">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-37" value="Retraer el cilindro doble para retirar la pieza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="930" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-73" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-38" target="-fSHUaFSVhEKHxJ1xGdS-90">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-38" value="Girar el brazo robótico de forma horaria" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="990" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-39" target="-fSHUaFSVhEKHxJ1xGdS-42">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-39" value="Rutina para recolección de piezas" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;size=0.05555555555555555;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-40" target="-fSHUaFSVhEKHxJ1xGdS-45">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="130" y="500" />
+              <mxPoint x="260" y="500" />
+              <mxPoint x="260" y="70" />
+              <mxPoint x="370" y="70" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-40" value="Rutina para entrega de piezas" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;size=0.05555555555555555;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-42" target="-fSHUaFSVhEKHxJ1xGdS-40">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-42" value="Dirigir la plataforma hacia la unidad de ensamblaje" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-45" target="-fSHUaFSVhEKHxJ1xGdS-48">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="370" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-45" value="Mantener estáticos la plataforma y brazo robótico" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="280" y="90" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-46" value="Si" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-48" target="-fSHUaFSVhEKHxJ1xGdS-52">
+          <mxGeometry x="0.2" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="370" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-47" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-48" target="-fSHUaFSVhEKHxJ1xGdS-45">
+          <mxGeometry x="-0.6098" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="480" y="210" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="480" y="195" />
+              <mxPoint x="480" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-48" value="ensamblaje indica fin?" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=1;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="315" y="160" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-52" target="-fSHUaFSVhEKHxJ1xGdS-55">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-52" value="Rutina para recolección de piezas" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;size=0.05555555555555555;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="280" y="260" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-67" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-53" target="-fSHUaFSVhEKHxJ1xGdS-58">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="440" />
+              <mxPoint x="500" y="440" />
+              <mxPoint x="500" y="70" />
+              <mxPoint x="610" y="70" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-53" value="Rutina para entrega de piezas" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;size=0.05555555555555555;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="280" y="380" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-55" target="-fSHUaFSVhEKHxJ1xGdS-53">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-55" value="Dirigir la plataforma hacia la unidad de procesamiento" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="280" y="320" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-57" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-58" target="-fSHUaFSVhEKHxJ1xGdS-61">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="610" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-58" value="Mantener estáticos la plataforma y brazo robótico" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="520" y="90" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-59" value="Si" style="rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-61" target="-fSHUaFSVhEKHxJ1xGdS-63">
+          <mxGeometry x="0.2" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="610" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-60" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;fontSize=11;endArrow=block;endFill=0;endSize=8;strokeWidth=1;shadow=0;labelBackgroundColor=none;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-61" target="-fSHUaFSVhEKHxJ1xGdS-58">
+          <mxGeometry x="-0.6098" y="20" relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="720" y="210" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="720" y="195" />
+              <mxPoint x="720" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-61" value="procesamiento indica fin?" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=1;spacingLeft=0;spacingRight=0;" vertex="1" parent="1">
+          <mxGeometry x="555" y="160" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-62" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-63" target="-fSHUaFSVhEKHxJ1xGdS-66">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-63" value="Rutina para recolección de piezas" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;size=0.05555555555555555;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="520" y="260" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-69" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-99" target="-fSHUaFSVhEKHxJ1xGdS-102">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="610" y="580" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-65" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-66" target="-fSHUaFSVhEKHxJ1xGdS-98">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="610" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-66" value="Dirigir la plataforma hacia la unidad de selección" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="520" y="320" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-68" value="Fin" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="550" y="620" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-71" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-70" target="-fSHUaFSVhEKHxJ1xGdS-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-70" value="Rutina de recolección" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="70" y="630" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-72" value="Retorno" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1110" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-75" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-76" target="-fSHUaFSVhEKHxJ1xGdS-78">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-76" value="Girar el brazo hacia la dirección de las unidades" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="260" y="750" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-77" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-95" target="-fSHUaFSVhEKHxJ1xGdS-79">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="880" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-78" value="Extender el cilindro doble aproximándose a la unidad" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="260" y="810" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-79" value="Abrir la pinza dejando la pieza en la unidad" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="260" y="930" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-81" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-79" target="-fSHUaFSVhEKHxJ1xGdS-84">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="1020" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-83" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-84" target="-fSHUaFSVhEKHxJ1xGdS-86">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-84" value="Retraer el cilindro doble para retirar la pieza" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="260" y="990" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-85" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-86" target="-fSHUaFSVhEKHxJ1xGdS-89">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-86" value="Girar el brazo robótico de forma horaria" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="260" y="1050" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-87" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-88" target="-fSHUaFSVhEKHxJ1xGdS-92">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-88" value="Rutina de entrega" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="630" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-89" value="Retorno" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="1110" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-91" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-90" target="-fSHUaFSVhEKHxJ1xGdS-72">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-90" value="Bajar el brazo robótico con el pistón delgado" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1050" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-93" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-92" target="-fSHUaFSVhEKHxJ1xGdS-76">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-92" value="Elevar el brazo robótico activando el pistón delgado" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="260" y="690" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-94" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-78" target="-fSHUaFSVhEKHxJ1xGdS-95">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="890" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-95" value="Bajar el brazo robótico con el pistón delgado" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="260" y="870" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-97" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endSize=8;endArrow=block;endFill=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-101" target="-fSHUaFSVhEKHxJ1xGdS-99">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="610" y="440" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-98" value="Extender el cilindro doble aproximándose a la unidad" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="520" y="380" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-99" value="Abrir la pinza dejando la pieza en la unidad" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="520" y="500" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-100" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-98" target="-fSHUaFSVhEKHxJ1xGdS-101">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="610" y="450" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-101" value="Bajar el brazo robótico con el pistón delgado" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="520" y="440" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-103" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=8;" edge="1" parent="1" source="-fSHUaFSVhEKHxJ1xGdS-102" target="-fSHUaFSVhEKHxJ1xGdS-68">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-fSHUaFSVhEKHxJ1xGdS-102" value="Retornar la plataforma a su posición inicial" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;spacingLeft=2;spacingRight=2;" vertex="1" parent="1">
+          <mxGeometry x="520" y="560" width="180" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
