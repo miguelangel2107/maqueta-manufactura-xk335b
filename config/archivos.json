@@ -2,77 +2,137 @@
   "global/datasheets/s7200_system_manual_es-ES.pdf": {
     "titulo": "Manual de sistema S7-200 (Siemens)",
     "descripcion": "Memoria, direccionamiento de E/S, contadores rápidos y comunicaciones de las CPU S7-200.",
-    "estaciones": [1, 2, 3, 4, 5, 6]
+    "estaciones": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
   },
   "global/datasheets/s7_200_224xpCN.pdf": {
     "titulo": "Hoja de datos CPU 224XP CN",
     "descripcion": "CPU de la unidad de selección, con entradas y salida analógica integradas.",
-    "estaciones": [5]
+    "estaciones": [
+      5
+    ]
   },
   "global/datasheets/Technical reference_AC Servo Motor & Driver_MINAS A4-series.pdf": {
     "titulo": "Servomotor y driver Panasonic MINAS A4 - referencia técnica",
     "descripcion": "Conexionado del driver, entrada de tren de pulsos y parámetros. Mueve el carro de la unidad de transporte.",
-    "estaciones": [1]
+    "estaciones": [
+      1
+    ]
   },
   "global/datasheets/minas_a4_e.pdf": {
     "titulo": "Panasonic MINAS A4 - manual de operación",
     "descripcion": "Parámetros de usuario, códigos de alarma y ajuste del servo.",
-    "estaciones": [1]
+    "estaciones": [
+      1
+    ]
   },
   "global/datasheets/map_serv_e.pdf": {
     "titulo": "Panasonic - guía de aplicación de servomotores",
-    "estaciones": [1]
+    "estaciones": [
+      1
+    ]
   },
   "global/datasheets/PI9000_English_Manual_V17.0.pdf": {
     "titulo": "Variador Powtran PI9000 / PI9100 - manual (inglés)",
     "descripcion": "Variador del motor trifásico de la cinta de la unidad de selección.",
-    "estaciones": [5]
+    "estaciones": [
+      5
+    ]
   },
   "global/datasheets/powtran_PI500_user_guide_EN.pdf": {
     "titulo": "Variador Powtran PI500 - guía de usuario (inglés)",
     "descripcion": "Manual que se usó en 2023-II para el variador de la cinta.",
-    "estaciones": [5]
+    "estaciones": [
+      5
+    ]
   },
   "global/datasheets/sensor_e3z-ls.pdf": {
     "titulo": "Sensor fotoeléctrico Omron E3Z-LS",
-    "estaciones": [2, 4, 5]
+    "estaciones": [
+      2,
+      4,
+      5
+    ]
   },
   "global/datasheets/SERSOR_MAGNETICO_-Z80.pdf": {
     "titulo": "Sensores magnéticos SMC D-Z80",
     "descripcion": "Finales de carrera de los cilindros neumáticos.",
-    "estaciones": [1, 2, 3, 4, 5]
+    "estaciones": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
   },
   "global/datasheets/CQ2_Z.pdf": {
     "titulo": "Cilindro compacto SMC CQ2",
-    "estaciones": [2]
+    "estaciones": [
+      2
+    ]
   },
   "global/datasheets/MGPM-Z,_cilindro_guiado_estandar,_cojinete_deslizante.pdf": {
     "titulo": "Cilindro guiado SMC MGPM",
-    "estaciones": [4]
+    "estaciones": [
+      4
+    ]
   },
   "global/datasheets/MHC.pdf": {
     "titulo": "Pinza neumática angular SMC MHC2",
-    "estaciones": [1, 3]
+    "estaciones": [
+      1,
+      3
+    ]
   },
   "global/datasheets/Using_Modbus_Library_Step7_MW_4.0.pdf": {
     "titulo": "Librería Modbus para STEP 7-Micro/WIN",
     "descripcion": "Uso de MBUS_CTRL y MBUS_MSG en las CPU S7-200.",
-    "estaciones": [1, 2, 3, 4, 5, 6]
+    "estaciones": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
   },
   "global/datasheets/YL_335_B_instruction_book_Mitsubishi_FX_3_U_8a2db1348a.pdf": {
     "titulo": "Manual de la YL-335B (versión Mitsubishi FX3U)",
     "descripcion": "Manual de la misma planta en su versión con PLC Mitsubishi. Útil para la parte mecánica y neumática.",
-    "estaciones": [1, 2, 3, 4, 5]
+    "estaciones": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
   },
   "global/datasheets/RTB-E.pdf": {
     "titulo": "Borneras RTB",
-    "estaciones": [1, 2, 3, 4, 5]
+    "estaciones": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
   },
   "global/datasheets/medien_62289.pdf": {
     "titulo": "Electroválvulas neumáticas - documentación complementaria",
-    "estaciones": [1, 2, 3, 4, 5]
+    "estaciones": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
   },
-
   "global/manuales/XK-335B_manual_original_EN.pdf": {
     "titulo": "Manual original de la XK-335B (inglés)",
     "descripcion": "Manual con el que llegó la planta.",
@@ -81,18 +141,42 @@
   "global/programas-originales/": {
     "descripcion": "Programa de fábrica para STEP 7-Micro/WIN, tal como vino con la planta."
   },
-  "global/programas-originales/Transfer_station.mwp": { "titulo": "Programa original - Transporte", "estaciones": [1] },
-  "global/programas-originales/Feeding_station.mwp": { "titulo": "Programa original - Alimentación", "estaciones": [2] },
-  "global/programas-originales/Assembly_station.mwp": { "titulo": "Programa original - Ensamblaje", "estaciones": [3] },
-  "global/programas-originales/Processing_station.mwp": { "titulo": "Programa original - Procesamiento", "estaciones": [4] },
-  "global/programas-originales/Sorting_station.mwp": { "titulo": "Programa original - Selección", "estaciones": [5] },
+  "global/programas-originales/Transfer_station.mwp": {
+    "titulo": "Programa original - Transporte",
+    "estaciones": [
+      1
+    ]
+  },
+  "global/programas-originales/Feeding_station.mwp": {
+    "titulo": "Programa original - Alimentación",
+    "estaciones": [
+      2
+    ]
+  },
+  "global/programas-originales/Assembly_station.mwp": {
+    "titulo": "Programa original - Ensamblaje",
+    "estaciones": [
+      3
+    ]
+  },
+  "global/programas-originales/Processing_station.mwp": {
+    "titulo": "Programa original - Procesamiento",
+    "estaciones": [
+      4
+    ]
+  },
+  "global/programas-originales/Sorting_station.mwp": {
+    "titulo": "Programa original - Selección",
+    "estaciones": [
+      5
+    ]
+  },
   "global/software/plantilla_enlace_drive.html": {
     "oculto": true
   },
   "global/modelos-3d/autocad/": {
     "descripcion": "Modelo 3D en AutoCAD hecho en 2023-II."
   },
-
   "semestres/2026_I/Laboratorio_1/diagramas/": {
     "categoria": "bloques"
   },
@@ -122,11 +206,12 @@
     "titulo": "SCADA web de la celda",
     "descripcion": "Se abre en el navegador. Sin el PLC conectado se puede probar con el botón Demo."
   },
-
   "semestres/2026_II/diagnostico-kaizen/fotos/fig02_sensores_capacitivos_motor_trifasico.png": {
     "titulo": "Motor trifásico y sensor capacitivo",
     "descripcion": "La cinta la mueve un motor trifásico con variador; hay un sensor capacitivo para distinguir piezas de plástico.",
-    "estaciones": [5]
+    "estaciones": [
+      5
+    ]
   },
   "semestres/2026_II/diagnostico-kaizen/fotos/fig03_borneras_conexiones_cables_expuestos.png": {
     "titulo": "Cables con cobre expuesto en borneras",
@@ -139,25 +224,81 @@
   "semestres/2026_II/diagnostico-kaizen/fotos/fig05_sensores_fijados_silicona_cinta.png": {
     "titulo": "Sensores fijados con silicona y cinta",
     "descripcion": "Sensores magnéticos sin abrazadera. Si se sueltan, el PLC deja de ver la posición del cilindro.",
-    "estaciones": [4]
+    "estaciones": [
+      4
+    ]
   },
   "semestres/2026_II/diagnostico-kaizen/fotos/fig06_desalineacion_piston_pinza.png": {
     "titulo": "Pistón y pinza desalineados",
     "descripcion": "Desalineación entre el cilindro de la prensa y la pinza; las piezas se traban.",
-    "estaciones": [4]
+    "estaciones": [
+      4
+    ]
   },
   "semestres/2026_II/diagnostico-kaizen/fotos/fig07_conexion_no_documentada_vfd_giro.png": {
     "titulo": "Conexión no documentada al variador",
     "descripcion": "Cable de una salida del PLC al borne de inversión de giro del variador, que no figuraba en los planos.",
-    "estaciones": [5]
+    "estaciones": [
+      5
+    ]
   },
   "semestres/2026_II/diagnostico-kaizen/fotos/fig08_cable_sensor_aislamiento_danado.png": {
     "titulo": "Cable de sensor con aislamiento dañado",
     "descripcion": "Cobre en contacto con el perfil de aluminio; riesgo de corto a masa de 24 V.",
-    "estaciones": [3]
+    "estaciones": [
+      3
+    ]
   },
   "semestres/2026_II/diagnostico-kaizen/fotos/fig14_plc_s7200_comunicacion_rs485.jpg": {
     "titulo": "PLC S7-200 y cable de la red RS-485",
     "descripcion": "Conexión del bus entre las CPU."
+  },
+  "semestres/2026_II/planos/electrico/1_Transporte/Unidad_de_transporte.dwg": {
+    "titulo": "Plano eléctrico - Transporte"
+  },
+  "semestres/2026_II/planos/electrico/1_Transporte/Unidad_de_transporte.pdf": {
+    "titulo": "Plano eléctrico - Transporte"
+  },
+  "semestres/2026_II/planos/electrico/2_Alimentacion/Unidad_de_alimentacion.dwg": {
+    "titulo": "Plano eléctrico - Alimentación"
+  },
+  "semestres/2026_II/planos/electrico/2_Alimentacion/Unidad_de_Alimentacion.pdf": {
+    "titulo": "Plano eléctrico - Alimentación"
+  },
+  "semestres/2026_II/planos/electrico/3_Ensamblaje/Unidad_de_Ensamblaje.dwg": {
+    "titulo": "Plano eléctrico - Ensamblaje"
+  },
+  "semestres/2026_II/planos/electrico/3_Ensamblaje/Unidad_de_Ensamblaje.pdf": {
+    "titulo": "Plano eléctrico - Ensamblaje"
+  },
+  "semestres/2026_II/planos/electrico/4_Procesamiento/Unidad_de_Procesamiento.dwg": {
+    "titulo": "Plano eléctrico - Procesamiento"
+  },
+  "semestres/2026_II/planos/electrico/4_Procesamiento/Unidad_de_Procesamiento.pdf": {
+    "titulo": "Plano eléctrico - Procesamiento"
+  },
+  "semestres/2026_II/planos/electrico/5_Seleccion/Unidad_de_seleccion.dwg": {
+    "titulo": "Plano eléctrico - Selección"
+  },
+  "semestres/2026_II/planos/electrico/5_Seleccion/Unidad_de_Seleccion.pdf": {
+    "titulo": "Plano eléctrico - Selección"
+  },
+  "semestres/2026_II/planos/pid/1_Transporte/transporte_pid.dwg": {
+    "titulo": "P&ID - Transporte"
+  },
+  "semestres/2026_II/planos/pid/1_Transporte/transporte_pid.pdf": {
+    "titulo": "P&ID - Transporte"
+  },
+  "semestres/2026_II/planos/pid/2_Alimentacion/alimentacion_p&id-Modelo.pdf": {
+    "titulo": "P&ID - Alimentación"
+  },
+  "semestres/2026_II/planos/pid/2_Alimentacion/alimentacion_p&id.dwg": {
+    "titulo": "P&ID - Alimentación"
+  },
+  "semestres/2026_II/planos/pid/4_Procesamiento/P&ID_Procesamiento-Modelo.pdf": {
+    "titulo": "P&ID - Procesamiento"
+  },
+  "semestres/2026_II/planos/pid/4_Procesamiento/P&ID_Procesamiento.dwg": {
+    "titulo": "P&ID - Procesamiento"
   }
 }
