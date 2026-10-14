@@ -30,20 +30,27 @@ const ESTACIONES = [
 
 const CATEGORIAS = {
   guia: 'Guías',
-  informe: 'Informes y documentos',
-  plano: 'Planos',
-  diagrama: 'Diagramas',
+  informe: 'Informes',
+  mapeo: 'Mapeo de E/S',
+  pid: 'P&ID',
+  electrico: 'Planos eléctricos',
+  mockup: 'Mockups',
+  plano: 'Otros planos CAD',
+  bloques: 'Diagramas de bloques',
+  flujo: 'Diagramas de flujo',
+  petri: 'Redes de Petri',
+  diagrama: 'Otros diagramas',
   modelo3d: 'Modelos 3D',
   datasheet: 'Datasheets',
   manual: 'Manuales',
   presentacion: 'Presentaciones',
   datos: 'Datos y ensayos',
+  enlace: 'Software y enlaces',
+  otro: 'Otros',
   programa: 'Programas',
   basedatos: 'Base de datos',
-  enlace: 'Software y enlaces',
   imagen: 'Imágenes',
-  video: 'Videos',
-  otro: 'Otros'
+  video: 'Videos'
 };
 
 // Tipo de programa, para el filtro de la pestaña Códigos
@@ -162,18 +169,33 @@ function clasificar(rel, ext, partes, externo) {
   if (EXT.modelo3d.includes(ext) || (ext === 'dwg' && /(^|[\/_ -])3d|modelos-3d|cad_3d/.test(p))) return 'modelo3d';
   if (EXT.imagen.includes(ext)) return 'imagen';
   if (EXT.video.includes(ext)) return 'video';
-  if (ext === 'drawio') return 'diagrama';
-  if (EXT.plano.includes(ext)) return 'plano';
+
+  const diagrama = () => {
+    if (/bloque/.test(nombre) || /bloques/.test(p)) return 'bloques';
+    if (/flujo/.test(p)) return 'flujo';
+    if (/petri/.test(nombre)) return 'petri';
+    return null;
+  };
+  if (ext === 'drawio') return diagrama() || 'diagrama';
+
+  const esCad = EXT.plano.includes(ext);
+  if (esCad || ['pdf', 'docx', 'doc', 'md', 'xps'].includes(ext)) {
+    if (/mockup/.test(p)) return 'mockup';
+    if (/electric/.test(nombre) || /\/electrico\//.test(p)) return 'electrico';
+    if (/p&id|p_id/.test(nombre) || /p&id|\/pid\//.test(p) ||
+      (/(^|[_\-. ])pid([_\-. ]|\d|$)/.test(nombre) && !/informe|bitacora|control/.test(nombre))) return 'pid';
+    if (esCad) return 'plano';
+    if (/guia/.test(nombre)) return 'guia';
+    const d = diagrama();
+    if (d) return d;
+    if (/diagrama|grafcet/.test(nombre)) return 'diagrama';
+    if (/mapeo/.test(nombre)) return 'mapeo';
+    if (/manual|datasheet/.test(nombre)) return 'manual';
+    return 'informe';
+  }
   if (LENGUAJES[ext]) return 'programa';
   if (EXT.presentacion.includes(ext)) return 'presentacion';
   if (EXT.datos.includes(ext)) return 'datos';
-  if (['pdf', 'docx', 'doc', 'md', 'txt', 'xps'].includes(ext)) {
-    if (/guia/.test(nombre)) return 'guia';
-    if (/p&id|_pid|pid_|electric|plano/.test(nombre) || /\/planos\/|diagramas_p&id|autocad/.test(p)) return 'plano';
-    if (/diagrama|bloques|flujo|grafcet|petri/.test(nombre)) return 'diagrama';
-    if (/manual|datasheet|hoja de datos/.test(nombre)) return 'manual';
-    return 'informe';
-  }
   return 'otro';
 }
 
@@ -181,6 +203,7 @@ function construir() {
   const semConfig = leerJson('config/semestres.json', { semestres: {} });
   const archConfig = leerJson('config/archivos.json', {});
   const vidConfig = leerJson('config/videos.json', { videos: [] });
+  const carpetas = leerJson('config/carpetas.json', {});
 
   const lista = [];
   for (const c of CARPETAS) recorrer(c, lista);
@@ -206,7 +229,9 @@ function construir() {
     for (const [k, v] of porCarpeta) if (rel.startsWith(k)) Object.assign(extra, v);
     Object.assign(extra, archConfig[rel] || {});
 
-    const categoria = extra.categoria || clasificar(rel, ext, partes, externo);
+    const auto = clasificar(rel, ext, partes, externo);
+    // Una categoría puesta para toda una carpeta no saca a las imágenes de la galería
+    const categoria = extra.categoria && auto !== 'imagen' ? extra.categoria : auto;
     const dirs = partes.slice(0, -1).map(d => d.toLowerCase());
     let recurso = dirs.some(d => CARPETAS_RECURSO.has(d)) || nombre.toLowerCase() === 'readme.md';
     if (typeof extra.oculto === 'boolean') recurso = extra.oculto;
@@ -261,6 +286,7 @@ function construir() {
     actual: semConfig.actual || (semestres[0] && semestres[0].id),
     estaciones: ESTACIONES.map(({ claves, ...e }) => e),
     categorias: CATEGORIAS,
+    carpetas,
     semestres,
     videos,
     archivos

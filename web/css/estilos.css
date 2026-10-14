@@ -241,6 +241,7 @@ main { flex: 1; width: 100%; max-width: 1320px; margin: 0 auto; padding: 1.75rem
   font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
   font-weight: 700; margin: 1.4rem 0 0.6rem; display: flex; align-items: center; gap: 0.6rem;
 }
+.group-title .count { font-family: var(--mono); font-weight: 500; }
 .group-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.9rem; }
 .card {
@@ -257,8 +258,11 @@ main { flex: 1; width: 100%; max-width: 1320px; margin: 0 auto; padding: 1.75rem
 .badge-cat { border-color: transparent; }
 .cat-guia, .cat-manual { background: rgba(16, 185, 129, 0.12); color: #059669; }
 .cat-informe { background: rgba(59, 130, 246, 0.12); color: var(--blue-text); }
-.cat-plano { background: rgba(245, 158, 11, 0.14); color: #b45309; }
-.cat-diagrama { background: rgba(139, 92, 246, 0.12); color: #7c3aed; }
+.cat-plano, .cat-pid { background: rgba(245, 158, 11, 0.14); color: #b45309; }
+.cat-electrico { background: rgba(234, 88, 12, 0.12); color: #c2410c; }
+.cat-mockup { background: rgba(6, 182, 212, 0.12); color: #0e7490; }
+.cat-mapeo { background: rgba(59, 130, 246, 0.12); color: var(--blue-text); }
+.cat-diagrama, .cat-bloques, .cat-flujo, .cat-petri { background: rgba(139, 92, 246, 0.12); color: #7c3aed; }
 .cat-modelo3d { background: rgba(236, 72, 153, 0.12); color: #db2777; }
 .cat-datasheet { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
 .cat-presentacion { background: rgba(249, 115, 22, 0.12); color: #c2410c; }

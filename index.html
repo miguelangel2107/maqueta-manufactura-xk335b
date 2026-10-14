@@ -78,23 +78,13 @@
       <div class="section-title"><h2>Semestres</h2><span>Lo que se hizo en cada gestión</span></div>
       <div class="timeline" id="semestres"></div>
 
-      <div class="section-title"><h2>Cómo agregar archivos</h2></div>
-      <div class="howto">
-        <ol>
-          <li>Suba el archivo a la carpeta del semestre en GitHub, por ejemplo <code>semestres/2026_II/planos/pid/</code>. Lo que sirve para todos los semestres (datasheets, manuales, modelos 3D) va en <code>global/</code>.</li>
-          <li>Use nombres sin tildes ni espacios: <code>seleccion_pid.dwg</code>. Si el nombre incluye la unidad (transporte, alimentacion, ensamblaje, procesamiento, seleccion, brazo), la página lo asigna solo.</li>
-          <li>La página se actualiza sola uno o dos minutos después del commit en <code>main</code>.</li>
-          <li>Para cambiar un título o una descripción, o agregar un video de YouTube, edite <code>config/archivos.json</code> o <code>config/videos.json</code>.</li>
-        </ol>
-        <p style="margin-top:0.6rem">Más detalles en el <a href="#ver/README.md">README del repositorio</a>.</p>
-      </div>
     </section>
 
     <!-- DOCUMENTOS -->
     <section class="view hidden" id="vista-documentos">
       <div class="page-head">
         <h1>Documentos</h1>
-        <p>Informes, guías, planos, diagramas, datasheets y presentaciones de todos los semestres.</p>
+        <p>Informes, guías, planos, diagramas, datasheets y presentaciones de la planta.</p>
       </div>
       <div class="filters" data-lista="documentos">
         <div class="filters-row">
@@ -148,14 +138,13 @@
         <select class="select" id="galSem"></select>
         <select class="select" id="galEst"></select>
       </div>
-      <div class="gallery" id="galeria"></div>
+      <div id="galeria"></div>
     </section>
 
     <!-- REPOSITORIO -->
     <section class="view hidden" id="vista-repositorio">
       <div class="page-head">
         <h1>Repositorio</h1>
-        <p>Las carpetas tal como están en GitHub. Los archivos que se pueden leer en el navegador se abren aquí; el resto se descarga.</p>
       </div>
       <div class="explorer">
         <div class="crumbs" id="crumbs"></div>
@@ -211,7 +200,7 @@
       <div>
         <h4>Enlaces</h4>
         <ul>
-          <li><a href="#ver/README.md">README del repositorio</a></li>
+          <li><a href="#ver/README.md">Descripción de la planta</a></li>
           <li><a href="#repositorio/global/datasheets">Datasheets</a></li>
           <li><a href="#repositorio/global/programas-originales">Programas originales</a></li>
           <li><a href="https://github.com/miguelangel2107/maqueta-manufactura-xk335b" target="_blank" rel="noopener">GitHub</a></li>

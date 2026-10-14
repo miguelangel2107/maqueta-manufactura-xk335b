@@ -93,6 +93,9 @@
     "descripcion": "Modelo 3D en AutoCAD hecho en 2023-II."
   },
 
+  "semestres/2026_I/Laboratorio_1/diagramas/": {
+    "categoria": "bloques"
+  },
   "semestres/2026_II/guias/Guias_Laboratorios_1-8_II-2026.docx": {
     "titulo": "Guías de laboratorio 1 a 8 - II/2026",
     "descripcion": "Cronograma del semestre y guías de los ocho laboratorios (ETN-902, ETN-1034, ETN-1000).",

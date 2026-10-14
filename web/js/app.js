@@ -161,19 +161,40 @@
     }
   }
 
+  // Al elegir un semestre también se muestra lo global (datasheets, manuales, 3D)
+  const enSemestre = (sem, filtro) => filtro === 'all' || sem === filtro || (filtro !== 'global' && sem === 'global');
+
+  // Sección = primera carpeta dentro del semestre (o dentro de global)
+  function seccionDe(a) {
+    const partes = a.ruta.split('/');
+    const resto = a.semestre === 'global' ? partes.slice(1, -1) : partes.slice(2, -1);
+    return resto[0] || '';
+  }
+  const ORDEN_SEC = Object.keys(C.carpetas || {});
+  function etiquetaSeccion(sec) {
+    if (!sec) return 'General';
+    if (C.carpetas && C.carpetas[sec]) return C.carpetas[sec];
+    const t = sec.replace(/^\d+[_.\s-]*/, '').replace(/[_-]+/g, ' ').trim() || sec;
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  function ordenSeccion(x, y) {
+    const ix = ORDEN_SEC.indexOf(x), iy = ORDEN_SEC.indexOf(y);
+    return (ix < 0 ? 999 : ix) - (iy < 0 ? 999 : iy) || x.localeCompare(y, 'es', { numeric: true });
+  }
+
   // ---------------------------------------------------------------- listas (documentos / programas)
   const LISTAS = {
     documentos: {
       base: ARCHIVOS.filter(a => !a.recurso && !['programa', 'basedatos', 'imagen', 'video'].includes(a.categoria)),
       grupo: a => a.categoria,
       etiquetaGrupo: k => C.categorias[k] || k,
-      estado: { q: '', sem: 'all', est: 'all', cat: 'all', limite: 60 }
+      estado: { q: '', sem: C.actual, est: 'all', cat: 'all', limite: 60 }
     },
     codigos: {
       base: ARCHIVOS.filter(a => !a.recurso && ['programa', 'basedatos'].includes(a.categoria)),
       grupo: a => a.lenguaje,
       etiquetaGrupo: k => k,
-      estado: { q: '', sem: 'all', est: 'all', cat: 'all', limite: 60 }
+      estado: { q: '', sem: C.actual, est: 'all', cat: 'all', limite: 60 }
     }
   };
   Object.values(LISTAS).forEach(l => l.base.sort(ordenar));
@@ -225,7 +246,7 @@
     $('[data-f="est"]', panel).value = st.est;
 
     const previos = L.base.filter(a =>
-      (st.sem === 'all' || a.semestre === st.sem) &&
+      enSemestre(a.semestre, st.sem) &&
       (st.est === 'all' || a.estaciones.includes(+st.est)) &&
       coincide(a, st.q));
 
@@ -249,18 +270,26 @@
       cont.innerHTML = '<div class="empty">No hay archivos con esos filtros.</div>';
       return;
     }
+    const porSemestre = st.sem === 'all';
+    if (!porSemestre) {
+      const orden = nombre === 'documentos'
+        ? g => ORDEN_CAT.indexOf(g)
+        : g => grupos.indexOf(g);
+      lista.sort((x, y) => orden(L.grupo(x)) - orden(L.grupo(y)) || ordenar(x, y));
+    }
     const mostrar = lista.slice(0, st.limite);
     let html = '';
-    let semActual = null;
+    let grupoActual = null;
     let abierto = false;
     for (const a of mostrar) {
-      if (st.sem === 'all' && a.semestre !== semActual) {
+      const g = porSemestre ? a.semestre : L.grupo(a);
+      if (g !== grupoActual) {
         if (abierto) html += '</div>';
-        semActual = a.semestre;
-        html += `<div class="group-title">${esc(etiquetaSem(semActual))}${semActual === C.actual ? ' · en curso' : ''}</div><div class="grid">`;
-        abierto = true;
-      } else if (!abierto) {
-        html += '<div class="grid">';
+        grupoActual = g;
+        const titulo = porSemestre
+          ? etiquetaSem(g) + (g === C.actual ? ' · en curso' : '')
+          : L.etiquetaGrupo(g);
+        html += `<div class="group-title">${esc(titulo)}</div><div class="grid">`;
         abierto = true;
       }
       html += tarjeta(a);
@@ -317,7 +346,7 @@
   }
 
   // ---------------------------------------------------------------- galería
-  const galeria = { tab: 'fotos', sem: 'all', est: 'all' };
+  const galeria = { tab: 'fotos', sem: C.actual, est: 'all' };
   const FOTOS = ARCHIVOS.filter(a => a.categoria === 'imagen' && !a.recurso).sort(ordenar);
   const VIDEOS_DRIVE = ARCHIVOS.filter(a => a.categoria === 'video').sort(ordenar);
 
@@ -329,6 +358,7 @@
   function iniciarGaleria() {
     opcionesSemestre($('#galSem'));
     opcionesEstacion($('#galEst'));
+    $('#galSem').value = galeria.sem;
     $('#galTabs').addEventListener('click', e => {
       const b = e.target.closest('.tab');
       if (!b) return;
@@ -345,19 +375,44 @@
       (galeria.est === 'all' || (estaciones || []).includes(+galeria.est));
   }
 
+  function tarjetaFoto(a) {
+    const sub = carpetaDe(a.ruta).split('/').slice(a.semestre === 'global' ? 2 : 3).join(' / ');
+    return `
+      <a class="shot" href="#ver/${urlDe(a.ruta)}">
+        <div class="thumb"><img src="${urlArchivo(a)}" alt="${esc(a.titulo)}" loading="lazy"></div>
+        <div class="info"><strong>${esc(a.titulo)}</strong>${sub ? `<small>${esc(sub)}</small>` : ''}</div>
+      </a>`;
+  }
+
   function pintarGaleria() {
     const cont = $('#galeria');
-    $('#galTabs [data-tab="fotos"]').textContent = `Fotos y diagramas (${FOTOS.length})`;
-    $('#galTabs [data-tab="videos"]').textContent = `Videos (${C.videos.length + VIDEOS_DRIVE.length})`;
+    const fotos = FOTOS.filter(a => pasaFiltro(a.semestre, a.estaciones));
+    const videosYt = C.videos.map((v, i) => [v, i]).filter(([v]) => pasaFiltro(v.semestre, v.estaciones));
+    const videosDrive = VIDEOS_DRIVE.filter(a => pasaFiltro(a.semestre, a.estaciones));
+    $('#galTabs [data-tab="fotos"]').textContent = `Fotos y diagramas (${fotos.length})`;
+    $('#galTabs [data-tab="videos"]').textContent = `Videos (${videosYt.length + videosDrive.length})`;
     let html = '';
     if (galeria.tab === 'fotos') {
-      html = FOTOS.filter(a => pasaFiltro(a.semestre, a.estaciones)).map(a => `
-        <a class="shot" href="#ver/${urlDe(a.ruta)}">
-          <div class="thumb"><img src="${urlArchivo(a)}" alt="${esc(a.titulo)}" loading="lazy"></div>
-          <div class="info"><strong>${esc(a.titulo)}</strong><small>${esc(etiquetaSem(a.semestre))} · ${esc(carpetaDe(a.ruta).split('/').slice(a.semestre === 'global' ? 1 : 2).join(' / '))}</small></div>
-        </a>`).join('');
+      // Agrupadas por semestre y sección (diagramas de bloques, diagnóstico Kaizen, ...)
+      const grupos = new Map();
+      for (const a of fotos) {
+        const k = a.semestre + '|' + seccionDe(a);
+        if (!grupos.has(k)) grupos.set(k, []);
+        grupos.get(k).push(a);
+      }
+      const claves = [...grupos.keys()].sort((x, y) => {
+        const [sx, cx] = x.split('|'), [sy, cy] = y.split('|');
+        return rangoSem(sx) - rangoSem(sy) || (sx < sy ? 1 : sx > sy ? -1 : 0) || ordenSeccion(cx, cy);
+      });
+      html = claves.map(k => {
+        const [sem, sec] = k.split('|');
+        const titulo = (galeria.sem === 'all' ? etiquetaSem(sem) + ' · ' : '') + etiquetaSeccion(sec);
+        const items = grupos.get(k);
+        return `<div class="group-title">${esc(titulo)} <span class="count">${items.length}</span></div>
+          <div class="gallery">${items.map(tarjetaFoto).join('')}</div>`;
+      }).join('');
     } else {
-      html = C.videos.filter(v => pasaFiltro(v.semestre, v.estaciones)).map((v, i) => {
+      const items = videosYt.map(([v, i]) => {
         const id = idYoutube(v.url);
         return `
         <button class="shot" data-video="${i}">
@@ -365,15 +420,14 @@
             <div class="play"><span>▶</span></div></div>
           <div class="info"><strong>${esc(v.titulo)}</strong><small>${esc(etiquetaSem(v.semestre))}${v.descripcion ? ' · ' + esc(v.descripcion) : ''}</small></div>
         </button>`;
-      }).join('') + VIDEOS_DRIVE.filter(a => pasaFiltro(a.semestre, a.estaciones)).map(a => `
+      }).join('') + videosDrive.map(a => `
         <a class="shot" ${a.externo ? `href="${esc(a.externo)}" target="_blank" rel="noopener"` : `href="#ver/${urlDe(a.ruta)}"`}>
           <div class="thumb"><div class="noimg">▶</div></div>
           <div class="info"><strong>${esc(a.titulo)}</strong><small>${esc(etiquetaSem(a.semestre))} · ${a.externo ? 'Google Drive' : esc(a.ext)}</small></div>
         </a>`).join('');
+      if (items) html = `<div class="gallery">${items}</div>`;
     }
-    cont.innerHTML = html || `<div class="empty" style="grid-column:1/-1">${galeria.tab === 'videos' && !C.videos.length
-      ? 'Todavía no hay videos de YouTube. Se agregan en <span class="inline-code">config/videos.json</span>.'
-      : 'No hay elementos con esos filtros.'}</div>`;
+    cont.innerHTML = html || `<div class="empty">${galeria.tab === 'videos' ? 'No hay videos en este semestre.' : 'No hay imágenes con esos filtros.'}</div>`;
     $$('[data-video]', cont).forEach(b => b.addEventListener('click', () => {
       const v = C.videos[+b.dataset.video];
       const id = idYoutube(v.url);
