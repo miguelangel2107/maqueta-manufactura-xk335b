@@ -1,58 +1,58 @@
-# 00_Mapeo_General_I_O.md
-# MAPEO GENERAL DE HARDWARE Y DISTRIBUCIÓN DE E/S (CELDA FLEXIBLE XL-335B + BRAZO 4-DOF)
+# Mapeo general de E/S
 
-## 1. Arquitectura de Controladores Siemens SIMATIC S7-200
+Planta XK-335B con el brazo de 4 grados de libertad. Seis PLC S7-200 conectados en un bus RS-485 con protocolo PPI a 19 200 bps.
 
-La celda flexible de manufactura **XL-335B** consta de 6 autómatas programables industriales interconectados en un bus multipunto RS-485 a 19,200 bps mediante protocolo PPI (Point-to-Point Interface).
+## 1. Controladores
 
-| Unidad | Nombre de Estación | Modelo de CPU | Puertos Físicos | Protocolo Puerto 0 | Protocolo Puerto 1 | Rango DI (IB) | Rango DO (QB) | Analógicas (AIW/AQW) |
+| PLC | Estación | CPU | Puertos | Puerto 0 | Puerto 1 | Entradas | Salidas | Analógicas |
 |---|---|---|---|---|---|---|---|---|
-| **PLC 1** | **Transporte (Maestro Celda)** | **CPU 226CN** | 2 Puertos | Modbus RTU Esclavo (19.2k, ID 1) -> SCADA Web | PPI Maestro (19.2k, Daisy-Chain) -> Nodos 2-6 | `IB0`, `IB1`, `IB2` | `QB0`, `QB1` | N/A |
-| **PLC 2** | **Alimentación** | **CPU 224CN** | 1 Puerto | PPI Esclavo (19.2k, Dirección 2) | No disponible | `IB0`, `IB1` | `QB0`, `QB1` | N/A |
-| **PLC 3** | **Ensamblaje** | **CPU 226CN** | 2 Puertos | PPI Esclavo (19.2k, Dirección 3) | Puerto libre / Diagnóstico | `IB0`, `IB1` | `QB0`, `QB1` | N/A |
-| **PLC 4** | **Procesamiento** | **CPU 224CN** | 1 Puerto | PPI Esclavo (19.2k, Dirección 4) | No disponible | `IB0`, `IB1` | `QB0`, `QB1` | N/A |
-| **PLC 5** | **Selección y VFD** | **CPU 224XP-CN** | 2 Puertos | PPI Esclavo (19.2k, Dirección 5) | Modbus RTU Maestro (19.2k, 8-N-1) -> Powtran VFD | `IB0`, `IB1` | `QB0`, `QB1` | `AIW0`, `AIW2`, `AQW0` |
-| **PLC 6** | **Brazo Robótico 4-DOF** | **CPU 224CN** | 1 Puerto | PPI Esclavo (19.2k, Dirección 6) | No disponible | `IB0`, `IB1` | `QB0` | N/A |
+| 1 | Transporte (maestro) | CPU 226CN | 2 | Esclavo Modbus RTU (19.2k, dirección 1) para el SCADA | Maestro PPI (19.2k) hacia los nodos 2 a 6 | `IB0`, `IB1`, `IB2` | `QB0`, `QB1` | — |
+| 2 | Alimentación | CPU 224CN | 1 | Esclavo PPI (19.2k, dirección 2) | — | `IB0`, `IB1` | `QB0`, `QB1` | — |
+| 3 | Ensamblaje | CPU 226CN | 2 | Esclavo PPI (19.2k, dirección 3) | Libre / diagnóstico | `IB0`, `IB1` | `QB0`, `QB1` | — |
+| 4 | Procesamiento | CPU 224CN | 1 | Esclavo PPI (19.2k, dirección 4) | — | `IB0`, `IB1` | `QB0`, `QB1` | — |
+| 5 | Selección y variador | CPU 224XP-CN | 2 | Esclavo PPI (19.2k, dirección 5) | Maestro Modbus RTU (19.2k, 8-N-1) hacia el variador Powtran | `IB0`, `IB1` | `QB0`, `QB1` | `AIW0`, `AIW2`, `AQW0` |
+| 6 | Brazo 4DOF | CPU 224CN | 1 | Esclavo PPI (19.2k, dirección 6) | — | `IB0`, `IB1` | `QB0` | — |
 
----
+## 2. Cableado común y casos especiales
 
-## 2. Asignaciones Especiales de Hardware y Reglas Globales de Cableado
+### Sensores de fin de rampa conectados al PLC 1
 
-1. **Nomenclatura Homogénea:**
-   - La celda y todos los subsistemas asociados se identifican bajo el código normativo unificado **XL-335B**.
+La CPU 224XP-CN de Selección tiene solo 14 entradas (`I0.0` a `I1.5`) y todas están ocupadas por el encoder (HSC0), los sensores de inspección y los finales de carrera de los tres cilindros desviadores. Por eso los tres sensores capacitivos de las rampas están cableados al PLC 1:
 
-2. **Sensores Capacitivos de Fin de Carril de Selección cableados a PLC 1:**
-   - Debido a que la CPU 224XP-CN de la estación de Selección (PLC 5) cuenta únicamente con 14 entradas digitales integradas (`I0.0` a `I1.5`) y sus canales están ocupados por el encoder incremental (HSC0), los sensores de inspección en rampa y los finales de carrera de los 3 cilindros desviadores, los 3 sensores capacitivos de detección de pieza en rampa de desvío están cableados físicamente al autómata de Transporte (PLC 1):
-     - `I2.0` (PLC 1): Sensor Capacitivo Rampa Carril 1 (Pieza Tipo 1: Base Metálica + Núcleo Metálico).
-     - `I2.1` (PLC 1): Sensor Capacitivo Rampa Carril 2 (Pieza Tipo 2: Base Blanca Plástica + Núcleo Plástico).
-     - `I2.2` (PLC 1): Sensor Capacitivo Rampa Carril 3 (Pieza Tipo 3: Base Blanca Plástica + Núcleo Metálico).
-   - Estos estados son leídos directamente por el PLC 1 y sincronizados hacia el bus de red PPI y el Web SCADA.
+| Entrada (PLC 1) | Sensor | Pieza |
+|---|---|---|
+| `I2.0` | Capacitivo rampa 1 | Tipo 1: base metálica + núcleo metálico |
+| `I2.1` | Capacitivo rampa 2 | Tipo 2: base blanca + núcleo plástico |
+| `I2.2` | Capacitivo rampa 3 | Tipo 3: base blanca + núcleo metálico |
 
-3. **Lógica Eléctrica de Mandos en Todas las Estaciones:**
-   - **SB1 (Marcha / Reset de Pausa):** Contacto **Normalmente Abierto (NA)**:
-     - Reposo (sin accionar) = `0` (0 VDC).
-     - Accionado (presionado) = `1` (24 VDC).
-   - **SB2 (Pausa de Ciclo):** Contacto **Normalmente Abierto (NA)**:
-     - Reposo (sin accionar) = `0` (0 VDC).
-     - Accionado (presionado) = `1` (24 VDC).
-   - **QS (Seta de Parada de Emergencia):** Contacto **Normalmente Cerrado (NC) Fail-Safe**:
-     - Reposo (desenclavada / operativa) = `1` (24 VDC).
-     - Accionada (disparo de emergencia) = `0` (0 VDC corte de circuito).
-   - **SA1 (Selector de Modo):** Contacto conmutado de 2 posiciones:
-     - Posición `1` = Modo Automático.
-     - Posición `0` = Modo Manual / Diagnóstico.
+El PLC 1 los lee directamente y los publica en la red PPI y en el SCADA.
 
-4. **Señalización Luminosa Estandarizada (HL1, HL2, HL3):**
-   - **HL1 (Lámpara Verde):** Operación en ciclo automático normal (luz fija durante producción activa).
-   - **HL2 (Lámpara Amarilla):** Pausa de ciclo activa por SB2, celda en reposo a la espera de pieza o nivel bajo en silo (luz fija / intermitente según estado).
-   - **HL3 (Lámpara Roja):** Alarma crítica de proceso, atasco mecánico neumático o seta de emergencia QS disparada (luz fija).
+### Mandos de cada estación
 
-5. **Control de la Cinta Transportadora y Variador Powtran PI9100A (PLC 5):**
-   - **Modo Digital / Analógico:** Arranque y sentido comandados por `Q0.0` (DI1) y `Q0.1` (DI2); consigna de frecuencia/velocidad gobernada analógicamente mediante `AQW0` (0-10 VDC, 0-32000 cuentas) hacia el borne `AI1` del Powtran.
-   - **Supervisión Modbus RTU:** Puerto 1 de CPU 224XP-CN polling en segundo plano para telemetría de bus DC, corriente y frecuencia en tiempo real.
+| Mando | Contacto | Reposo | Accionado |
+|---|---|---|---|
+| SB1 (marcha / continuar tras pausa) | NA | `0` (0 V) | `1` (24 V) |
+| SB2 (pausa) | NA | `0` (0 V) | `1` (24 V) |
+| QS (seta de emergencia) | NC | `1` (24 V) | `0` (0 V) |
+| SA1 (selector de modo) | 2 posiciones | `1` = automático | `0` = manual / diagnóstico |
 
-6. **Manipulador Robótico 4-DOF (PLC 6):**
-   - Accionamiento de ejes cinemáticos mediante motores paso a paso NEMA industriales comandados por trenes de pulsos PTO de alta velocidad:
-     - Eje Z (Rotación de base): Generador PTO 0 (`Q0.0`) y dirección `Q0.2`.
-     - Ejes X e Y (Brazo horizontal y elevación vertical): Generador PTO 1 (`Q0.1`) multiplexado electromecánicamente mediante relés de conmutación K1 (`Q0.5`) y K2 (`Q0.6`) con enclavamiento mutuo. Direcciones independientes en `Q0.3` (Eje X) y `Q0.4` (Eje Y).
-   - Accionamiento de efector final: Solenoide eléctrico de garra en `Q0.7`.
+### Balizas
+
+| Lámpara | Significado |
+|---|---|
+| HL1 verde | Ciclo automático en marcha (fija). |
+| HL2 amarilla | Pausa por SB2, estación en espera de pieza o silo con nivel bajo (fija o intermitente según el caso). |
+| HL3 roja | Seta QS accionada, alarma de proceso o atasco neumático (fija). |
+
+### Cinta y variador Powtran PI9100A (PLC 5)
+
+- Marcha y sentido con `Q0.0` (DI1) y `Q0.1` (DI2) del variador.
+- Consigna de frecuencia por `AQW0` (0-10 V, 0-32000) al borne `AI1`.
+- El puerto 1 de la CPU 224XP-CN lee por Modbus RTU la tensión del bus DC, la corriente y la frecuencia del variador.
+
+### Brazo 4DOF (PLC 6)
+
+- Motores paso a paso NEMA comandados por tren de pulsos (PTO).
+- Eje Z (giro de la base): PTO 0 en `Q0.0`, dirección en `Q0.2`.
+- Ejes X e Y (brazo horizontal y elevación): comparten el PTO 1 (`Q0.1`). Los relés K1 (`Q0.5`) y K2 (`Q0.6`) conmutan los pulsos a uno u otro eje y nunca se activan juntos. Dirección del eje X en `Q0.3` y del eje Y en `Q0.4`.
+- Garra: solenoide en `Q0.7`.

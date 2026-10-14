@@ -1,150 +1,144 @@
 ORGANIZATION_BLOCK MAIN:OB1
-TITLE=UNIDAD 6: MANIPULADOR ROBOTICO 4-DOF - KINEMATICA FISICA VALIDADA Y PROTOCOLO PPI (NODO 6)
-// ==============================================================================
-// SISTEMA: CELDA DE MANUFACTURA FLEXIBLE XK-335B + BRAZO 4-DOF
-// MODULO: UNIDAD 6 - MANIPULADOR ROBOTICO 4-DOF (MECANISMO PANTOGRAFO)
-// CPU: SIEMENS SIMATIC S7-200 CPU 224CN (1 PUERTO RS-485 INTEGRADO)
-// PUERTO 0: ESCLAVO EN BUS PPI (DIRECCION DE ESTACION 6, 19200 BPS)
-// ==============================================================================
-// GOBIERNO CINEMATICO Y REGLAS DE NEGOCIO VALIDADAS EN HARDWARE REAL:
-//   1. Recogida al final de la cinta transportadora de Seleccion (cota de rampa)
-//      de las piezas Tipo 4 (Metal + Plastico) y Tipo 5 (Plastico Negro Bypass).
-//   2. Emision mandatoria de la bandera BELT_PERMIT_RUN (alias V301.6 -> V200.6 ICD):
-//      Apenas la pinza sujeta la pieza y el eje vertical Y la despega de la cinta (5000 pulsos arriba),
-//      se emite BELT_PERMIT_RUN = 1 para liberar inmediatamente la cinta de Seleccion.
-//   3. Multiplexacion PTO 1 entre Eje X (Rele K1 Q0.5) y Eje Y (Rele K2 Q0.6) con retardo de estabilizacion.
-//   4. Control de Eje Z de rotacion base mediante PTO 0 independiente (Q0.0 / DIR Q0.2).
-//   5. Secuencia de Homing estricta: X (I0.1) -> Z (inductivo I0.0) -> Y (I0.3) -> Apertura Pinza (orden revisado: no arrastra cables).
-//   6. Modo Manual completo con Jogging por pulsadores I1.0 a I1.5 y Toggle biestable de Pinza en I0.7.
-// ==============================================================================
-// INTEGRACION PPI CON LA CELDA (REV. AUDITADA) - LAS TRAYECTORIAS NO SE MODIFICAN:
-//   a) PLC 5 detiene la pieza Tipo 4/5 en VW318 y publica STAT_ROBOT_WAIT (V200.6 del PLC 5).
-//   b) PLC 1 envia CMD_START (V100.0 aqui) = orden de recogida -> M1.0.
-//   c) Sec. 1 (si hace falta) + bucle: cierra pinza, eleva Y 5000 p -> BELT_PERMIT_RUN
-//      (V301.6 -> V200.6). PLC 1 lo releva a V100.6 del PLC 5 y la cinta reanuda.
-//   d) Descarga en la mesa exterior y retorno a zona de toma -> STAT_DONE (V200.2).
-// MEMORIA REUBICADA: el paso Auto (antes VW100) y el de Homing (antes VW102) se
-// solapaban con el buffer PPI VB100..VB103 escrito por el maestro: ahora VW320 / VW322.
-// Alias internos VB1000..VD1008 (>= VB1000) movidos a VB300 / VB301 / VB302 / VD304 / VD308.
-// ==============================================================================
+TITLE=Unidad 6: Brazo 4DOF (PLC 6)
+// Planta XK-335B - Unidad 6: Brazo de 4 grados de libertad (pantografo)
+// Retira de la cinta de Seleccion las piezas tipo 4 y 5 y las deja en la mesa.
+// CPU 224CN. Puerto 0: esclavo PPI, direccion 6, 19200 bps.
+// Funcionamiento:
+//   1. Recoge al final de la cinta de Seleccion las piezas tipo 4 (metal + plastico)
+//      y tipo 5 (plastico negro, sin nucleo).
+//   2. BELT_PERMIT_RUN (V301.6 -> V200.6): apenas la garra sujeta la pieza y el eje Y
+//      la levanta 5000 pulsos, se avisa que la cinta de Seleccion ya puede moverse.
+//   3. Los ejes X e Y comparten el PTO 1; el rele K1 (Q0.5) lo conecta a X y K2 (Q0.6) a Y.
+//   4. El eje Z (giro de la base) usa el PTO 0 (pulsos Q0.0, direccion Q0.2).
+//   5. Homing: X (I0.1) -> Z (inductivo I0.0) -> Y (I0.3) -> abrir garra. En este orden no se arrastran los cables.
+//   6. Manual: jog con los pulsadores I1.0 a I1.5; I0.7 abre o cierra la garra.
+// Intercambio con la planta por PPI (las trayectorias no se cambiaron):
+//   a) El PLC 5 detiene la pieza tipo 4/5 en VW318 y pone STAT_ROBOT_WAIT (V200.6 del PLC 5).
+//   b) El PLC 1 envia CMD_START (V100.0 de este PLC) = orden de recogida -> M1.0.
+//   c) Secuencia 1 si hace falta, luego cierra la garra y sube Y 5000 p -> BELT_PERMIT_RUN
+//      (V301.6 -> V200.6). El PLC 1 lo pasa a V100.6 del PLC 5 y la cinta vuelve a andar.
+//   d) Deja la pieza en la mesa y vuelve a la zona de recogida -> STAT_DONE (V200.2).
+// Los pasos del automatico y del homing estaban en VW100 / VW102 y pisaban VB100..VB103,
+// que escribe el PLC 1: ahora estan en VW320 / VW322.
+// Las variables internas que estaban desde VB1000 pasaron a VB300 / VB301 / VB302 / VD304 / VD308.
 BEGIN
-Network 1 
-// Inicializacion en el primer escaneo y configuracion de comunicaciones
+Network 1 // Primer ciclo
+// Valores iniciales en el primer ciclo
 LD     SM0.1
-// Puerto 0: 19200 bps PPI esclavo nativo (Estacion 6 en Bloque de Sistema)
-R      Q0.0, 8                     // Apagar salidas fisicas
-R      M0.0, 32                    // Limpiar marcas auxiliares
-MOVB   16#00, VB100                // Buffer comandos maestro PPI
-MOVB   16#00, VB200                // Buffer estados hacia maestro PPI
-MOVB   16#00, VB300               // Limpiar comandos maestro (alias)
-MOVB   16#00, VB301               // Limpiar estados maestro (alias)
-MOVD   +0, VD304                  // Reset cota Z
-MOVD   +0, VD308                  // Reset cota X/Y
-MOVW   +0, VW320                   // Secuencia Auto en reposo
-MOVW   +0, VW322                   // Secuencia Homing en reposo
-S      M0.0, 1                     // Exigir Home obligatorio al energizar
-// Recorridos del Eje X (pulsos), ajustables en la Tabla de Estado:
-//   VD330 = extension desde Home hasta la zona de toma en fin de cinta: 20000 (antes 14000)
-//   VD334 = retraccion de la toma hacia la mesa y nueva extension al volver: 14000 (antes 8000).
-//           La mesa queda en el mismo punto que antes (20000 - 14000 = 6000 = 14000 - 8000).
+// Puerto 0: esclavo PPI a 19200 bps (direccion 6 en el bloque de sistema)
+R      Q0.0, 8                     // Salidas apagadas
+R      M0.0, 32                    // Borrar marcas
+MOVB   16#00, VB100                // Ordenes del PLC 1
+MOVB   16#00, VB200                // Estado para el PLC 1
+MOVB   16#00, VB300               // Ordenes del PLC 1 (copia interna)
+MOVB   16#00, VB301               // Estado para el PLC 1 (copia interna)
+MOVD   +0, VD304                  // Posicion Z en 0
+MOVD   +0, VD308                  // Posicion X/Y en 0
+MOVW   +0, VW320                   // Secuencia automatica en reposo
+MOVW   +0, VW322                   // Homing en reposo
+S      M0.0, 1                     // Al encender hay que hacer homing
+// Recorridos del eje X en pulsos (se pueden cambiar en la tabla de estado):
+//   VD330 = extension desde el home hasta la zona de recogida en la cinta: 20000 (antes 14000)
+//   VD334 = retroceso desde la recogida hasta la mesa y nueva extension al volver: 14000 (antes 8000).
+//           La mesa queda en el mismo lugar que antes (20000 - 14000 = 6000 = 14000 - 8000).
 MOVD   +20000, VD330
 MOVD   +14000, VD334
 
-Network 2 
-// Parada y Reset local (I0.6 flanco), STOP I1.0 o CMD_ESTOP remoto (V300.2 <- flanco V100.2)
-LD     I0.6                        // Pulsador RESET local
-EU                                 // Flanco ascendente
-O      V300.2                     // CMD_ESTOP desde maestro PLC 1 (flanco de V100.2, Network 5)
-O      I1.0                       // Pulsador STOP en Auto
-A      I0.5                        // En modo Automatico
+Network 2 // Reset y parada
+// Reset local (flanco de I0.6), STOP (I1.0) o CMD_ESTOP del PLC 1 (V300.2 <- flanco de V100.2)
+LD     I0.6                        // Pulsador RESET
+EU                                 // Flanco de subida
+O      V300.2                     // CMD_ESTOP del PLC 1 (network 5)
+O      I1.0                       // STOP en automatico
+A      I0.5                        // En automatico
 LPS
-R      Q0.0, 8                     // Desconectar salidas inmediatamente
-MOVB   16#00, SMB67                // Parar PTO 0 (Eje Z)
-MOVB   16#00, SMB77                // Parar PTO 1 (Ejes X / Y)
+R      Q0.0, 8                     // Apagar salidas
+MOVB   16#00, SMB67                // Parar PTO 0 (eje Z)
+MOVB   16#00, SMB77                // Parar PTO 1 (ejes X / Y)
 PLS    0
 PLS    1
 LRD
-MOVW   +0, VW320                   // Reiniciar secuenciador automatico
-MOVW   +0, VW322                   // Reiniciar secuenciador homing
-MOVB   16#00, VB301               // Limpiar estados
+MOVW   +0, VW320                   // Secuencia automatica a 0
+MOVW   +0, VW322                   // Homing a 0
+MOVB   16#00, VB301               // Borrar estado
 R      V300.2, 1
-R      M1.0, 1                     // Descartar orden de recogida pendiente
-S      M0.0, 1                    // Exigir nuevo Homing tras reset
-R      M0.3, 1                     // Desreferenciar origen
+R      M1.0, 1                     // Descartar una orden de recogida pendiente
+S      M0.0, 1                    // Hay que volver a hacer homing
+R      M0.3, 1                     // Sin referencia
 LPP
-R      M0.4, 1                     // Liberar ejecucion de secuencias
+R      M0.4, 1                     // Permitir las secuencias
 
-Network 3 
-// Modo Manual (I0.5 = 0)
+Network 3 // Modo manual
+// Modo manual (I0.5 = 0)
 LDN    I0.5
 LPS
 EU
-R      M0.3, 1                     // Requiere validar origen tras salir de manual
+R      M0.3, 1                     // Al volver de manual hay que hacer homing
 MOVB   16#00, VB301
-R      M1.0, 1                     // Sin ordenes de red en Manual
+R      M1.0, 1                     // En manual no se aceptan ordenes de la red
 LPP
-CALL   SBR20                      // Subrutina Manual
+CALL   SBR20                      // Subrutina manual
 
-Network 4 
-// Modo Automatico (I0.5 = 1)
+Network 4 // Modo automatico
+// Modo automatico (I0.5 = 1)
 LD     I0.5
 LPS
 EU
-S      M0.0, 1                     // Conmutar a Auto exige verificar origen
+S      M0.0, 1                     // Al pasar a automatico se revisa la referencia
 LPP
-CALL   SBR21                       // Subrutina Automatica
+CALL   SBR21                       // Subrutina automatica
 
-Network 5 // Comandos PPI desde Maestro PLC 1 (VB100, entrega "envio unico" -> flanco EU)
-// V100.0 CMD_START = ORDEN DE RECOGIDA en fin de cinta (PLC 5 reporto STAT_ROBOT_WAIT)
-//   -> enclava M1.0. Si el brazo no esta en zona de toma ejecuta primero la Secuencia 1
-//      y encadena el bucle de recogida al terminarla (SBR_AUTO Networks 2 y 12).
-// V100.2 CMD_ESTOP = Seta QS de la celda -> aborto y re-homing (Network 2).
+Network 5 // Ordenes del PLC 1 (VB100; cada bit llega una sola vez, se toma el flanco)
+// V100.0 CMD_START = orden de recogida en el fin de cinta (el PLC 5 aviso STAT_ROBOT_WAIT)
+//   -> activa M1.0. Si el brazo no esta en la zona de recogida, primero hace la secuencia 1
+//      y despues sigue con la recogida (SBR_AUTO networks 2 y 12).
+// V100.2 CMD_ESTOP = seta QS de la planta -> parada y nuevo homing (network 2).
 LD     V100.0
 EU
-A      I0.5                        // Solo en Automatico
+A      I0.5                        // Solo en automatico
 S      M1.0, 1
 LD     V100.2
 EU
 S      V300.2, 1
 
-Network 6 // Estado hacia Maestro PLC 1 segun Contrato ICD Unificado (VB200..VB203)
-// Alias internos VB301: .0 Homing, .1 Listo, .2 Sec.1, .3 En toma, .4 Bucle, .5 Fin ciclo, .6 Cinta libre
+Network 6 // Estado para el PLC 1 (VB200..VB203)
+// VB301 interno: .0 homing, .1 listo, .2 sec. 1, .3 en recogida, .4 recogiendo, .5 ciclo terminado, .6 cinta libre
 LD     I0.5
 AW=    VW320, +0
 AW=    VW322, +0
-=      V200.0                      // Bit 0 STAT_READY: en Auto y en reposo (si no esta referenciado, la orden lanza el homing)
+=      V200.0                      // Bit 0 STAT_READY: en automatico y en reposo (sin referencia, la orden lanza el homing)
 LDW>   VW320, +0
 OW>    VW322, +0
-=      V200.1                      // Bit 1 STAT_BUSY: Secuencia 1, bucle de recogida u homing
+=      V200.1                      // Bit 1 STAT_BUSY: secuencia 1, recogida u homing
 LD     V301.5
-=      V200.2                      // Bit 2 STAT_DONE: pieza depositada en la mesa exterior
+=      V200.2                      // Bit 2 STAT_DONE: pieza dejada en la mesa
 LD     SM0.0
-R      V200.3, 3                   // Bits 3..5 sin uso en el Brazo
+R      V200.3, 3                   // Bits 3..5 sin uso en el brazo
 LD     V301.6
-=      V200.6                      // Bit 6 BELT_PERMIT_RUN: pieza elevada 5000 p en Y
+=      V200.6                      // Bit 6 BELT_PERMIT_RUN: pieza levantada 5000 p en Y
 LD     M0.3
 =      V200.7                      // Bit 7 STAT_HOMED
 LD     SM0.0
 MOVB   VB321, VB201                // STAT_PASO: byte bajo de VW320
 MOVB   IB0, VB202                  // STAT_INPUTS
-MOVB   VB323, VB203                // STAT_DATA: fase de homing (byte bajo de VW322)
+MOVB   VB323, VB203                // STAT_DATA: fase del homing (byte bajo de VW322)
 
-Network 7 // Proteccion del Eje X en Automatico: corta PTO 1 al tocar el limite de extension (I0.2) o el Home (I0.1)
-// Necesaria al duplicar la extension: si VD330 supera el recorrido fisico, el brazo se detiene en el
-// limite y la secuencia continua desde ahi (M1.1 = aviso de limite alcanzado).
-LD     I0.2                        // Limite de extension maxima...
-AN     Q0.3                        // ...moviendo hacia adelante
+Network 7 // Eje X en automatico: corta el PTO 1 al tocar el limite de extension (I0.2) o el home (I0.1)
+// Hace falta desde que se duplico la extension: si VD330 es mayor que el recorrido real, el brazo se
+// detiene en el limite y la secuencia sigue desde ahi (M1.1 = aviso de limite).
+LD     I0.2                        // Limite de extension...
+AN     Q0.3                        // ...yendo hacia adelante
 LD     I0.1                        // Home X...
-A      Q0.3                        // ...moviendo hacia atras
+A      Q0.3                        // ...yendo hacia atras
 OLD
-A      I0.5                        // Solo en Automatico (en Manual ya lo protege el jog)
-A      Q0.5                        // Rele K1: PTO 1 conectado al Eje X
+A      I0.5                        // Solo en automatico (en manual lo cuida el jog)
+A      Q0.5                        // K1: PTO 1 conectado al eje X
 AN     SM76.7                      // PTO 1 en marcha
 MOVB   16#00, SMB77
 PLS    1
 S      M1.1, 1
 
-Network 8 // Monitoreo de Posicion
+Network 8 // Posicion actual
 LD     SM0.0
 MOVD   VD210, VD304
 MOVD   VD220, VD308
@@ -152,80 +146,80 @@ MOVD   VD220, VD308
 END_ORGANIZATION_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 0: SBR_HOMING (CALIBRACION CINEMATICA: Y -> X -> PINZA -> Z)
+// SUBRUTINA 0: SBR_HOMING (X -> Z -> Y -> garra)
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_HOMING:SBR0
-TITLE=REFERENCIADO: X (RETRAER) -> Z (GIRO A INDUCTIVO) -> Y (SUBIR) -> APERTURA DE GARRA
-// ORDEN REVISADO 2026-10-12 (evita que el brazo arrastre los cables):
+TITLE=Homing: X atras -> Z hasta el inductivo -> Y arriba -> abrir garra
+// Orden cambiado el 12-10-2026 para que el brazo no arrastre los cables:
 //   10/11 Eje X retrocede hasta su Home I0.1 (brazo recogido)
 //   20/21 Eje Z gira en sentido horario hasta el inductivo I0.0
 //   30/31 Eje Y sube hasta su Home I0.3
 //   40    Apertura de garra (ya en posicion segura)
-//   50    Consolidacion: posiciones a 0, M0.3 = referenciado
+//   50    Fin: posiciones en 0, M0.3 = con referencia
 BEGIN
-Network 1 // Inicio del Homing (M0.0 = homing requerido)
+Network 1 // Inicio del homing (M0.0 = falta homing)
 LD     M0.0
 AW=    VW322, +0
-S      V301.0, 1                   // Estado: En Homing
+S      V301.0, 1                   // Estado: haciendo homing
 R      V301.1, 1                   // No listo
-MOVW   +10, VW322                   // Empezar por el Eje X (retraer)
+MOVW   +10, VW322                   // Empieza por el eje X
 
-Network 2 // Paso 10: Eje X - conmutar PTO 1 al driver X (K1) con 50 ms de estabilizacion
+Network 2 // Paso 10: eje X, pasar el PTO 1 al driver X (K1) y esperar 50 ms
 LDW=   VW322, +10
-R      Q0.6, 1                      // K2 OFF
-S      Q0.5, 1                      // K1 ON (Driver X)
-S      Q0.3, 1                      // DIR X = 1 (hacia Home I0.1, brazo recogido)
-TON    T34, +5                      // 50 ms estabilizacion K1
+R      Q0.6, 1                      // K2 apagado
+S      Q0.5, 1                      // K1 encendido (driver X)
+S      Q0.3, 1                      // DIR X = 1 (hacia el home I0.1, brazo recogido)
+TON    T34, +5                      // 50 ms para que se asiente K1
 LD     T34
 MOVW   +11, VW322
 
-Network 3 // Paso 11: Eje X retrocede hasta I0.1
+Network 3 // Paso 11: eje X atras hasta I0.1
 LDW=   VW322, +11
 LPS
 EU
 MOVB   16#85, SMB77
-MOVW   +250, SMW78                  // Frecuencia homing
+MOVW   +250, SMW78                  // Frecuencia de homing
 MOVD   +500000, SMD82
 PLS    1
 LPP
 LDW=   VW322, +11
-A      I0.1                         // Home X detectado
+A      I0.1                         // Home X
 LPS
 MOVB   16#00, SMB77
 PLS    1
 LRD
-R      Q0.5, 1                      // Liberar K1
+R      Q0.5, 1                      // Soltar K1
 LPP
-MOVW   +20, VW322                   // Pasar al Eje Z
+MOVW   +20, VW322                   // Sigue el eje Z
 
-Network 4 // Paso 20: Eje Z gira en sentido horario hasta el inductivo I0.0 (PTO 0, sin reles)
+Network 4 // Paso 20: eje Z en sentido horario hasta el inductivo I0.0 (PTO 0, sin reles)
 LDW=   VW322, +20
 LPS
 EU
-S      Q0.2, 1                      // DIR Z = 1 (horario hacia el inductivo)
+S      Q0.2, 1                      // DIR Z = 1 (horario, hacia el inductivo)
 MOVB   16#85, SMB67
-MOVW   +400, SMW68                  // 2.5 kHz
+MOVW   +400, SMW68                  // 2,5 kHz
 MOVD   +500000, SMD72
 PLS    0
 LPP
 LDW=   VW322, +20
-A      I0.0                         // Inductivo Z detectado
+A      I0.0                         // Inductivo Z
 LPS
-MOVB   16#00, SMB67                 // Frenar Z de inmediato
+MOVB   16#00, SMB67                 // Frenar Z
 PLS    0
 LPP
-MOVW   +30, VW322                   // Pasar al Eje Y
+MOVW   +30, VW322                   // Sigue el eje Y
 
-Network 5 // Paso 30: Eje Y - conmutar PTO 1 al driver Y (K2) con 50 ms de estabilizacion
+Network 5 // Paso 30: eje Y, pasar el PTO 1 al driver Y (K2) y esperar 50 ms
 LDW=   VW322, +30
-R      Q0.5, 1                      // K1 OFF
-S      Q0.6, 1                      // K2 ON (Driver Y)
-S      Q0.4, 1                      // DIR Y = 1 (hacia Home I0.3, arriba)
-TON    T33, +5                      // 50 ms estabilizacion K2
+R      Q0.5, 1                      // K1 apagado
+S      Q0.6, 1                      // K2 encendido (driver Y)
+S      Q0.4, 1                      // DIR Y = 1 (hacia el home I0.3, arriba)
+TON    T33, +5                      // 50 ms para que se asiente K2
 LD     T33
 MOVW   +31, VW322
 
-Network 6 // Paso 31: Eje Y sube hasta I0.3
+Network 6 // Paso 31: eje Y arriba hasta I0.3
 LDW=   VW322, +31
 LPS
 EU
@@ -235,45 +229,45 @@ MOVD   +500000, SMD82
 PLS    1
 LPP
 LDW=   VW322, +31
-A      I0.3                         // Home Y detectado
+A      I0.3                         // Home Y
 LPS
 MOVB   16#00, SMB77
 PLS    1
 LRD
-R      Q0.6, 1                      // Liberar K2
+R      Q0.6, 1                      // Soltar K2
 LPP
 MOVW   +40, VW322
 
-Network 7 // Paso 40: Apertura de garra en origen (400 ms)
+Network 7 // Paso 40: abrir la garra (400 ms)
 LDW=   VW322, +40
 R      Q0.7, 1
 TON    T37, +4
 LD     T37
 MOVW   +50, VW322
 
-Network 8 // Paso 50: Consolidacion de Home completado
+Network 8 // Paso 50: homing terminado
 LDW=   VW322, +50
 MOVD   +0, VD210
 MOVD   +0, VD220
 MOVD   +0, VD304
 MOVD   +0, VD308
-R      M0.0, 1                      // Fin requerimiento de Home
-S      M0.3, 1                      // Origen referenciado OK
-R      M0.4, 1                      // Habilitar ejecucion de secuencias
+R      M0.0, 1                      // Ya no falta homing
+S      M0.3, 1                      // Con referencia
+R      M0.4, 1                      // Permitir las secuencias
 R      V301.0, 1
-S      V301.1, 1                   // Sistema Listo
+S      V301.1, 1                   // Listo
 MOVW   +0, VW322
 
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 20: SBR_MANUAL (JOGGING POR EJES Y TOGGLE BIESTABLE DE GARRA)
+// SUBRUTINA 20: SBR_MANUAL (jog por ejes y garra)
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_MANUAL:SBR20
-TITLE=CONTROL MANUAL POR PULSADORES DE TABLERO
+TITLE=Manual con los pulsadores del tablero
 BEGIN
-Network 1 
-// Garra I0.7: Biestable (Toggle limpio)
+Network 1 // Garra
+// I0.7 abre o cierra la garra en cada pulsacion
 LD     I0.7
 EU
 LPS
@@ -287,8 +281,8 @@ A      M10.0
 S      Q0.7, 1
 R      M10.0, 1
 
-Network 2 
-// Eje Z Antihorario (I1.0)
+Network 2 // Z antihorario
+// Eje Z antihorario (I1.0)
 LD     I1.0
 AN     I1.1
 A      SM66.7
@@ -298,8 +292,8 @@ MOVW   +250, SMW68                 // 4 kHz
 MOVD   +100, SMD72
 PLS    0
 
-Network 3 
-// Eje Z Horario (I1.1)
+Network 3 // Z horario
+// Eje Z horario (I1.1)
 LD     I1.1
 AN     I1.0
 A      SM66.7
@@ -309,7 +303,7 @@ MOVW   +250, SMW68                 // 4 kHz
 MOVD   +100, SMD72
 PLS    0
 
-Network 4 
+Network 4 // Parar Z al soltar
 LDN    I1.0
 AN     I1.1
 LPS
@@ -318,16 +312,16 @@ MOVB   16#00, SMB67
 PLS    0
 LPP
 
-Network 5 
-// Eje X Sentido 1 (I1.2) - Protegido por sensor I0.2
+Network 5 // X sentido 1
+// Eje X sentido 1 (I1.2), se detiene en I0.2
 LD     I1.2
 AN     I1.3
-AN     I0.2                        // Bloqueo si toca final de carrera contrario
+AN     I0.2                        // No avanza si toca el limite
 AN     Q0.6
 LPS
 S      Q0.5, 1
-R      Q0.3, 1                     // DIR X = 0 (Salida de Home)
-TON    T35, +3                     // 30 ms estabilizacion K1
+R      Q0.3, 1                     // DIR X = 0 (alejandose del home)
+TON    T35, +3                     // 30 ms para que se asiente K1
 LPP
 LD     T35
 A      I1.2
@@ -338,16 +332,16 @@ MOVW   +250, SMW78                 // 4 kHz
 MOVD   +100, SMD82
 PLS    1
 
-Network 6 
-// Eje X Sentido 2 (I1.3) - Protegido por sensor I0.1 (Home)
+Network 6 // X sentido 2
+// Eje X sentido 2 (I1.3), se detiene en I0.1 (home)
 LD     I1.3
 AN     I1.2
-AN     I0.1                        // Bloqueo si toca sensor Home
+AN     I0.1                        // No avanza si toca el home
 AN     Q0.6
 LPS
 S      Q0.5, 1
-S      Q0.3, 1                     // DIR X = 1 (Hacia sensor Home)
-TON    T36, +3                     // 30 ms estabilizacion K1
+S      Q0.3, 1                     // DIR X = 1 (hacia el home)
+TON    T36, +3                     // 30 ms para que se asiente K1
 LPP
 LD     T36
 A      I1.3
@@ -358,16 +352,16 @@ MOVW   +250, SMW78                 // 4 kHz
 MOVD   +100, SMD82
 PLS    1
 
-Network 7 
-// Eje Y Sentido Abajo (I1.4) - Protegido por sensor I0.4
+Network 7 // Y abajo
+// Eje Y abajo (I1.4), se detiene en I0.4
 LD     I1.4
 AN     I1.5
-AN     I0.4                        // Bloqueo por tope inferior
+AN     I0.4                        // No avanza si toca el tope inferior
 AN     Q0.5
 LPS
 S      Q0.6, 1
-R      Q0.4, 1                     // DIR Y = 0 (Bajar)
-TON    T97, +3                     // 30 ms estabilizacion K2
+R      Q0.4, 1                     // DIR Y = 0 (bajar)
+TON    T97, +3                     // 30 ms para que se asiente K2
 LPP
 LD     T97
 A      I1.4
@@ -378,16 +372,16 @@ MOVW   +250, SMW78                 // 4 kHz
 MOVD   +100, SMD82
 PLS    1
 
-Network 8 
-// Eje Y Sentido Arriba (I1.5) - Protegido por sensor I0.3 (Home)
+Network 8 // Y arriba
+// Eje Y arriba (I1.5), se detiene en I0.3 (home)
 LD     I1.5
 AN     I1.4
-AN     I0.3                        // Bloqueo por sensor Home superior
+AN     I0.3                        // No avanza si toca el home superior
 AN     Q0.5
 LPS
 S      Q0.6, 1
-S      Q0.4, 1                     // DIR Y = 1 (Subir a Home)
-TON    T98, +3                     // 30 ms estabilizacion K2
+S      Q0.4, 1                     // DIR Y = 1 (subir al home)
+TON    T98, +3                     // 30 ms para que se asiente K2
 LPP
 LD     T98
 A      I1.5
@@ -398,7 +392,7 @@ MOVW   +250, SMW78                 // 4 kHz
 MOVD   +100, SMD82
 PLS    1
 
-Network 9 
+Network 9 // Parar X/Y al soltar y soltar los reles
 LDN    I1.2
 AN     I1.3
 AN     I1.4
@@ -416,21 +410,21 @@ R      Q0.6, 1
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 21: SBR_AUTO (SECUENCIAS 1, 2, 3 Y RETORNO CONTINUO A RAMPA)
+// SUBRUTINA 21: SBR_AUTO (secuencias 1, 2, 3 y retorno)
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_AUTO:SBR21
-TITLE=CICLO AUTOMATICO Y GOBIERNO DE TOMA/DESCARGA
+TITLE=Ciclo automatico: recogida en la cinta y descarga en la mesa
 BEGIN
-Network 1 
-// Si se pierde referencia (M0.3=0) o hay Reset, limpiar banderas
+Network 1 // Sin referencia
+// Sin referencia (M0.3 = 0) o despues de un reset: borrar banderas
 LDN    M0.3
 R      V302.0, 1
-R      V301.6, 1                  // Reset bandera cinta libre
+R      V301.6, 1                  // Cinta libre = 0
 MOVW   +0, VW320
 
-// Si no esta referenciado y pulsan START, forzar Homing
-// Una ORDEN DE RECOGIDA del PLC 1 (M1.0) sin referencia tambien lanza el homing; al terminar,
-// la Secuencia 1 y el bucle se encadenan solos (Networks 2 y 12).
+// Sin referencia y con START: hacer homing
+// Una orden de recogida del PLC 1 (M1.0) sin referencia tambien lanza el homing; al terminar
+// siguen solas la secuencia 1 y la recogida (networks 2 y 12).
 LD     M1.0
 AN     M0.3
 S      M0.0, 1
@@ -443,377 +437,377 @@ CALL   SBR0
 CRET
 
 // ============================================================================
-// ARRANQUE SECUENCIA 1: POSICIONAMIENTO A ZONA DE RECOGIDA (SOLO TRAS HOMING)
+// INICIO DE LA SECUENCIA 1: IR A LA ZONA DE RECOGIDA (SOLO CON REFERENCIA)
 // ============================================================================
-Network 2 
-// Disparo: START local (I0.7) u ORDEN DE RECOGIDA PPI pendiente (M1.0). M1.0 NO se
-// consume aqui: al terminar la Secuencia 1 (Paso 40) el Network 12 encadena el bucle.
+Network 2 // Inicio de la secuencia 1
+// Arranca con START local (I0.7) o con una orden de recogida pendiente (M1.0). M1.0 no se
+// borra aqui: al terminar la secuencia 1 (paso 40) el network 12 sigue con la recogida.
 LD     I0.7
 EU
 O      M1.0                        // Orden de recogida del PLC 1
-A      M0.3                        // Referenciado
-AN     V302.0                     // No esta en posicion de bucle
+A      M0.3                        // Con referencia
+AN     V302.0                     // Todavia no esta en la zona de recogida
 AW=    VW320, +0                   // En reposo
-S      V301.2, 1                  // STAT_BUSY_SEQ1
-R      V301.1, 1                  // Reset Ready
-R      V301.5, 1                  // Reset STAT_DONE del ciclo anterior
-R      V301.6, 1                  // Reset al iniciar secuencia
-MOVW   +10, VW320                 // Iniciar Secuencia 1
+S      V301.2, 1                  // Haciendo la secuencia 1
+R      V301.1, 1                  // No listo
+R      V301.5, 1                  // Borrar STAT_DONE del ciclo anterior
+R      V301.6, 1                  // Cinta libre = 0
+MOVW   +10, VW320                 // Empezar la secuencia 1
 
 // ============================================================================
-// SECUENCIA 1 - PASO 1: EJE Y SUBIR 12000 PASOS (K2=Q0.6, DIR Y=0)
+// SECUENCIA 1 - PASO 1: EJE Y 12000 PASOS (K2 = Q0.6, DIR Y = 0)
 // ============================================================================
-Network 3 
+Network 3 // Sec. 1 paso 1: preparar el eje Y
 LDW=   VW320, +10
-S      Q0.6, 1                     // Activar K2 (Y)
-R      Q0.5, 1                     // Desactivar K1 (X)
-R      Q0.4, 1                     // DIR Y = 0 (SUBIR)
-TON    T38, +2                     // 200 ms estabilizacion rele
+S      Q0.6, 1                     // K2 encendido (Y)
+R      Q0.5, 1                     // K1 apagado (X)
+R      Q0.4, 1                     // DIR Y = 0
+TON    T38, +2                     // 200 ms para que se asiente el rele
 LD     T38
 MOVW   +11, VW320
 
-Network 4 
+Network 4 // Sec. 1 paso 1: mover Y
 LDW=   VW320, +11
 MOVB   16#85, SMB77
 MOVW   +250, SMW78                 // 4 kHz
-MOVD   +12000, SMD82               // 12000 pasos arriba
+MOVD   +12000, SMD82               // 12000 pasos
 PLS    1
 MOVW   +12, VW320
 
-Network 5 
+Network 5 // Sec. 1 paso 1: esperar fin de Y
 LDW=   VW320, +12
-TON    T39, +1                     // 100 ms arranque de pulsos
+TON    T39, +1                     // 100 ms para que arranquen los pulsos
 LDW=   VW320, +12
 A      T39
-A      SM76.7                      // PTO 1 finalizado
-R      Q0.6, 1                     // Desactivar K2
+A      SM76.7                      // PTO 1 terminado
+R      Q0.6, 1                     // K2 apagado
 MOVW   +20, VW320
 
 // ============================================================================
-// SECUENCIA 1 - PASO 2: EJE Z GIRAR ANTIHORARIO 17000 PASOS (DIR Z=0)
+// SECUENCIA 1 - PASO 2: EJE Z ANTIHORARIO 17000 PASOS (DIR Z = 0)
 // ============================================================================
-Network 6 
+Network 6 // Sec. 1 paso 2: girar Z
 LDW=   VW320, +20
-R      Q0.2, 1                     // DIR Z = 0 (Antihorario)
+R      Q0.2, 1                     // DIR Z = 0 (antihorario)
 MOVB   16#85, SMB67
 MOVW   +250, SMW68                 // 4 kHz
 MOVD   +17000, SMD72               // 17000 pasos antihorario
 PLS    0
 MOVW   +21, VW320
 
-Network 7 
+Network 7 // Sec. 1 paso 2: esperar fin de Z
 LDW=   VW320, +21
 TON    T37, +1
 LDW=   VW320, +21
 A      T37
-A      SM66.7                      // PTO 0 finalizado
+A      SM66.7                      // PTO 0 terminado
 MOVW   +30, VW320
 
 // ============================================================================
-// SECUENCIA 1 - PASO 3: EJE X ADELANTE 14000 PASOS (K1=Q0.5, DIR X=0)
+// SECUENCIA 1 - PASO 3: EJE X ADELANTE VD330 PASOS (K1 = Q0.5, DIR X = 0)
 // ============================================================================
-Network 8 
+Network 8 // Sec. 1 paso 3: preparar el eje X
 LDW=   VW320, +30
-S      Q0.5, 1                     // Activar K1 (X)
-R      Q0.6, 1                     // Desactivar K2 (Y)
-R      Q0.3, 1                     // DIR X = 0 (Adelante)
-TON    T40, +2                     // 200 ms estabilizacion rele
+S      Q0.5, 1                     // K1 encendido (X)
+R      Q0.6, 1                     // K2 apagado (Y)
+R      Q0.3, 1                     // DIR X = 0 (adelante)
+TON    T40, +2                     // 200 ms para que se asiente el rele
 LD     T40
 MOVW   +31, VW320
 
-Network 9 
+Network 9 // Sec. 1 paso 3: extender X
 LDW=   VW320, +31
 MOVB   16#85, SMB77
 MOVW   +250, SMW78                 // 4 kHz
-MOVD   VD330, SMD82                // Extension X en zona de toma (VD330 = 20000)
+MOVD   VD330, SMD82                // Extension hasta la zona de recogida (VD330 = 20000)
 PLS    1
 MOVW   +32, VW320
 
-Network 10 
+Network 10 // Sec. 1 paso 3: esperar fin de X
 LDW=   VW320, +32
 TON    T41, +1
 LDW=   VW320, +32
 A      T41
-A      SM76.7                      // PTO 1 finalizado
-R      Q0.5, 1                     // Desactivar K1
+A      SM76.7                      // PTO 1 terminado
+R      Q0.5, 1                     // K1 apagado
 MOVW   +40, VW320
 
 // ============================================================================
-// FIN SECUENCIA 1: EN ZONA DE TOMA -> ESPERA START PARA BUCLE
+// FIN DE LA SECUENCIA 1: EN LA ZONA DE RECOGIDA, ESPERA START U ORDEN
 // ============================================================================
-Network 11 
+Network 11 // Fin de la secuencia 1
 LDW=   VW320, +40
-R      Q0.7, 1                     // Pinza abierta
+R      Q0.7, 1                     // Garra abierta
 R      V301.2, 1
-R      V301.6, 1                  // Reset: en posicion de espera sobre cinta
-S      V301.3, 1                  // Posicion de toma alcanzada
+R      V301.6, 1                  // Esperando sobre la cinta
+S      V301.3, 1                  // En la zona de recogida
 S      V301.1, 1                  // Listo
-S      V302.0, 1                  // Bandera activa: Brazo posicionado
-MOVW   +0, VW320                   // Reposo esperando START
+S      V302.0, 1                  // Brazo en posicion
+MOVW   +0, VW320                   // Reposo hasta el START
 
 // ============================================================================
-// BUCLE CONTINUO: ARRANQUE POR START (I0.7) O PPI CUANDO V302.0 = 1
+// RECOGIDA: ARRANCA CON START (I0.7) O CON LA ORDEN DEL PLC 1 CUANDO V302.0 = 1
 // ============================================================================
-Network 12 
+Network 12 // Inicio de la recogida
 LD     I0.7
 EU
-O      M1.0                        // ORDEN DE RECOGIDA del PLC 1 (STAT_ROBOT_WAIT del PLC 5)
-A      M0.3                        // Referenciado
-A      V302.0                     // En posicion de toma
-AW=    VW320, +0                   // Secuenciador en reposo
-S      V301.4, 1                  // Bucle en ejecucion
+O      M1.0                        // Orden de recogida del PLC 1 (STAT_ROBOT_WAIT del PLC 5)
+A      M0.3                        // Con referencia
+A      V302.0                     // En la zona de recogida
+AW=    VW320, +0                   // Secuencia en reposo
+S      V301.4, 1                  // Recogiendo
 R      V301.1, 1
-R      V301.6, 1                  // Reset al iniciar ciclo de recogida
-R      M1.0, 1                     // Consumir la orden de recogida
-R      V301.5, 1                  // Reset STAT_DONE del ciclo anterior
-MOVW   +100, VW320                 // Iniciar Secuencia 2
+R      V301.6, 1                  // Cinta libre = 0
+R      M1.0, 1                     // Orden de recogida atendida
+R      V301.5, 1                  // Borrar STAT_DONE del ciclo anterior
+MOVW   +100, VW320                 // Empezar la secuencia 2
 
 // ============================================================================
-// SECUENCIA 2 - PASO 1: CERRAR PINZA (SUJECION)
+// SECUENCIA 2 - PASO 1: CERRAR LA GARRA
 // ============================================================================
-Network 13 
+Network 13 // Sec. 2 paso 1: cerrar la garra
 LDW=   VW320, +100
-S      Q0.7, 1                     // Cerrar pinza
-TON    T42, +4                     // 400 ms tiempo de sujecion mecanica
+S      Q0.7, 1                     // Cerrar garra
+TON    T42, +4                     // 400 ms para sujetar la pieza
 LD     T42
 MOVW   +110, VW320
 
 // ============================================================================
-// SECUENCIA 2 - PASO 2: EJE Y SUBIR 5000 PASOS (K2=Q0.6, DIR Y=0)
+// SECUENCIA 2 - PASO 2: EJE Y 5000 PASOS (K2 = Q0.6, DIR Y = 0)
 // ============================================================================
-Network 14 
+Network 14 // Sec. 2 paso 2: preparar el eje Y
 LDW=   VW320, +110
-S      Q0.6, 1                     // Activar K2 (Y)
+S      Q0.6, 1                     // K2 encendido (Y)
 R      Q0.5, 1
-R      Q0.4, 1                     // DIR Y = 0 (SUBIR)
+R      Q0.4, 1                     // DIR Y = 0
 TON    T43, +2
 LD     T43
 MOVW   +111, VW320
 
-Network 15 
+Network 15 // Sec. 2 paso 2: levantar la pieza
 LDW=   VW320, +111
 MOVB   16#85, SMB77
 MOVW   +250, SMW78                 // 4 kHz
-MOVD   +5000, SMD82                // 5000 pasos arriba
+MOVD   +5000, SMD82                // 5000 pasos
 PLS    1
 MOVW   +112, VW320
 
-Network 16 
-// PIEZA ELEVADA: LIBERACION DE LA CINTA TRANSPORTADORA (BELT_PERMIT_RUN = 1)
+Network 16 // Sec. 2 paso 2: pieza levantada
+// PIEZA LEVANTADA: LA CINTA YA SE PUEDE MOVER (BELT_PERMIT_RUN = 1)
 LDW=   VW320, +112
 TON    T44, +1
 LDW=   VW320, +112
 A      T44
-A      SM76.7                      // PTO 1 finalizado
+A      SM76.7                      // PTO 1 terminado
 R      Q0.6, 1
-S      V301.6, 1                  // Bandera: Pieza elevada, cinta libre de colision
-MOVW   +120, VW320                 // Enlaza directo a Secuencia 3
+S      V301.6, 1                  // Cinta libre: la pieza ya no toca la cinta
+MOVW   +120, VW320                 // Sigue la secuencia 3
 
 // ============================================================================
-// SECUENCIA 3 - PASO 1: EJE X ATRAS 8000 PASOS (K1=Q0.5, DIR X=1)
+// SECUENCIA 3 - PASO 1: EJE X ATRAS VD334 PASOS (K1 = Q0.5, DIR X = 1)
 // ============================================================================
-Network 17 
+Network 17 // Sec. 3 paso 1: preparar el eje X
 LDW=   VW320, +120
-S      Q0.5, 1                     // Activar K1 (X)
+S      Q0.5, 1                     // K1 encendido (X)
 R      Q0.6, 1
-S      Q0.3, 1                     // DIR X = 1 (Atras)
+S      Q0.3, 1                     // DIR X = 1 (atras)
 TON    T45, +2
 LD     T45
 MOVW   +121, VW320
 
-Network 18 
+Network 18 // Sec. 3 paso 1: retraer X
 LDW=   VW320, +121
 MOVB   16#85, SMB77
 MOVW   +250, SMW78                 // 4 kHz
-MOVD   VD334, SMD82                // Retraccion X hacia la mesa (VD334 = 14000)
+MOVD   VD334, SMD82                // Retroceso hacia la mesa (VD334 = 14000)
 PLS    1
 MOVW   +122, VW320
 
-Network 19 
+Network 19 // Sec. 3 paso 1: esperar fin de X
 LDW=   VW320, +122
 TON    T46, +1
 LDW=   VW320, +122
 A      T46
-A      SM76.7                      // PTO 1 finalizado
+A      SM76.7                      // PTO 1 terminado
 R      Q0.5, 1
 MOVW   +130, VW320
 
 // ============================================================================
-// SECUENCIA 3 - PASO 2: EJE Z GIRAR ANTIHORARIO 18000 PASOS (DIR Z=0)
+// SECUENCIA 3 - PASO 2: EJE Z ANTIHORARIO 18000 PASOS (DIR Z = 0)
 // ============================================================================
-Network 20 
+Network 20 // Sec. 3 paso 2: girar Z hacia la mesa
 LDW=   VW320, +130
-R      Q0.2, 1                     // DIR Z = 0 (Antihorario)
+R      Q0.2, 1                     // DIR Z = 0 (antihorario)
 MOVB   16#85, SMB67
 MOVW   +250, SMW68                 // 4 kHz
 MOVD   +18000, SMD72               // 18000 pasos antihorario
 PLS    0
 MOVW   +131, VW320
 
-Network 21 
+Network 21 // Sec. 3 paso 2: esperar fin de Z
 LDW=   VW320, +131
 TON    T47, +1
 LDW=   VW320, +131
 A      T47
-A      SM66.7                      // PTO 0 finalizado
+A      SM66.7                      // PTO 0 terminado
 MOVW   +140, VW320
 
 // ============================================================================
-// SECUENCIA 3 - PASO 3: EJE Y BAJAR 14000 PASOS (K2=Q0.6, DIR Y=1)
+// SECUENCIA 3 - PASO 3: EJE Y 14000 PASOS (K2 = Q0.6, DIR Y = 1)
 // ============================================================================
-Network 22 
+Network 22 // Sec. 3 paso 3: preparar el eje Y
 LDW=   VW320, +140
-S      Q0.6, 1                     // Activar K2 (Y)
+S      Q0.6, 1                     // K2 encendido (Y)
 R      Q0.5, 1
-S      Q0.4, 1                     // DIR Y = 1 (BAJAR)
+S      Q0.4, 1                     // DIR Y = 1
 TON    T48, +2
 LD     T48
 MOVW   +141, VW320
 
-Network 23 
+Network 23 // Sec. 3 paso 3: bajar a la mesa
 LDW=   VW320, +141
 MOVB   16#85, SMB77
 MOVW   +250, SMW78                 // 4 kHz
-MOVD   +14000, SMD82               // 14000 pasos abajo
+MOVD   +14000, SMD82               // 14000 pasos
 PLS    1
 MOVW   +142, VW320
 
-Network 24 
+Network 24 // Sec. 3 paso 3: esperar fin de Y
 LDW=   VW320, +142
 TON    T49, +1
 LDW=   VW320, +142
 A      T49
-A      SM76.7                      // PTO 1 finalizado
+A      SM76.7                      // PTO 1 terminado
 R      Q0.6, 1
 MOVW   +150, VW320
 
 // ============================================================================
-// SECUENCIA 3 - PASO 4: ABRIR PINZA (SOLTAR PIEZA EN DESTINO)
+// SECUENCIA 3 - PASO 4: ABRIR LA GARRA (DEJAR LA PIEZA EN LA MESA)
 // ============================================================================
-Network 25 
+Network 25 // Sec. 3 paso 4: abrir la garra
 LDW=   VW320, +150
-R      Q0.7, 1                     // Abrir pinza
-TON    T50, +4                     // 400 ms tiempo de apertura
+R      Q0.7, 1                     // Abrir garra
+TON    T50, +4                     // 400 ms para que abra
 LD     T50
-MOVW   +160, VW320                 // Salto a Retorno Inverso
+MOVW   +160, VW320                 // Sigue el retorno
 
 // ============================================================================
-// RETORNO - PASO 1: EJE Y SUBIR 14000 PASOS (DESPEJE VERTICAL SEGURO)
+// RETORNO - PASO 1: EJE Y 14000 PASOS (DIR Y = 0)
 // ============================================================================
-Network 26 
+Network 26 // Retorno paso 1: preparar el eje Y
 LDW=   VW320, +160
-S      Q0.6, 1                     // Activar K2 (Y)
+S      Q0.6, 1                     // K2 encendido (Y)
 R      Q0.5, 1
-R      Q0.4, 1                     // DIR Y = 0 (SUBIR)
+R      Q0.4, 1                     // DIR Y = 0
 TON    T51, +2
 LD     T51
 MOVW   +161, VW320
 
-Network 27 
+Network 27 // Retorno paso 1: mover Y
 LDW=   VW320, +161
 MOVB   16#85, SMB77
 MOVW   +250, SMW78                 // 4 kHz
-MOVD   +14000, SMD82               // 14000 pasos arriba
+MOVD   +14000, SMD82               // 14000 pasos
 PLS    1
 MOVW   +162, VW320
 
-Network 28 
+Network 28 // Retorno paso 1: esperar fin de Y
 LDW=   VW320, +162
 TON    T52, +1
 LDW=   VW320, +162
 A      T52
-A      SM76.7                      // PTO 1 finalizado
+A      SM76.7                      // PTO 1 terminado
 R      Q0.6, 1
 MOVW   +170, VW320
 
 // ============================================================================
-// RETORNO - PASO 2: EJE Z GIRAR HORARIO 18000 PASOS (DIR Z=1)
+// RETORNO - PASO 2: EJE Z HORARIO 18000 PASOS (DIR Z = 1)
 // ============================================================================
-Network 29 
+Network 29 // Retorno paso 2: girar Z hacia la cinta
 LDW=   VW320, +170
-S      Q0.2, 1                     // DIR Z = 1 (Horario)
+S      Q0.2, 1                     // DIR Z = 1 (horario)
 MOVB   16#85, SMB67
 MOVW   +250, SMW68                 // 4 kHz
-MOVD   +18000, SMD72               // 18000 pasos horario (invierte Seq 3)
+MOVD   +18000, SMD72               // 18000 pasos horario (deshace la sec. 3)
 PLS    0
 MOVW   +171, VW320
 
-Network 30 
+Network 30 // Retorno paso 2: esperar fin de Z
 LDW=   VW320, +171
 TON    T53, +1
 LDW=   VW320, +171
 A      T53
-A      SM66.7                      // PTO 0 finalizado
+A      SM66.7                      // PTO 0 terminado
 MOVW   +180, VW320
 
 // ============================================================================
-// RETORNO - PASO 3: EJE X ADELANTE 8000 PASOS (K1=Q0.5, DIR X=0)
+// RETORNO - PASO 3: EJE X ADELANTE VD334 PASOS (K1 = Q0.5, DIR X = 0)
 // ============================================================================
-Network 31 
+Network 31 // Retorno paso 3: preparar el eje X
 LDW=   VW320, +180
-S      Q0.5, 1                     // Activar K1 (X)
+S      Q0.5, 1                     // K1 encendido (X)
 R      Q0.6, 1
-R      Q0.3, 1                     // DIR X = 0 (Adelante)
+R      Q0.3, 1                     // DIR X = 0 (adelante)
 TON    T54, +2
 LD     T54
 MOVW   +181, VW320
 
-Network 32 
+Network 32 // Retorno paso 3: extender X
 LDW=   VW320, +181
 MOVB   16#85, SMB77
 MOVW   +250, SMW78                 // 4 kHz
-MOVD   VD334, SMD82                // Vuelve a extender X hasta la zona de toma (invierte Seq 3)
+MOVD   VD334, SMD82                // Vuelve a extender X hasta la zona de recogida (deshace la sec. 3)
 PLS    1
 MOVW   +182, VW320
 
-Network 33 
+Network 33 // Retorno paso 3: esperar fin de X
 LDW=   VW320, +182
 TON    T55, +1
 LDW=   VW320, +182
 A      T55
-A      SM76.7                      // PTO 1 finalizado
+A      SM76.7                      // PTO 1 terminado
 R      Q0.5, 1
 MOVW   +190, VW320
 
 // ============================================================================
-// RETORNO - PASO 4: EJE Y BAJAR 5000 PASOS (RECUPERA COTA DE RECOGIDA)
+// RETORNO - PASO 4: EJE Y 5000 PASOS (VUELVE A LA ALTURA DE RECOGIDA)
 // ============================================================================
-Network 34 
+Network 34 // Retorno paso 4: preparar el eje Y
 LDW=   VW320, +190
-S      Q0.6, 1                     // Activar K2 (Y)
+S      Q0.6, 1                     // K2 encendido (Y)
 R      Q0.5, 1
-S      Q0.4, 1                     // DIR Y = 1 (BAJAR)
+S      Q0.4, 1                     // DIR Y = 1
 TON    T56, +2
 LD     T56
 MOVW   +191, VW320
 
-Network 35 
+Network 35 // Retorno paso 4: mover Y
 LDW=   VW320, +191
 MOVB   16#85, SMB77
 MOVW   +250, SMW78                 // 4 kHz
-MOVD   +5000, SMD82                // 5000 pasos abajo (invierte subida Seq 2)
+MOVD   +5000, SMD82                // 5000 pasos (deshace la subida de la sec. 2)
 PLS    1
 MOVW   +192, VW320
 
-Network 36 
+Network 36 // Retorno paso 4: esperar fin de Y
 LDW=   VW320, +192
 TON    T57, +1
 LDW=   VW320, +192
 A      T57
-A      SM76.7                      // PTO 1 finalizado
+A      SM76.7                      // PTO 1 terminado
 R      Q0.6, 1
 MOVW   +200, VW320
 
 // ============================================================================
-// FIN DE CICLO: POSICIONADO AL FINAL DE SEC 1 (LISTO PARA SIGUIENTE PIEZA)
+// FIN DEL CICLO: DE NUEVO EN LA ZONA DE RECOGIDA, LISTO PARA LA SIGUIENTE PIEZA
 // ============================================================================
-Network 37 
+Network 37 // Fin del ciclo
 LDW=   VW320, +200
-R      Q0.7, 1                     // Pinza abierta lista para siguiente pieza
-R      V301.4, 1                  // Fin ejecucion bucle
-S      V301.5, 1                  // Pulso de ciclo completado
+R      Q0.7, 1                     // Garra abierta para la siguiente pieza
+R      V301.4, 1                  // Fin de la recogida
+S      V301.5, 1                  // Ciclo terminado
 S      V301.1, 1                  // Listo
-S      V302.0, 1                  // Mantiene habilitado el bucle
-MOVW   +0, VW320                   // Reposo: Proximo START ejecuta Sec 2
+S      V302.0, 1                  // Sigue en la zona de recogida
+MOVW   +0, VW320                   // Reposo: el siguiente START hace la secuencia 2
 
 END_SUBROUTINE_BLOCK

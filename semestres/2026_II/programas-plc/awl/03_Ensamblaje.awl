@@ -1,131 +1,127 @@
 ORGANIZATION_BLOCK MAIN:OB1
-TITLE=UNIDAD 3: ENSAMBLAJE - ARQUITECTURA MODULAR CONGELADA XL-335B
-// ==============================================================================
-// SISTEMA: CELDA DE MANUFACTURA FLEXIBLE XL-335B
-// MODULO: UNIDAD 3 - ESTACION DE ENSAMBLAJE DE NUCLEOS Y DISCRIMINACION OPTICA
-// CPU: SIEMENS SIMATIC S7-200 CPU 226CN (2 PUERTOS RS-485 INTEGRADOS)
-// PUERTO 0: ESCLAVO EN BUS PPI (DIRECCION DE ESTACION 3, 19200 BPS, 8-E-1)
-// ==============================================================================
-// ARQUITECTURA MODULAR DE SUBRUTINAS:
-//   - OB1: Coordinador general (las dos secuencias corren en Auto y en Manual)
-//   - SBR0 (SBR_INIT): Reset de variables y buffers en primer ciclo (SM0.1)
-//   - SBR1 (SBR_IO_SCAN): Captura de entradas, flancos EU de pulsadores y comandos PPI
-//   - SBR2 (SBR_SEGURIDAD): Logica QS fail-safe (I2.6), rearme (SB1 / ACK remoto) y reset SB2
-//   - SBR3 (SBR_DIAGNOSTICO): Medicion Delta-t, atascos y alarmas de nucleo
-//   - SBR4 (SBR_PREPARA): Mandos del operador y PREPARACION de nucleos en el plato (VW332)
-//   - SBR5 (SBR_ENSAMBLE): ENSAMBLE del nucleo en la pieza del nido (VW330) y triangulacion PPI
-//   - SBR6 (SBR_ACTUADORES): Electrovalvulas Q0.0..Q0.5, focos del tablero y baliza de planta
-//   - SBR7 (SBR_COMMS_PPI): Empaquetado de telemetria VB200..VB203 y diagnosticos VB337/VB338
-// REVISION AUDITADA: Pasos reubicados a VW330/VW332 (antes VW100/VW102 solapaban el buffer PPI).
-// Comandos PPI capturados por flanco EU (sin borrado local de VB100).
-// REVISION 2026-10-12 (banco): PLATO DE DOS NIDOS, uno en cada extremo del actuador rotatorio.
-//   Sensores FIJOS: I0.2 = nucleo en el nido que esta bajo el SILO, I0.3 = nucleo en el nido que esta
-//   bajo la PINZA. I1.1 / I1.2 = las dos posiciones del plato. La estacion mantiene ambos nidos con
-//   nucleo: si el del silo tiene y el de la pinza no, gira 180 grados; si el del silo esta vacio, dosifica.
-//   La pinza de ensamble solo tiene sensor de CERRADA (I1.3): el cierre se confirma por tiempo.
-//   Auto y Manual usan la MISMA secuencia; en Manual cada movimiento espera una pulsacion de SB1.
-// ==============================================================================
+TITLE=Unidad 3: Ensamblaje (PLC 3)
+// Planta XK-335B - Unidad 3: Ensamblaje
+// Coloca un nucleo en la pieza base y detecta si la pieza es negra.
+// CPU 226CN. Puerto 0: esclavo PPI, direccion 3, 19200 bps, 8-E-1.
+// Subrutinas:
+//   OB1: llama a las subrutinas (las dos secuencias corren en auto y en manual)
+//   SBR0 SBR_INIT: valores iniciales en el primer ciclo (SM0.1)
+//   SBR1 SBR_IO_SCAN: entradas, flancos de SB1/SB2 y ordenes PPI
+//   SBR2 SBR_SEGURIDAD: seta QS (I2.6), rearme (SB1 o ACK del PLC 1) y reset con SB2
+//   SBR3 SBR_DIAGNOSTICO: tiempos de los cilindros, atascos y alarmas de nucleo
+//   SBR4 SBR_PREPARA: marcha/pausa y preparacion de nucleos en el plato (VW332)
+//   SBR5 SBR_ENSAMBLE: colocacion del nucleo en la pieza del nido (VW330)
+//   SBR6 SBR_ACTUADORES: electrovalvulas Q0.0..Q0.5, focos del tablero y baliza de la planta
+//   SBR7 SBR_COMMS_PPI: datos para el PLC 1 (VB200..VB207) y diagnostico VB337/VB338
+// Los pasos estan en VW330/VW332 para no pisar VB100..VB103 (red PPI).
+// Las ordenes PPI se toman por flanco y VB100 no se borra.
+// Plato de dos nidos, uno en cada extremo del actuador giratorio (comprobado el 12-10-2026).
+//   Sensores fijos: I0.2 = nucleo en el nido que esta bajo el silo, I0.3 = nucleo en el nido que esta
+//   bajo la pinza. I1.1 / I1.2 = las dos posiciones del plato. La estacion trata de tener nucleo en
+//   los dos nidos: si el del silo tiene y el de la pinza no, gira 180 grados; si el del silo esta vacio, suelta uno.
+//   La pinza solo tiene sensor de cerrada (I1.3): el cierre se confirma por tiempo.
+//   Auto y manual usan la misma secuencia; en manual cada movimiento espera SB1.
 BEGIN
 
-Network 1 // Modulo 0: Inicializacion General en Primer Scan (SM0.1)
+Network 1 // Valores iniciales (primer ciclo)
 LD     SM0.1
 CALL   SBR_INIT
 
-Network 2 // Modulo 1: Escaneo de Entradas Digitales, Flancos EU y Comandos PPI
+Network 2 // Entradas, flancos y ordenes PPI
 LD     SM0.0
 CALL   SBR_IO_SCAN
 
-Network 3 // Modulo 2: Supervision de Seguridad Fail-Safe, Rearme y Reset (Siempre Activo)
+Network 3 // Seta de emergencia, rearme y reset
 LD     SM0.0
 CALL   SBR_SEGURIDAD
 
-Network 4 // Modulo 3: Diagnostico Neumatico Delta-t, Atascos y Alarmas de Nucleo
+Network 4 // Tiempos de los cilindros, atascos y alarmas de nucleo
 LD     SM0.0
 CALL   SBR_DIAGNOSTICO
 
-Network 5 // Modulo 4: Mandos y Preparacion de Nucleos en los Dos Nidos del Plato (Auto y Manual)
+Network 5 // Marcha y preparacion de nucleos en los dos nidos del plato
 LD     SM0.0
 CALL   SBR_PREPARA
 
-Network 6 // Modulo 5: Ensamble del Nucleo en la Pieza del Nido (Auto y Manual)
+Network 6 // Colocacion del nucleo en la pieza del nido
 LD     SM0.0
 CALL   SBR_ENSAMBLE
 
-Network 7 // Modulo 6: Mapeo de Actuadores, Focos del Tablero y Baliza de Planta (Siempre Activo)
+Network 7 // Electrovalvulas, focos del tablero y baliza de la planta
 LD     SM0.0
 CALL   SBR_ACTUADORES
 
-Network 8 // Modulo 7: Sincronizacion de Buffers de Red PPI Nodo 3 (Siempre Activo)
+Network 8 // Datos para el PLC 1 (red PPI)
 LD     SM0.0
 CALL   SBR_COMMS_PPI
 
 END_ORGANIZATION_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 0: SBR_INIT (INICIALIZACION EN PRIMER SCAN)
+// SUBRUTINA 0: SBR_INIT
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_INIT:SBR0
-TITLE=INICIALIZACION GENERAL DE VARIABLES, REGISTROS Y BUFFERS
+TITLE=Valores iniciales de pasos, tiempos y banderas
 BEGIN
 
-Network 1 // Inicializacion de Maquinas de Estados en Reposo (Paso 0)
+Network 1 // Pasos en reposo y buffers de red en cero
 LD     SM0.0
 MOVW   +0, VW330                    // Ensamble: Paso 0 = nido libre
 MOVW   +0, VW332                    // Preparacion de nucleos: Paso 0 = evaluar nidos
-MOVB   0, VB100                     // Buffer Comandos Maestro PPI limpio
+MOVB   0, VB100                     // Ordenes del PLC 1 en cero
 MOVB   0, VB101
 MOVB   0, VB102
 MOVB   0, VB103
-MOVB   0, VB200                     // Buffer Telemetria Esclavo limpio
+MOVB   0, VB200                     // Estado para el PLC 1 en cero
 MOVB   0, VB201                     // STAT_PASO en 0
 MOVB   0, VB202                     // STAT_INPUTS en 0
-MOVB   0, VB203                     // STAT_DATA (Resultado inspeccion optica) en 0
+MOVB   0, VB203                     // STAT_DATA (resultado de la fibra) en 0
 
-Network 2 // Valores Nominales Calibrados de Tiempos Neumaticos Delta-t (ms)
+Network 2 // Tiempos normales de los cilindros (ms)
 LD     SM0.0
-MOVW   +320, VW210                  // Delta-t nominal Descenso Vertical Pick&Place (320 ms)
-MOVW   +300, VW212                  // Delta-t nominal Avance Horizontal Pick&Place (300 ms)
-MOVW   +350, VW214                  // Delta-t nominal Giro del Plato hacia I1.2 (350 ms)
-MOVW   +200, VW216                  // Delta-t nominal Extension Retenedor Superior (200 ms)
-MOVW   +200, VW218                  // Delta-t nominal Retraccion Liberador Inferior (200 ms)
-MOVW   +250, VW220                  // Delta-t nominal Cierre Pinza de Nucleo (250 ms)
-MOVW   +300, VW222                  // Delta-t nominal Subida Vertical Pick&Place (300 ms)
-MOVW   +350, VW224                  // Delta-t nominal Giro del Plato hacia I1.1 (350 ms)
+MOVW   +320, VW210                  // Bajada vertical del manipulador: 320 ms
+MOVW   +300, VW212                  // Avance horizontal del manipulador: 300 ms
+MOVW   +350, VW214                  // Giro del plato hacia I1.2: 350 ms
+MOVW   +200, VW216                  // Retenedor superior, extender: 200 ms
+MOVW   +200, VW218                  // Base inferior, retraer: 200 ms
+MOVW   +250, VW220                  // Cierre de la pinza: 250 ms
+MOVW   +300, VW222                  // Subida vertical del manipulador: 300 ms
+MOVW   +350, VW224                  // Giro del plato hacia I1.1: 350 ms
 
-Network 3 // Limpieza de Banderas de Control, Alarmas y Enclavamientos
+Network 3 // Borrar banderas, alarmas y salidas
 LD     SM0.0
-R      M0.0, 8                      // Limpieza marcas M0.0..M0.7 (incluye M0.4 STAT_ALM_ATASCO)
+R      M0.0, 8                      // M0.0..M0.7 (incluye M0.4 = atasco)
 R      M2.0, 8                      // M2.0 = SEGURIDAD_OK, M2.1 = ESPERA_REARME, M2.2 = EMERGENCIA_ACTIVA
 R      M4.0, 8                      // M4.0 = ALM_FUGA, M4.1 = ALM_ATASCO
 R      M5.0, 8                      // M5.0 = PULSO_SB1, M5.1 = PULSO_SB2, M5.2 = MODO_AUTO, M5.3 = SB1 memorizado
 R      M6.0, 8                      // M6.0 MARCHA, M6.1 PAUSA, M6.2 START, M6.3 ACK, M6.4 PIEZA, M6.5 SB1, M6.6 RETIRO
 R      M7.0, 8                      // M7.6 = 0: el plato arranca ordenado a la posicion I1.1
-R      M11.0, 8                     // M11.0 = movimiento disponible en Manual (pulse SB1)
-R      M12.0, 8                     // Permisos calculados de la preparacion
-R      Q0.0, 8                      // Desenergizacion de salidas fisicas al arranque
+R      M11.0, 8                     // M11.0 = en manual hay un movimiento listo (pulsar SB1)
+R      M12.0, 8                     // Permisos de la preparacion
+R      Q0.0, 8                      // Todas las salidas apagadas al arrancar
 R      Q1.0, 8
 
-Network 4 // Configuracion Inicial de Seguridad Fail-Safe al Energizar
-// Si la seta esta liberada (I2.6=1), exigir rearme: SB1 local o ACK_RESET del PLC 1 (SB1 de Transporte)
+Network 4 // Estado de la seta al encender
+// Con la seta liberada (I2.6 = 1) hay que rearmar: SB1 local o ACK_RESET del PLC 1 (SB1 de Transporte)
 LD     I2.6
-=      M2.1                         // M2.1 = Espera Rearme
+=      M2.1                         // M2.1 = esperando rearme
 LDN    I2.6
-=      M2.2                         // M2.2 = Emergencia Activa fisica
+=      M2.2                         // M2.2 = seta accionada
 
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 1: SBR_IO_SCAN (CAPTURA DE ENTRADAS, FLANCOS EU Y COMANDOS PPI)
+// SUBRUTINA 1: SBR_IO_SCAN
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_IO_SCAN:SBR1
-TITLE=CAPTURA DE ENTRADAS, FILTRADO DE FLANCOS EU Y DESACOPLO DE COMANDOS PPI
+TITLE=Entradas, flancos de pulsadores y ordenes del PLC 1
 BEGIN
 
-Network 1 // Captura del Selector de Modo SA1 (I2.7)
+Network 1 // Selector SA1 (I2.7)
 LD     I2.7
-=      M5.2                         // 1 = Modo Automatico, 0 = Modo Manual / Diagnostico
+=      M5.2                         // 1 = automatico, 0 = manual
 
-Network 2 // Flancos Ascendentes (EU) de SB1 (I2.5) y SB2 (I2.4), pulsadores NA
+Network 2 // Flancos de SB1 (I2.5) y SB2 (I2.4), pulsadores NA
 LD     I2.5
 EU
 =      M5.0                         // M5.0 = Pulso de un ciclo de SB1
@@ -145,20 +141,20 @@ A      I0.1
 OLD
 =      M7.2
 
-Network 4 // Captura y Desacoplo de Comandos Entrantes PPI desde Maestro PLC 1
-// El PLC 1 entrega cada bit en modo "envio unico" (1 durante un ciclo NETW y luego 0).
-// Se enclava por flanco EU y NO se borra VB100 localmente.
+Network 4 // Ordenes del PLC 1 (VB100)
+// El PLC 1 pone cada bit en 1 durante un solo envio NETW y luego en 0.
+// Se toman por flanco y VB100 no se borra aqui.
 LD     V100.0
 EU
-S      M6.2, 1                      // CMD_START remoto (SB1 de Transporte en Automatico)
+S      M6.2, 1                      // CMD_START (SB1 de Transporte en automatico)
 
 LD     V100.1
 EU
-S      M6.7, 1                      // CMD_PAUSE remoto
+S      M6.7, 1                      // CMD_PAUSE
 
 LD     V100.3
 EU
-S      M6.3, 1                      // CMD_ACK_RESET remoto
+S      M6.3, 1                      // CMD_ACK_RESET
 
 LD     V100.4
 EU
@@ -171,34 +167,34 @@ S      M6.6, 1                      // CMD_RETIRO_CONFIRMADO (Transporte retiro 
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 2: SBR_SEGURIDAD (LOGICA QS FAIL-SAFE, REARME Y RESET)
+// SUBRUTINA 2: SBR_SEGURIDAD
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_SEGURIDAD:SBR2
-TITLE=LOGICA DE PARADA DE EMERGENCIA FAIL-SAFE QS (I2.6), REARME Y RESET SB2
+TITLE=Seta de emergencia QS (I2.6), rearme y reset con SB2
 BEGIN
 
-Network 1 // Parada de Emergencia Activa (I2.6 = 0, seta NC fail-safe)
+Network 1 // Seta accionada (I2.6 = 0, contacto NC)
 LDN    I2.6
-S      M2.2, 1                      // Emergencia activa
-R      M2.0, 1                      // Cancelar Seguridad OK
-R      M2.1, 1                      // Cancelar espera de rearme (emergencia fisica en curso)
-MOVW   +0, VW330                    // Abortar ensamble
-MOVW   +0, VW332                    // Abortar preparacion
+S      M2.2, 1                      // Seta accionada
+R      M2.0, 1                      // Quitar SEGURIDAD_OK
+R      M2.1, 1                      // Todavia no se puede rearmar
+MOVW   +0, VW330                    // Cortar el ensamble
+MOVW   +0, VW332                    // Cortar la preparacion
 R      M6.0, 1                      // Sin marcha
 R      M6.4, 1                      // Descartar aviso de pieza
 R      M6.5, 1
 R      M5.3, 1
 R      M7.6, 1                      // Q0.2 sin energia: el plato vuelve a I1.1 y la orden se alinea
-R      V200.2, 1                    // Reset STAT_DONE
+R      V200.2, 1                    // Quitar STAT_DONE
 
-Network 2 // Seta Desenclavada (I2.6 = 1) - Transicion a Espera de Rearme
+Network 2 // Seta liberada (I2.6 = 1): pasar a espera de rearme
 LD     I2.6
-A      M2.2                         // Venia de emergencia activa
+A      M2.2                         // Venia de la seta accionada
 R      M2.2, 1
-S      M2.1, 1                      // Espera de Rearme
-R      M2.0, 1                      // Operacion bloqueada hasta el rearme
+S      M2.1, 1                      // Esperando rearme
+R      M2.0, 1                      // Sin operar hasta el rearme
 
-Network 3 // Rearme: SB1 local o ACK_RESET remoto (SB1 de Transporte / SCADA), solo en Espera de Rearme
+Network 3 // Rearme con SB1 local o ACK_RESET del PLC 1 (SB1 de Transporte o SCADA)
 LD     M5.0
 O      M6.3
 A      M2.1
@@ -212,12 +208,12 @@ R      M7.3, 2                      // Alarmas de nucleo (M7.3 no llego bajo la 
 R      V200.3, 1
 R      V200.4, 1
 R      M6.1, 1                      // Sin pausa
-R      M6.3, 1                      // Consumir ACK_RESET
+R      M6.3, 1                      // ACK_RESET atendido
 MOVW   +0, VW330
 MOVW   +0, VW332
 R      M5.0, 1                      // El SB1 del rearme no arranca nada
 
-Network 4 // ACK_RESET remoto con la estacion ya rearmada: solo borra alarmas (los pasos NO se reinician)
+Network 4 // ACK_RESET con la estacion ya rearmada: solo borra alarmas, no cambia los pasos
 LD     M6.3
 A      M2.0
 R      M4.0, 2
@@ -226,9 +222,9 @@ R      M7.3, 2
 R      V200.3, 1
 R      V200.4, 1
 LD     M6.3
-R      M6.3, 1                      // Consumir (tambien durante una emergencia)
+R      M6.3, 1                      // Se borra tambien con la seta accionada
 
-Network 5 // Reset Local con SB2 (I2.4 -> M5.1): ambos pasos a 0, borra alarmas y detiene la marcha
+Network 5 // SB2 (I2.4 -> M5.1): los dos pasos a 0, borra alarmas y quita la marcha
 LD     M5.1
 MOVW   +0, VW330
 MOVW   +0, VW332
@@ -248,24 +244,24 @@ R      M7.6, 1
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 3: SBR_DIAGNOSTICO (SUPERVISION NEUMATICA DELTA-T, ATASCOS Y NUCLEOS)
+// SUBRUTINA 3: SBR_DIAGNOSTICO
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_DIAGNOSTICO:SBR3
-TITLE=MEDICION DELTA-T, PROTECCION ANTI-TRABA Y ALARMAS DE NUCLEO
-// Las alertas de fuga (M4.0) se evaluan SOLO en el flanco de llegada (captura): un SB2 las borra.
+TITLE=Tiempos de los cilindros, giro del plato y alarmas de nucleo
+// Los avisos de fuga (M4.0) se evaluan solo al llegar el cilindro; SB2 los borra.
 // Ensamble VW330: 50/90 bajar, 60 cerrar pinza, 70/100 subir, 80 avanzar.
 // Preparacion VW332: 20 dosificar (retenedor + base), 30 cerrar base, 40 girar el plato.
 BEGIN
 
-Network 1 // Delta-t Descenso Vertical Pick&Place (T33 10 ms) -> VW210. Pasos 50 y 90.
+Network 1 // Bajada vertical (T33, 10 ms) -> VW210. Pasos 50 y 90.
 LD     I1.4
 EU
 LDW=   VW330, +50
 OW=    VW330, +90
 ALD
 MOVW   T33, VW210
-*I     +10, VW210                   // Conversion de cuentas de 10 ms a ms
-AW>    VW210, +520                  // Alerta preventiva de fuga (> 520 ms)
+*I     +10, VW210                   // Cuentas de 10 ms a ms
+AW>    VW210, +520                  // Mas de 520 ms: aviso de fuga
 S      M4.0, 1
 
 LDW=   VW330, +50
@@ -273,13 +269,13 @@ OW=    VW330, +90
 AN     I1.4
 TON    T33, +32767
 
-LDW>   T33, +120                    // Atasco: 1.2 s sin I1.4
+LDW>   T33, +120                    // Atasco: 1,2 s sin I1.4
 AN     I1.4
 S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 2 // Delta-t Avance Horizontal Pick&Place (T34 10 ms) -> VW212. Paso 80.
+Network 2 // Avance horizontal (T34, 10 ms) -> VW212. Paso 80.
 LD     I1.7
 EU
 LDW=   VW330, +80
@@ -299,7 +295,7 @@ S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 3 // Delta-t Giro del Plato hacia I1.2 (T35 10 ms) -> VW214. Preparacion Paso 40 con M7.6 = 1.
+Network 3 // Giro del plato hacia I1.2 (T35, 10 ms) -> VW214. Preparacion paso 40 con M7.6 = 1.
 LD     I1.2
 EU
 LDW=   VW332, +40
@@ -315,13 +311,13 @@ A      M7.6
 AN     I1.2
 TON    T35, +32767
 
-LDW>   T35, +200                    // Anti-traba: 2.0 s sin llegar a I1.2
+LDW>   T35, +200                    // 2 s sin llegar a I1.2: atasco
 AN     I1.2
 S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 4 // Delta-t Giro del Plato hacia I1.1 (T36 10 ms) -> VW224. Preparacion Paso 40 con M7.6 = 0.
+Network 4 // Giro del plato hacia I1.1 (T36, 10 ms) -> VW224. Preparacion paso 40 con M7.6 = 0.
 LD     I1.1
 EU
 LDW=   VW332, +40
@@ -337,13 +333,13 @@ AN     M7.6
 AN     I1.1
 TON    T36, +32767
 
-LDW>   T36, +200                    // Anti-traba: 2.0 s sin llegar a I1.1
+LDW>   T36, +200                    // 2 s sin llegar a I1.1: atasco
 AN     I1.1
 S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 5 // Delta-t Extension Retenedor Superior Q0.1 -> I0.5 (T97 10 ms) -> VW216. Preparacion Paso 20.
+Network 5 // Retenedor superior Q0.1 -> I0.5 (T97, 10 ms) -> VW216. Preparacion paso 20.
 LD     I0.5
 EU
 LDW=   VW332, +20
@@ -363,7 +359,7 @@ S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 6 // Delta-t Apertura de la Base Q0.0 -> I1.0 (T98 10 ms) -> VW218. Preparacion Paso 20.
+Network 6 // Apertura de la base Q0.0 -> I1.0 (T98, 10 ms) -> VW218. Preparacion paso 20.
 LD     I1.0
 EU
 LDW=   VW332, +20
@@ -384,8 +380,8 @@ S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 7 // Delta-t Cierre de Pinza Q0.3 -> I1.3 (T99 10 ms) -> VW220. Paso 60. SOLO MEDICION.
-// La pinza solo tiene sensor de cerrada y con el nucleo dentro puede no activarse: no genera atasco.
+Network 7 // Cierre de la pinza Q0.3 -> I1.3 (T99, 10 ms) -> VW220. Paso 60. Solo se mide.
+// La pinza solo tiene sensor de cerrada y con el nucleo dentro a veces no se activa: no da atasco.
 LD     I1.3
 EU
 LDW=   VW330, +60
@@ -399,7 +395,7 @@ LDW=   VW330, +60
 AN     I1.3
 TON    T99, +32767
 
-Network 8 // Delta-t Subida Vertical Pick&Place -> I1.5 (T100 10 ms) -> VW222. Pasos 70 y 100.
+Network 8 // Subida vertical -> I1.5 (T100, 10 ms) -> VW222. Pasos 70 y 100.
 LD     I1.5
 EU
 LDW=   VW330, +70
@@ -421,7 +417,7 @@ S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 9 // Nucleo NO LLEGO bajo la pinza: plato quieto tras girar (M7.7) sin I0.3 durante 1 s -> alarma M7.3
+Network 9 // El nucleo no llego bajo la pinza: plato quieto (M7.7) sin I0.3 durante 1 s -> alarma M7.3
 LDW=   VW332, +40
 A      M7.7
 AN     I0.3
@@ -432,7 +428,7 @@ S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 10 // Nucleo NO CAYO al nido bajo el silo: base abierta (I1.0) sin I0.2 durante 2 s -> alarma M7.4
+Network 10 // El nucleo no cayo al nido del silo: base abierta (I1.0) sin I0.2 durante 2 s -> alarma M7.4
 LDW=   VW332, +20
 A      I1.0
 AN     I0.2
@@ -443,7 +439,7 @@ S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 11 // Base del silo sin cerrar o retenedor sin retraer en 2 s (Paso 30) -> atasco
+Network 11 // Paso 30: la base no cerro o el retenedor no se retrajo en 2 s -> atasco
 LDW=   VW332, +30
 LD     I0.7
 A      I0.6
@@ -455,7 +451,7 @@ S      M4.1, 1
 S      M0.4, 1
 S      V200.3, 1
 
-Network 12 // DIAGNOSTICO DEL PLATO Y DE LOS NIDOS (VB338, Tabla de Estado en binario)
+Network 12 // Diagnostico del plato y los nidos (VB338, ver en binario en la tabla de estado)
 // bit0 I1.2 plato en posicion 180   bit1 I1.1 plato en posicion 0   bit2 I0.2 nucleo en el nido del silo
 // bit3 I0.3 nucleo en el nido de la pinza   bit4 Q0.2 salida de giro   bit5 alarma nucleo no llego bajo la pinza
 // bit6 alarma nucleo no cayo   bit7 M7.6 posicion ordenada del plato
@@ -481,25 +477,25 @@ LD     M7.6
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 4: SBR_PREPARA (MANDOS Y PREPARACION DE NUCLEOS EN LOS DOS NIDOS - VW332)
+// SUBRUTINA 4: SBR_PREPARA
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_PREPARA:SBR4
-TITLE=MANDOS DEL OPERADOR Y PREPARACION DE NUCLEOS EN LOS DOS NIDOS DEL PLATO (VW332)
-// PLATO DE DOS NIDOS (uno en cada extremo del actuador rotatorio). Sensores fijos:
-//   I0.2 = nucleo en el nido BAJO EL SILO   I0.3 = nucleo en el nido BAJO LA PINZA
-//   M7.6 = posicion ordenada (Q0.2: 1 -> I1.2, 0 -> I1.1)   M7.7 = plato quieto en esa posicion
-// REGLAS evaluadas en el Paso 0:
-//   1. Nido del silo con nucleo y nido de la pinza vacio -> GIRAR 180 grados (Paso 40)
-//   2. Nido del silo vacio y hay nucleos en el silo       -> DOSIFICAR un nucleo (Pasos 20 y 30)
-//   3. Ambos nidos con nucleo                             -> ESPERAR (estacion lista)
-// AUTOMATICO: con marcha (M6.0) corre sola y en paralelo con el ensamble. El giro solo se permite con
-//   el Pick & Place arriba (I1.5) y fuera de los Pasos 50..70 (pinza sobre el plato).
-// MANUAL: un movimiento por pulsacion de SB1 y solo con el ensamble detenido (Paso 0, 120, o 10 sin nucleo).
+TITLE=Marcha/pausa y preparacion de nucleos en los dos nidos del plato (VW332)
+// Plato de dos nidos (uno en cada extremo del actuador giratorio). Sensores fijos:
+//   I0.2 = nucleo en el nido bajo el silo   I0.3 = nucleo en el nido bajo la pinza
+//   M7.6 = posicion pedida (Q0.2: 1 -> I1.2, 0 -> I1.1)   M7.7 = plato quieto en esa posicion
+// En el paso 0 se revisan los nidos:
+//   1. Nido del silo con nucleo y nido de la pinza vacio -> girar 180 grados (paso 40)
+//   2. Nido del silo vacio y hay nucleos en el silo       -> soltar un nucleo (pasos 20 y 30)
+//   3. Los dos nidos con nucleo                          -> esperar (estacion lista)
+// Automatico: con marcha (M6.0) corre sola, al mismo tiempo que el ensamble. Solo gira con el
+//   manipulador arriba (I1.5) y fuera de los pasos 50..70 (pinza sobre el plato).
+// Manual: un movimiento por cada SB1 y solo con el ensamble detenido (paso 0, 120, o 10 sin nucleo).
 BEGIN
 
-Network 1 // Indicador de movimiento disponible (M11.0) y memoria de SB1 en Manual (M5.3, caduca a los 3 s)
+Network 1 // M11.0 = hay un movimiento listo; M5.3 = SB1 guardado en manual (se olvida a los 3 s)
 LD     SM0.0
-R      M11.0, 1                     // Se recalcula en cada ciclo en las transiciones que esperan SB1
+R      M11.0, 1                     // Se vuelve a calcular en cada ciclo, en los pasos que esperan SB1
 LD     M5.3
 TON    T46, +30
 LD     T46
@@ -509,24 +505,24 @@ R      M5.3, 1
 LD     M5.0
 AN     M5.2
 A      M2.0
-S      M5.3, 1                      // Una pulsacion adelantada se ejecuta al confirmarse el movimiento en curso
+S      M5.3, 1                      // Un SB1 pulsado antes de tiempo se ejecuta cuando termina el movimiento en curso
 
-Network 2 // Marcha automatica (CMD_START, SB1 local o pieza entregada) y Pausa (CMD_PAUSE o SB2)
-LD     M6.2                         // CMD_START del PLC 1 (SB1 de Transporte en Automatico)
-O      M6.4                         // Transporte dejo una pieza: la celda esta en marcha
+Network 2 // Marcha en automatico (CMD_START, SB1 local o pieza entregada) y pausa (CMD_PAUSE o SB2)
+LD     M6.2                         // CMD_START del PLC 1 (SB1 de Transporte en automatico)
+O      M6.4                         // Transporte dejo una pieza: la planta esta en marcha
 LD     M5.0
-A      M5.2                         // SB1 local en Automatico
+A      M5.2                         // SB1 local en automatico
 OLD
 A      M2.0
 S      M6.0, 1
 R      M6.1, 1
-LD     M6.7                         // CMD_PAUSE remoto
+LD     M6.7                         // CMD_PAUSE del PLC 1
 LD     M5.1
-A      M5.2                         // SB2 local en Automatico
+A      M5.2                         // SB2 local en automatico
 OLD
 R      M6.0, 1
 S      M6.1, 1
-LDN    M5.2                         // En Manual no hay marcha automatica
+LDN    M5.2                         // En manual no hay marcha automatica
 R      M6.0, 1
 R      M6.1, 1
 LD     SM0.0
@@ -534,8 +530,8 @@ R      M6.2, 1
 R      M6.7, 1
 
 Network 3 // Estado del plato y permisos de la preparacion
-// M7.7 plato quieto en la posicion ordenada | M12.0 retenedor retraido y base cerrada
-// M12.1 giro permitido | M12.2 preparacion habilitada
+// M7.7 plato quieto en la posicion pedida | M12.0 retenedor retraido y base cerrada
+// M12.1 se puede girar | M12.2 preparacion habilitada
 LD     M7.6
 A      I1.2
 AN     I1.1
@@ -549,7 +545,7 @@ A      I0.7
 =      M12.0
 LD     M7.7
 A      M12.0
-A      I1.5                         // Pick & Place arriba
+A      I1.5                         // Manipulador arriba
 LDW<   VW330, +50
 OW>    VW330, +70
 ALD
@@ -570,31 +566,31 @@ AN     M4.1
 AN     M0.4
 =      M12.2
 
-Network 4 // Regla 1: nucleo en el nido del silo y nido de la pinza vacio -> GIRAR 180 grados (Paso 40)
+Network 4 // Regla 1: nucleo en el nido del silo y nido de la pinza vacio -> girar 180 grados (paso 40)
 LDW=   VW332, +0
 A      M12.2
 A      M12.1
 A      I0.2                         // Nucleo en el nido bajo el silo
 AN     I0.3                         // Nido bajo la pinza vacio
-S      M11.0, 1                     // Manual: movimiento disponible, pulse SB1
+S      M11.0, 1                     // Manual: movimiento listo, pulsar SB1
 LD     M5.2
 O      M5.3
 ALD
 =      M12.5
 LD     M12.5
-A      I1.1                         // Plato en I1.1 -> ordenar I1.2
+A      I1.1                         // Plato en I1.1 -> pedir I1.2
 S      M7.6, 1
 LD     M12.5
-A      I1.2                         // Plato en I1.2 -> ordenar I1.1
+A      I1.2                         // Plato en I1.2 -> pedir I1.1
 R      M7.6, 1
 LD     M12.5
 MOVW   +40, VW332
 R      M5.3, 1
 
-Network 5 // Regla 2: nido del silo vacio y hay nucleos en el silo -> DOSIFICAR (Paso 20)
+Network 5 // Regla 2: nido del silo vacio y hay nucleos en el silo -> soltar un nucleo (paso 20)
 LDW=   VW332, +0
 A      M12.2
-A      M7.7                         // Plato quieto: hay un nido alineado bajo el silo
+A      M7.7                         // Plato quieto: hay un nido bajo el silo
 A      M12.0                        // Retenedor retraido y base cerrada
 AN     I0.2                         // Nido bajo el silo vacio
 A      M7.1                         // Hay nucleos en el silo
@@ -605,13 +601,13 @@ ALD
 MOVW   +20, VW332
 R      M5.3, 1
 
-Network 6 // Paso 20: el retenedor sujeta la columna (Q0.1 -> I0.5) y la base se abre (Q0.0 -> I1.0): cae 1 nucleo
+Network 6 // Paso 20: el retenedor sujeta la columna (Q0.1 -> I0.5) y la base se abre (Q0.0 -> I1.0): cae un nucleo
 LDW=   VW332, +20
 A      I0.5
 A      I1.0
-TON    T37, +3                      // 300 ms de caida del nucleo
+TON    T37, +3                      // 300 ms para que caiga el nucleo
 
-Network 7 // Paso 20 -> 30: nucleo en el nido bajo el silo (I0.2) -> cerrar base y soltar retenedor
+Network 7 // Paso 20 -> 30: nucleo en el nido del silo (I0.2) -> cerrar la base y soltar el retenedor
 LDW=   VW332, +20
 A      T37
 A      I0.2
@@ -624,7 +620,7 @@ ALD
 MOVW   +30, VW332
 R      M5.3, 1
 
-Network 8 // Paso 30 -> 0: base cerrada (I0.7) y retenedor retraido (I0.6) + 300 ms -> reevaluar los nidos
+Network 8 // Paso 30 -> 0: base cerrada (I0.7) y retenedor retraido (I0.6) + 300 ms -> revisar los nidos otra vez
 LDW=   VW332, +30
 A      I0.7
 A      I0.6
@@ -633,7 +629,7 @@ LDW=   VW332, +30
 A      T38
 MOVW   +0, VW332
 
-Network 9 // Paso 40 -> 0: plato quieto en la posicion ordenada (M7.7) + 300 ms y nucleo bajo la pinza (I0.3)
+Network 9 // Paso 40 -> 0: plato quieto en la posicion pedida (M7.7) + 300 ms y nucleo bajo la pinza (I0.3)
 // Si el nucleo no aparece en 1 s salta la alarma M7.3 (SBR_DIAGNOSTICO) y la preparacion se detiene.
 LDW=   VW332, +40
 A      M7.7
@@ -646,36 +642,36 @@ MOVW   +0, VW332
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 5: SBR_ENSAMBLE (ENSAMBLE DEL NUCLEO EN LA PIEZA DEL NIDO - VW330)
+// SUBRUTINA 5: SBR_ENSAMBLE
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_ENSAMBLE:SBR5
-TITLE=ENSAMBLE DEL NUCLEO EN LA PIEZA DEL NIDO (VW330) Y TRIANGULACION PPI
-// PASOS (Automatico y Manual; en Manual cada movimiento espera SB1):
-//   0   Nido libre (STAT_READY). Pieza: CMD_PIEZA_ENTREGADA del PLC 1 (Auto y Manual), o SB1 con una
+TITLE=Colocacion del nucleo en la pieza del nido (VW330)
+// Pasos (auto y manual; en manual cada movimiento espera SB1):
+//   0   Nido libre (STAT_READY). Pieza: CMD_PIEZA_ENTREGADA del PLC 1 (auto y manual), o SB1 con una
 //       pieza blanca/metal a la vista (I0.4)
-//   10  Evaluacion con la fibra I0.4 durante 0.5 s. Si la vio: blanca/metal (STAT_DATA = 1) y espera un
-//       nucleo bajo la pinza. Si no la vio: NEGRA (STAT_DATA = 5) -> 120 sin nucleo (bypass)
-//   50  Baja la pinza (I1.4)   60 cierra la pinza (0.5 s)   70 sube con el nucleo (I1.5)
-//   80  Avanza sobre el nido (I1.7)   90 baja e inserta (I1.4 + 0.6 s)   95 abre la pinza abajo (0.4 s)
+//   10  Revisa la fibra I0.4 durante 0,5 s. Si ve la pieza: blanca/metal (STAT_DATA = 1) y espera un
+//       nucleo bajo la pinza. Si no la ve: negra (STAT_DATA = 5) -> 120 sin nucleo
+//   50  Baja la pinza (I1.4)   60 cierra la pinza (0,5 s)   70 sube con el nucleo (I1.5)
+//   80  Avanza sobre el nido (I1.7)   90 baja e inserta (I1.4 + 0,6 s)   95 abre la pinza abajo (0,4 s)
 //   100 Sube (I1.5)   110 retrocede (I1.6)
-//   120 Ensamble terminado (STAT_DONE). Sale con CMD_RETIRO_CONFIRMADO, SB1 o pieza blanca retirada 2 s.
+//   120 Terminado (STAT_DONE). Sale con CMD_RETIRO_CONFIRMADO, SB1 o si la pieza blanca falta 2 s.
 // STAT_DATA (VB203) se conserva hasta la siguiente pieza: el PLC 1 lo lee junto con STAT_DONE.
 BEGIN
 
-Network 1 // Orden local: SB1 en Automatico con una pieza blanca/metal a la vista en el nido libre
+Network 1 // SB1 en automatico con una pieza blanca/metal a la vista y el nido libre
 LD     M5.0
 A      M5.2
 A      I0.4
 AW=    VW330, +0
 S      M6.5, 1
 
-Network 2 // Avisos de pieza recibidos con el nido ocupado se descartan (evita piezas fantasma)
+Network 2 // Si llega un aviso de pieza con el nido ocupado se descarta
 LDW<>  VW330, +0
 R      M6.4, 1
 R      M6.5, 1
 
 Network 3 // Paso 0 -> 10: pieza en el nido
-// Aviso de Transporte (M6.4) u orden local en Auto (M6.5). En Manual tambien SB1 con pieza blanca
+// Aviso de Transporte (M6.4) u orden local en auto (M6.5). En manual tambien SB1 con pieza blanca
 // a la vista y la preparacion detenida.
 LDN    M5.2
 AW=    VW330, +0
@@ -684,7 +680,7 @@ A      I0.4
 A      M2.0
 AN     M4.1
 AN     M0.4
-S      M11.0, 1                     // Manual: pieza blanca a la vista, pulse SB1 para ensamblar
+S      M11.0, 1                     // Manual: pieza blanca a la vista, pulsar SB1 para ensamblar
 
 LDW=   VW330, +0
 A      M2.0
@@ -699,34 +695,34 @@ AW=    VW332, +0
 OLD
 ALD
 MOVW   +10, VW330
-MOVB   0, VB203                     // Tipo pendiente de evaluar
-R      M7.5, 1                      // Pieza blanca aun no vista
+MOVB   0, VB203                     // Tipo todavia sin revisar
+R      M7.5, 1                      // Pieza blanca todavia no vista
 R      M6.4, 1
 R      M6.5, 1
-R      M6.6, 1                      // Descarta un retiro antiguo
+R      M6.6, 1                      // Se descarta un retiro anterior
 R      M5.3, 1
 
-Network 4 // Paso 10: evaluacion optica durante 0.5 s (T43); cualquier lectura de la fibra = blanca/metal
+Network 4 // Paso 10: revisar la fibra durante 0,5 s (T43); si la ve en algun momento = blanca/metal
 LDW=   VW330, +10
 TON    T43, +5
 LDW=   VW330, +10
 A      I0.4
 S      M7.5, 1
 
-Network 5 // Paso 10 -> 120: pieza NEGRA (la fibra no la vio) -> sin nucleo, STAT_DONE con STAT_DATA = 5
+Network 5 // Paso 10 -> 120: pieza negra (la fibra no la vio) -> sin nucleo, STAT_DONE con STAT_DATA = 5
 LDW=   VW330, +10
 A      T43
 AN     M7.5
 MOVB   5, VB203
 MOVW   +120, VW330
 
-Network 6 // Paso 10: pieza BLANCA / METAL -> STAT_DATA = 1 (espera un nucleo bajo la pinza)
+Network 6 // Paso 10: pieza blanca o metalica -> STAT_DATA = 1 (espera un nucleo bajo la pinza)
 LDW=   VW330, +10
 A      T43
 A      M7.5
 MOVB   1, VB203
 
-Network 7 // Paso 10 -> 50: nucleo bajo la pinza (I0.3), plato quieto sin girar, Pick & Place en reposo
+Network 7 // Paso 10 -> 50: nucleo bajo la pinza (I0.3), plato quieto y manipulador en reposo
 LDW=   VW330, +10
 A      T43
 A      M7.5
@@ -756,7 +752,7 @@ ALD
 MOVW   +60, VW330
 R      M5.3, 1
 
-Network 9 // Paso 60 -> 70: pinza cerrada 0.5 s (T44). Solo hay sensor de cerrada (I1.3): no se exige.
+Network 9 // Paso 60 -> 70: pinza cerrada 0,5 s (T44). I1.3 no se exige porque a veces no se activa.
 LDW=   VW330, +60
 TON    T44, +5
 LDW=   VW330, +60
@@ -794,7 +790,7 @@ ALD
 MOVW   +90, VW330
 R      M5.3, 1
 
-Network 12 // Paso 90 -> 95: insercion sostenida 600 ms (T39) -> abrir la pinza abajo
+Network 12 // Paso 90 -> 95: inserta 600 ms (T39) -> abrir la pinza abajo
 LDW=   VW330, +90
 A      I1.4
 TON    T39, +6
@@ -835,14 +831,14 @@ ALD
 MOVW   +110, VW330
 R      M5.3, 1
 
-Network 15 // Paso 110 -> 120: atras (I1.6) -> ENSAMBLE TERMINADO (sin pulsacion, tambien en Manual)
+Network 15 // Paso 110 -> 120: atras (I1.6) -> ensamble terminado (sin pulsar, tambien en manual)
 LDW=   VW330, +110
 A      I1.6
 AN     M4.1
 AN     M0.4
 MOVW   +120, VW330
 
-Network 16 // Paso 120 -> 0: retiro confirmado (M6.6), SB1, o pieza blanca fuera del nido durante 2 s (T48)
+Network 16 // Paso 120 -> 0: retiro confirmado (M6.6), SB1, o pieza blanca fuera del nido 2 s (T48)
 LDW=   VW330, +120
 AB=    VB203, 1
 AN     I0.4
@@ -871,14 +867,14 @@ AN     I0.3
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 6: SBR_ACTUADORES (MAPEO DE ELECTROVALVULAS Y BALIZAS)
+// SUBRUTINA 6: SBR_ACTUADORES
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_ACTUADORES:SBR6
-TITLE=MAPEO DE SALIDAS FISICAS: ELECTROVALVULAS, FOCOS DEL TABLERO Y BALIZA DE PLANTA
+TITLE=Salidas: electrovalvulas, focos del tablero y baliza de la planta
 BEGIN
 
-Network 1 // Base del Silo Q0.0 (mangueras invertidas: 0 = base cerrada/extendida, 1 = abrir/retraer)
-// Se abre solo en el Paso 20 de la preparacion, con la columna ya sujeta por el retenedor (I0.5).
+Network 1 // Base del silo Q0.0 (mangueras invertidas: 0 = cerrada/extendida, 1 = abrir/retraer)
+// Se abre solo en el paso 20 de la preparacion, con la columna ya sujeta por el retenedor (I0.5).
 LDW=   VW332, +20
 A      I0.5
 A      M2.0
@@ -886,8 +882,8 @@ AN     M4.1
 AN     M0.4
 =      Q0.0
 
-Network 2 // Retenedor Superior Q0.1 (1 = sujetar la columna)
-// Paso 20. En el Paso 30, y ante una alarma o un reset, sigue sujetando hasta que la base cierre (I0.7).
+Network 2 // Retenedor superior Q0.1 (1 = sujetar la columna)
+// Paso 20. En el paso 30, con una alarma o un reset, sigue sujetando hasta que la base cierre (I0.7).
 LDW=   VW332, +20
 AN     M4.1
 AN     M0.4
@@ -898,19 +894,19 @@ OLD
 A      M2.0
 =      Q0.1
 
-Network 3 // Plato de Dos Nidos Q0.2 = posicion ordenada M7.6 (1 = posicion I1.2, 0 = posicion I1.1)
-// No se corta con alarmas (no debe girar con la pinza encima). La seta lo devuelve a I1.1.
+Network 3 // Plato de dos nidos Q0.2 = posicion pedida M7.6 (1 = posicion I1.2, 0 = posicion I1.1)
+// Las alarmas no lo cortan (no debe girar con la pinza encima). La seta lo devuelve a I1.1.
 LD     M7.6
 A      M2.0
 =      Q0.2
 
-Network 4 // Pinza de Nucleo Q0.3 (1 = cerrar): Pasos 60..90. Con alarma la pinza NO suelta el nucleo.
+Network 4 // Pinza Q0.3 (1 = cerrar): pasos 60..90. Con una alarma la pinza no suelta el nucleo.
 LDW>=  VW330, +60
 AW<=   VW330, +90
 A      M2.0
 =      Q0.3
 
-Network 5 // Vertical Pick&Place Q0.4 (1 = bajar): Pasos 50, 60, 90 y 95. Con alarma sube.
+Network 5 // Vertical del manipulador Q0.4 (1 = bajar): pasos 50, 60, 90 y 95. Con una alarma sube.
 LDW=   VW330, +50
 OW=    VW330, +60
 OW=    VW330, +90
@@ -920,13 +916,13 @@ AN     M4.1
 AN     M0.4
 =      Q0.4
 
-Network 6 // Horizontal Pick&Place Q0.5 (1 = adelante sobre el nido): Pasos 80..100. Con alarma se queda.
+Network 6 // Horizontal del manipulador Q0.5 (1 = adelante): pasos 80..100. Con una alarma se queda donde esta.
 LDW>=  VW330, +80
 AW<=   VW330, +100
 A      M2.0
 =      Q0.5
 
-Network 7 // Foco Verde HL1 (Q1.6): Automatico en marcha / Manual con un ciclo en curso
+Network 7 // Foco verde HL1 (Q1.6): automatico en marcha / manual con un ciclo en curso
 LD     M5.2
 A      M6.0
 AN     M6.1
@@ -940,10 +936,10 @@ AN     M4.1
 AN     M0.4
 =      Q1.6
 
-Network 8 // Foco Amarillo HL2 (Q1.5)
-// FIJO: Automatico sin marcha o en pausa (pulse SB1 de Transporte o de esta estacion) / Manual sin nada que hacer
-// 2 Hz: Manual con un movimiento listo (pulse SB1) / espera de rearme tras la seta
-// 1 Hz: pieza blanca esperando nucleo, silo vacio con un nido por llenar, alerta de fuga
+Network 8 // Foco amarillo HL2 (Q1.5)
+// Fijo: automatico sin marcha o en pausa (pulsar SB1 de Transporte o de esta estacion) / manual sin nada pendiente
+// 2 Hz: manual con un movimiento listo (pulsar SB1) / esperando rearme despues de la seta
+// 1 Hz: pieza blanca esperando nucleo, silo vacio con un nido por llenar, aviso de fuga
 LD     M5.2
 AN     M6.0
 O      M6.1
@@ -968,42 +964,42 @@ AN     M2.2
 A      I2.6
 =      Q1.5
 
-Network 9 // Foco Rojo HL3 (Q1.7): seta QS o alarma (atasco, nucleo no cayo, nucleo no llego). Reset con SB2.
+Network 9 // Foco rojo HL3 (Q1.7): seta QS o alarma (atasco, el nucleo no cayo o no llego). Se borra con SB2.
 LDN    I2.6
 O      M2.2
 O      M4.1
 O      M0.4
 =      Q1.7
 
-Network 10 // BALIZA GRANDE DE PLANTA - Watchdog del Maestro: VB103 (contador del PLC 1) debe cambiar
-// Si el PLC 1 deja de escribir durante 5 s (T40) la baliza indica perdida de coordinacion.
+Network 10 // Baliza de la planta: VB103 (contador del PLC 1) tiene que ir cambiando
+// Si el PLC 1 no escribe nada durante 5 s (T40), la baliza muestra que se perdio la comunicacion.
 LDB<>  VB103, VB336
 MOVB   VB103, VB336
-R      T40, 1                       // Hubo novedad: reiniciar watchdog
+R      T40, 1                       // Llego un dato nuevo: reiniciar T40
 LDB=   VB103, VB336
-TON    T40, +50                     // 5.0 s sin novedades del maestro
+TON    T40, +50                     // 5 s sin datos del PLC 1
 
-Network 11 // BALIZA GRANDE - Roja Q0.6: fija (VB102 bit 3), intermitente (bit 4), QS local o maestro perdido
-LD     V102.3                       // Alarma critica en la planta
-LD     V102.4                       // Seta QS pulsada en alguna estacion
+Network 11 // Baliza roja Q0.6: fija (VB102 bit 3), intermitente (bit 4, seta local o sin PLC 1)
+LD     V102.3                       // Alarma en la planta
+LD     V102.4                       // Seta accionada en alguna estacion
 O      T40                          // Sin comunicacion con el PLC 1
-LDN    I2.6                         // Seta QS local (respuesta inmediata sin esperar a la red)
+LDN    I2.6                         // Seta local (responde sin esperar a la red)
 O      M2.2
 OLD
-A      SM0.5                        // Intermitente 1 Hz
+A      SM0.5                        // Parpadeo a 1 Hz
 OLD
 =      Q0.6
 
-Network 12 // BALIZA GRANDE - Amarilla Q0.7: fija (bit 1 detenida/manual), intermitente (bit 2 avisos) o maestro perdido
+Network 12 // Baliza amarilla Q0.7: fija (bit 1, detenida/manual), intermitente (bit 2, avisos) o sin PLC 1
 LD     V102.1
 LD     V102.2
 O      T40
 A      SM0.5
 OLD
-AN     V102.4                       // Con emergencia solo parpadea la roja
+AN     V102.4                       // Con la seta accionada solo parpadea la roja
 =      Q0.7
 
-Network 13 // BALIZA GRANDE - Verde Q1.0: planta produciendo en Automatico sin alarmas
+Network 13 // Baliza verde Q1.0: planta produciendo en automatico sin alarmas
 LD     V102.0
 AN     T40
 A      I2.6
@@ -1013,26 +1009,26 @@ AN     M2.2
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 7: SBR_COMMS_PPI (EMPAQUETADO ESTANDARIZADO DE TELEMETRIA PPI)
+// SUBRUTINA 7: SBR_COMMS_PPI
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_COMMS_PPI:SBR7
-TITLE=EMPAQUETADO DE TELEMETRIA PPI (VB200..VB203) Y DIAGNOSTICOS VB337 / VB338
+TITLE=Datos para el PLC 1 (VB200..VB207) y diagnostico VB337 / VB338
 BEGIN
 
-Network 1 // Empaquetado de Byte de Estado Global: VB200 (STAT_GLOBAL), igual en Auto y Manual
-// Bit 0: STAT_READY: nido libre (Paso 0 del ensamble), sin alarmas. La preparacion no lo bloquea.
+Network 1 // VB200 (STAT_GLOBAL): byte de estado, igual en auto y manual
+// Bit 0: STAT_READY: nido libre (paso 0 del ensamble) y sin alarmas. La preparacion no lo afecta.
 LDW=   VW330, +0
 A      M2.0
 AN     M4.1
 AN     M0.4
 =      V200.0
 
-// Bit 1: STAT_BUSY: pieza en proceso (Pasos 10..110)
+// Bit 1: STAT_BUSY: pieza en proceso (pasos 10..110)
 LDW>=  VW330, +10
 AW<=   VW330, +110
 =      V200.1
 
-// Bit 2: STAT_DONE: ensamble terminado o bypass de pieza negra (Paso 120)
+// Bit 2: STAT_DONE: ensamble terminado o pieza negra lista (paso 120)
 LDW=   VW330, +120
 =      V200.2
 
@@ -1041,7 +1037,7 @@ LD     M4.1
 O      M0.4
 =      V200.3
 
-// Bit 4: STAT_ALM_FUGA (Alerta predictiva de lentitud o fuga de aire)
+// Bit 4: STAT_ALM_FUGA (aviso de fuga o lentitud)
 LD     M4.0
 =      V200.4
 
@@ -1049,12 +1045,12 @@ LD     M4.0
 LDN    M7.1
 =      V200.5
 
-// Bit 6: STAT_EMERGENCIA (seta QS I2.6 pulsada o emergencia aun no liberada) -> baliza de planta
+// Bit 6: seta QS (I2.6) accionada o sin liberar (para la baliza de la planta)
 LDN    I2.6
 O      M2.2
 =      V200.6
 
-// Bit 7: STAT_HOMED (mecanismos en reposo y plato quieto en su posicion)
+// Bit 7: STAT_HOMED (mecanismos en reposo y plato quieto)
 LD     I0.6
 A      I0.7
 A      M7.7
@@ -1067,16 +1063,16 @@ Network 2 // VB201 (STAT_PASO): paso del ensamble para el SCADA (byte bajo de VW
 LD     SM0.0
 MOVB   VB331, VB201
 
-Network 3 // VB202 (STAT_INPUTS): Espejo Directo de Entradas Fisicas IB0
+Network 3 // VB202 (STAT_INPUTS): copia de IB0
 LD     SM0.0
 MOVB   IB0, VB202
 
-Network 4 // VB203 (STAT_DATA): 1 = Blanco / Metal con nucleo, 5 = Negro (bypass). Lo escribe SBR_ENSAMBLE.
+Network 4 // VB203 (STAT_DATA): 1 = blanca/metal con nucleo, 5 = negra. Lo escribe SBR_ENSAMBLE.
 
-Network 5 // DIAGNOSTICO DE ESPERA (VB337, Tabla de Estado en binario): que esta esperando Ensamblaje
-// bit0 Auto sin marcha o en pausa (SB1 de Transporte o local)   bit1 nido libre esperando pieza
+Network 5 // Que esta esperando Ensamblaje (VB337, ver en binario en la tabla de estado)
+// bit0 auto sin marcha o en pausa (SB1 de Transporte o local)   bit1 nido libre esperando pieza
 // bit2 pieza blanca esperando nucleo bajo la pinza   bit3 esperando que Transporte retire la pieza
-// bit4 silo vacio   bit5 seguridad sin rearmar   bit6 alarma (reset con SB2)   bit7 Manual: pulse SB1
+// bit4 silo vacio   bit5 seguridad sin rearmar   bit6 alarma (reset con SB2)   bit7 manual: pulsar SB1
 LD     SM0.0
 MOVB   0, VB337
 LD     M5.2
@@ -1101,7 +1097,7 @@ A      M11.0
 =      V337.7
 
 Network 6 // VB204..VB207: datos extra para el SCADA (el PLC 1 lee 8 bytes)
-// VB204 IB1 (base, plato, pinza, Pick&Place)   VB205 QB0 (electrovalvulas y baliza roja/amarilla)
+// VB204 = IB1 (base, plato, pinza, manipulador)   VB205 = QB0 (electrovalvulas y baliza roja/amarilla)
 // VB206 bits 4..7 = IB2 (SB2, SB1, seta, selector) y bits 0..3 = paso de preparacion / 10 (0, 2, 3, 4)
 // VB207 diagnostico de espera (VB337)
 LD     SM0.0

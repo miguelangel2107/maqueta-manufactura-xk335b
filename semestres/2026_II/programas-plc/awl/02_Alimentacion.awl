@@ -1,232 +1,227 @@
 ORGANIZATION_BLOCK MAIN:OB1
-TITLE=UNIDAD 2: ALIMENTACION - ARQUITECTURA MODULAR CONGELADA XL-335B
-// ==============================================================================
-// SISTEMA: CELDA DE MANUFACTURA FLEXIBLE XL-335B
-// MODULO: UNIDAD 2 - ESTACION DE ALIMENTACION Y DISCRIMINACION DE BASE
-// CPU: SIEMENS SIMATIC S7-200 CPU 224CN (1 PUERTO RS-485 INTEGRADO)
-// PUERTO 0: ESCLAVO EN BUS PPI (DIRECCION DE ESTACION 2, 19200 BPS)
-// ==============================================================================
-// ARQUITECTURA MODULAR DE SUBRUTINAS:
-//   - OB1: Coordinador general y despacho condicional segun selector SA1 (I1.5)
-//   - SBR0 (SBR_INIT): Reset de variables y buffers en primer ciclo (SM0.1)
-//   - SBR1 (SBR_IO_SCAN): Captura de entradas, flancos EU de pulsadores y material
-//   - SBR2 (SBR_SEGURIDAD): Logica QS fail-safe (I1.4), corte y rearme con SB1
-//   - SBR3 (SBR_DIAGNOSTICO): Temporizadores T33..T36 para medicion Delta-t y atascos
-//   - SBR4 (SBR_MAN_STEP): Secuenciador manual paso a paso por palabras (VW332)
-//   - SBR5 (SBR_AUTO): Secuencia automatica por palabras (VW330) y triangulacion PPI
-//   - SBR6 (SBR_ACTUADORES): Mapeo de electrovalvulas Q0.0, Q0.1 y balizas HL1, HL2, HL3
-//   - SBR7 (SBR_COMMS_PPI): Empaquetado estandarizado de registros de red VB200..VB203
-// REVISION AUDITADA: Paso Auto VW100 -> VW330 y Paso Manual VW102 -> VW332. Antes se
-// solapaban con el buffer PPI VB100..VB103 escrito por el PLC 1 (NETW de 4 bytes).
-// Comandos PPI capturados por flanco EU (sin borrado local de VB100).
-// ==============================================================================
+TITLE=Unidad 2: Alimentacion (PLC 2)
+// Planta XK-335B - Unidad 2: Alimentacion
+// Entrega una pieza base a la vez y detecta si es metalica o de plastico.
+// CPU 224CN. Puerto 0: esclavo PPI, direccion 2, 19200 bps.
+// Subrutinas:
+//   OB1: llama a las subrutinas; manual o automatico segun SA1 (I1.5)
+//   SBR0 SBR_INIT: valores iniciales en el primer ciclo (SM0.1)
+//   SBR1 SBR_IO_SCAN: entradas, flancos de SB1/SB2, ordenes PPI y material
+//   SBR2 SBR_SEGURIDAD: seta QS (I1.4), corte de salidas y rearme con SB1
+//   SBR3 SBR_DIAGNOSTICO: tiempos de los cilindros (T33..T36) y atascos
+//   SBR4 SBR_MAN_STEP: secuencia manual paso a paso (VW332)
+//   SBR5 SBR_AUTO: secuencia automatica (VW330) coordinada con el PLC 1
+//   SBR6 SBR_ACTUADORES: electrovalvulas Q0.0, Q0.1 y focos HL1, HL2, HL3
+//   SBR7 SBR_COMMS_PPI: datos para el PLC 1 en VB200..VB207
+// Los pasos estan en VW330 (auto) y VW332 (manual) para no pisar VB100..VB103,
+// que escribe el PLC 1 por la red. Las ordenes PPI se toman por flanco y VB100 no se borra.
 BEGIN
 
-Network 1 // Modulo 0: Inicializacion General en Primer Scan (SM0.1)
+Network 1 // Valores iniciales (primer ciclo)
 LD     SM0.1
 CALL   SBR_INIT
 
-Network 2 // Modulo 1: Escaneo de Entradas Digitales y Flancos EU (Siempre Activo)
+Network 2 // Entradas y flancos
 LD     SM0.0
 CALL   SBR_IO_SCAN
 
-Network 3 // Modulo 2: Supervision de Seguridad Fail-Safe y Rearme Local (Siempre Activo)
+Network 3 // Seta de emergencia y rearme
 LD     SM0.0
 CALL   SBR_SEGURIDAD
 
-Network 4 // Modulo 3: Diagnostico de Presion, Tiempos Delta-t y Atascos (Siempre Activo)
+Network 4 // Tiempos de los cilindros y atascos
 LD     SM0.0
 CALL   SBR_DIAGNOSTICO
 
-Network 5 // Modulo 4: Secuenciador Manual Paso a Paso (Activo si SA1 = 0 / Manual)
-LDN    M5.2                         // Selector SA1 en Manual / Diagnostico (I1.5 = 0)
+Network 5 // Secuencia manual (SA1 = 0)
+LDN    M5.2                         // SA1 en manual (I1.5 = 0)
 CALL   SBR_MAN_STEP
 
-Network 6 // Modulo 5: Secuenciador Automatico con Triangulacion PPI (Activo si SA1 = 1 / Auto)
-LD     M5.2                         // Selector SA1 en Modo Automatico (I1.5 = 1)
+Network 6 // Secuencia automatica (SA1 = 1)
+LD     M5.2                         // SA1 en automatico (I1.5 = 1)
 CALL   SBR_AUTO
 
-Network 7 // Modulo 6: Mapeo de Actuadores y Balizas HL1, HL2, HL3 (Siempre Activo)
+Network 7 // Electrovalvulas y focos
 LD     SM0.0
 CALL   SBR_ACTUADORES
 
-Network 8 // Modulo 7: Sincronizacion de Buffers de Red PPI Nodo 2 (Siempre Activo)
+Network 8 // Datos para el PLC 1 (red PPI)
 LD     SM0.0
 CALL   SBR_COMMS_PPI
 
 END_ORGANIZATION_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 0: SBR_INIT (INICIALIZACION EN PRIMER SCAN)
+// SUBRUTINA 0: SBR_INIT
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_INIT:SBR0
-TITLE=INICIALIZACION GENERAL DE VARIABLES, REGISTROS Y BUFFERS
+TITLE=Valores iniciales de pasos, tiempos y banderas
 BEGIN
 
-Network 1 // Inicializacion de Maquinas de Estados en Reposo (Paso 0)
+Network 1 // Pasos en reposo y buffers de red en cero
 LD     SM0.0
-MOVW   +0, VW330                    // Maquina de Estados Auto: Paso 0 = Reposo
-MOVW   +0, VW332                    // Maquina de Estados Manual: Paso 0 = Reposo
-MOVB   0, VB100                     // Buffer Comandos Maestro PPI limpio
+MOVW   +0, VW330                    // Paso automatico = 0 (reposo)
+MOVW   +0, VW332                    // Paso manual = 0 (reposo)
+MOVB   0, VB100                     // Ordenes del PLC 1 en cero
 MOVB   0, VB101
 MOVB   0, VB102
 MOVB   0, VB103
-MOVB   0, VB200                     // Buffer Telemetria Esclavo limpio
+MOVB   0, VB200                     // Estado para el PLC 1 en cero
 MOVB   0, VB201                     // STAT_PASO en 0
 MOVB   0, VB202                     // STAT_INPUTS en 0
-MOVB   0, VB203                     // STAT_DATA (Material base) en 0
+MOVB   0, VB203                     // STAT_DATA (material) en 0
 
-Network 2 // Valores Nominales Calibrados de Tiempos Neumaticos Delta-t (ms)
+Network 2 // Tiempos normales de los cilindros (ms)
 LD     SM0.0
-MOVW   +350, VW210                  // Delta-t nominal Extension Empujador (350 ms)
-MOVW   +300, VW212                  // Delta-t nominal Retraccion Empujador (300 ms)
-MOVW   +200, VW214                  // Delta-t nominal Extension Sujetador (200 ms)
-MOVW   +200, VW216                  // Delta-t nominal Retraccion Sujetador (200 ms)
+MOVW   +350, VW210                  // Empujador, extender: 350 ms
+MOVW   +300, VW212                  // Empujador, retraer: 300 ms
+MOVW   +200, VW214                  // Sujetador, extender: 200 ms
+MOVW   +200, VW216                  // Sujetador, retraer: 200 ms
 
-Network 3 // Limpieza de Banderas de Control, Alarmas y Enclavamientos
+Network 3 // Borrar banderas, alarmas y salidas
 LD     SM0.0
 R      M2.0, 8                      // M2.0 = SEGURIDAD_OK, M2.1 = ESPERA_REARME, M2.2 = EMERGENCIA_ACTIVA
 R      M4.0, 8                      // M4.0 = ALM_FUGA, M4.1 = ALM_ATASCO
 R      M5.0, 8                      // M5.0 = PULSO_SB1, M5.1 = PULSO_SB2, M5.2 = MODO_AUTO
 R      M6.0, 8                      // M6.0 = MARCH_AUTO, M6.1 = PAUSA_AUTO, M6.5 = AUTORIZADO, M6.6 = RETIRADO
-R      M11.0, 8                     // Flags de permisos paso a paso manual (M11.1..M11.4)
-R      Q0.0, 8                      // Desenergizacion de salidas fisicas al arranque
+R      M11.0, 8                     // Permisos del modo manual (M11.1..M11.4)
+R      Q0.0, 8                      // Todas las salidas apagadas al arrancar
 R      Q1.0, 8
 
-Network 4 // Configuracion Inicial de Seguridad Fail-Safe al Energizar
-// Si la seta esta liberada (I1.4=1), exigir confirmacion fisica con SB1 (Espera de Rearme)
+Network 4 // Estado de la seta al encender
+// Con la seta liberada (I1.4 = 1) hay que rearmar con SB1
 LD     I1.4
-=      M2.1                         // M2.1 = Espera Rearme con SB1
+=      M2.1                         // M2.1 = esperando rearme con SB1
 LDN    I1.4
-=      M2.2                         // M2.2 = Emergencia Activa fisica
+=      M2.2                         // M2.2 = seta accionada
 
-Network 5 // Banderas de Estado PPI Iniciales
+Network 5 // Estado inicial para el PLC 1
 LD     SM0.0
-S      V200.0, 1                    // STAT_READY = 1 (Listo en reposo)
-S      V200.7, 1                    // STAT_HOMED = 1 (Origen referenciado)
+S      V200.0, 1                    // STAT_READY = 1
+S      V200.7, 1                    // STAT_HOMED = 1
 
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 1: SBR_IO_SCAN (CAPTURA DE ENTRADAS, FLANCOS EU Y DISCRIMINACION)
+// SUBRUTINA 1: SBR_IO_SCAN
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_IO_SCAN:SBR1
-TITLE=CAPTURA DE ENTRADAS, FILTRADO DE FLANCOS EU Y DISCRIMINACION INDUCTIVA
+TITLE=Entradas, flancos de pulsadores y material de la base
 BEGIN
 
-Network 1 // Captura del Selector de Modo SA1 (I1.5)
+Network 1 // Selector SA1 (I1.5)
 LD     I1.5
-=      M5.2                         // 1 = Modo Automatico, 0 = Modo Manual / Diagnostico
+=      M5.2                         // 1 = automatico, 0 = manual
 
-Network 2 // Evaluacion de Flanco Ascendente (EU) de Marcha / Avance SB1 (I1.3)
-// Boton NA (Normalmente Abierto): reposo 0, presionado 1 -> Evaluacion estricta EU
+Network 2 // Flanco de SB1 (I1.3), marcha / avance
+// Pulsador NA: 0 en reposo, 1 pulsado. Se usa el flanco de subida
 LD     I1.3
 EU
-=      M5.0                         // M5.0 = Pulso de activacion de un ciclo de scan para SB1
+=      M5.0                         // M5.0 = pulso de un ciclo al pulsar SB1
 
-Network 3 // Evaluacion de Flanco Ascendente (EU) de Parada / Reset SB2 (I1.2)
-// Boton NA (Normalmente Abierto): reposo 0, presionado 1 -> Evaluacion estricta EU
+Network 3 // Flanco de SB2 (I1.2), pausa / reset
+// Pulsador NA: 0 en reposo, 1 pulsado. Se usa el flanco de subida
 LD     I1.2
 EU
-=      M5.1                         // M5.1 = Pulso de activacion de un ciclo de scan para SB2
+=      M5.1                         // M5.1 = pulso de un ciclo al pulsar SB2
 
-Network 4 // Captura y Desacoplo de Comandos Entrantes PPI desde Maestro PLC 1
-// El PLC 1 entrega cada bit en modo "envio unico" (1 durante un ciclo NETW y luego 0).
-// Se enclava por flanco EU y NO se borra VB100 localmente: una reescritura del maestro
-// nunca duplica una orden y el buffer ya no comparte memoria con las palabras de paso.
+Network 4 // Ordenes del PLC 1 (VB100)
+// El PLC 1 pone cada bit en 1 durante un solo envio NETW y luego en 0.
+// Se toman por flanco y VB100 no se borra aqui, asi una misma orden
+// reescrita por el maestro no se ejecuta dos veces.
 LD     V100.0
 EU
-S      M6.0, 1                      // CMD_START remoto
+S      M6.0, 1                      // CMD_START
 
 LD     V100.1
 EU
-S      M6.1, 1                      // CMD_PAUSE remoto
+S      M6.1, 1                      // CMD_PAUSE
 
 LD     V100.3
 EU
-S      M6.3, 1                      // CMD_ACK_RESET remoto
+S      M6.3, 1                      // CMD_ACK_RESET
 
 LD     V100.5
 EU
-S      M6.5, 1                      // CMD_AUTORIZAR_DOSIF remoto
+S      M6.5, 1                      // CMD_AUTORIZAR_DOSIF
 
 LD     V100.6
 EU
-S      M6.6, 1                      // CMD_RETIRO_CONFIRMADO remoto
+S      M6.6, 1                      // CMD_RETIRO_CONFIRMADO
 
-Network 5 // Discriminacion Inductiva de Material Base (Sensor I0.7)
-// Pieza en base del silo (I0.6=1) inspeccionada por inductivo I0.7:
-// VB203 = 1 si es Metalico, VB203 = 0 si es Plastico
+Network 5 // Material de la base (inductivo I0.7)
+// Con pieza en la base del silo (I0.6 = 1):
+// VB203 = 1 metalica, VB203 = 0 plastico
 LD     I0.6
 A      I0.7
-MOVB   1, VB203                     // Material Base: Metalico (1)
+MOVB   1, VB203                     // Base metalica
 LD     I0.6
 AN     I0.7
-MOVB   0, VB203                     // Material Base: Plastico (0)
+MOVB   0, VB203                     // Base de plastico
 
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 2: SBR_SEGURIDAD (LOGICA QS FAIL-SAFE Y REARME POR SB1)
+// SUBRUTINA 2: SBR_SEGURIDAD
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_SEGURIDAD:SBR2
-TITLE=LOGICA DE PARADA DE EMERGENCIA FAIL-SAFE QS (I1.4) Y REARME POR SB1
+TITLE=Seta de emergencia QS (I1.4) y rearme con SB1
 BEGIN
 
-Network 1 // Deteccion de Parada de Emergencia Activa (I1.4 = 0)
-// Seta de Parada de Emergencia NC fail-safe: 1 = Seguro, 0 = Emergencia activa
+Network 1 // Seta accionada (I1.4 = 0)
+// Seta NC: 1 = normal, 0 = accionada
 LDN    I1.4
 LPS
-S      M2.2, 1                      // M2.2 = Flag de Emergencia Activa
-R      M2.0, 1                      // Cancelar bandera de Seguridad OK
-R      M2.1, 1                      // Cancelar espera de rearme (emergencia fisica en curso)
-MOVW   +0, VW330                    // Abortar ciclo Automatico a Reposo (Paso 0)
-MOVW   +0, VW332                    // Abortar ciclo Manual a Reposo (Paso 0)
-R      M6.0, 1                      // Reset comando de Marcha
-R      M6.5, 1                      // Reset autorizacion remota
-R      M11.0, 8                     // Reset permisos manuales
+S      M2.2, 1                      // M2.2 = seta accionada
+R      M2.0, 1                      // Quitar SEGURIDAD_OK
+R      M2.1, 1                      // Todavia no se puede rearmar
+MOVW   +0, VW330                    // Paso automatico a 0
+MOVW   +0, VW332                    // Paso manual a 0
+R      M6.0, 1                      // Quitar marcha
+R      M6.5, 1                      // Quitar autorizacion del PLC 1
+R      M11.0, 8                     // Quitar permisos del manual
 LPP
-R      V200.2, 1                    // Reset STAT_DONE
+R      V200.2, 1                    // Quitar STAT_DONE
 
-Network 2 // Deteccion de Seta Desenclavada (I1.4 = 1) - Transicion a Espera de Rearme
-// Cuando I1.4 retorna a 1 tras emergencia, NO arrancar: pasar a Espera de Rearme
+Network 2 // Seta liberada (I1.4 = 1): pasar a espera de rearme
+// Al liberar la seta la estacion no arranca sola, espera SB1
 LD     I1.4
-A      M2.2                         // Venia de emergencia activa
-R      M2.2, 1                      // Seta liberada fisicamente
-S      M2.1, 1                      // Entrar en estado de Espera de Rearme
-R      M2.0, 1                      // Mantener bloqueada la operacion
+A      M2.2                         // Venia de la seta accionada
+R      M2.2, 1                      // Seta liberada
+S      M2.1, 1                      // Esperando rearme
+R      M2.0, 1                      // Sigue sin poder operar
 
-Network 3 // Rearme: SB1 local o ACK_RESET remoto (SB1 de Transporte / SCADA), solo en Espera de Rearme
-// Requiere: Seta desenclavada (I1.4=1) y estado de Espera de Rearme (M2.1=1)
-LD     M5.0                         // Operario pulsa fisicamente Marcha SB1
-O      M6.3                         // O comando remoto ACK_RESET desde Maestro
+Network 3 // Rearme con SB1 local o con ACK_RESET del PLC 1 (SB1 de Transporte o SCADA)
+// Solo con la seta liberada (I1.4 = 1) y esperando rearme (M2.1 = 1)
+LD     M5.0                         // SB1 local
+O      M6.3                         // ACK_RESET del PLC 1
 A      M2.1
 A      I1.4
-S      M2.0, 1                      // M2.0 = SEGURIDAD_OK (Habilita operacion de la celda)
-R      M2.1, 1                      // Fin de Espera de Rearme
-R      M2.2, 1                      // Limpiar Emergencia Activa
-R      M4.0, 2                      // Reset alarmas de Atasco (M4.1) y Fuga (M4.0)
-R      M6.1, 1                      // Reset pausa
-R      M6.3, 1                      // Consumir comando ACK_RESET
-MOVW   +0, VW330                    // Confirmar Paso 0 Reposo
+S      M2.0, 1                      // SEGURIDAD_OK
+R      M2.1, 1                      // Ya no espera rearme
+R      M2.2, 1                      // Seta accionada = 0
+R      M4.0, 2                      // Borrar atasco (M4.1) y fuga (M4.0)
+R      M6.1, 1                      // Quitar pausa
+R      M6.3, 1                      // ACK_RESET atendido
+MOVW   +0, VW330                    // Paso 0
 MOVW   +0, VW332
 
-Network 4 // ACK_RESET remoto con la estacion ya rearmada: solo borra alarmas (los pasos NO se reinician)
-// El PLC 1 lo envia con cada SB1 de Transporte en Automatico: no debe interrumpir un empuje.
+Network 4 // ACK_RESET con la estacion ya rearmada: solo borra alarmas, no cambia el paso
+// El PLC 1 lo envia con cada SB1 de Transporte en automatico; no debe cortar un empuje.
 LD     M6.3
 A      M2.0
 R      M4.0, 2
 LD     M6.3
-R      M6.3, 1                      // Consumir (tambien durante una emergencia)
+R      M6.3, 1                      // Se borra tambien con la seta accionada
 
-Network 5 // Desbloqueo y Reset Manual con Pulsador SB2 (I1.2 -> M5.1)
-// Permite al operador en cualquier momento reiniciar a Paso 0 y borrar alarmas de atasco
+Network 5 // SB2 (M5.1): volver al paso 0
+// Con SB2 se vuelve al paso 0 y se borran las alarmas en cualquier momento
 LD     M5.1
 LPS
-MOVW   +0, VW330                    // Reset a Paso 0
-MOVW   +0, VW332                    // Reset a Paso 0
-R      M4.0, 2                      // Borrar alarmas Atasco y Fuga
-R      M11.0, 8                     // Reset permisos manuales
+MOVW   +0, VW330                    // Paso automatico a 0
+MOVW   +0, VW332                    // Paso manual a 0
+R      M4.0, 2                      // Borrar atasco y fuga
+R      M11.0, 8                     // Quitar permisos del manual
 R      M6.0, 1
 LPP
 R      M6.5, 1
@@ -234,100 +229,100 @@ R      M6.5, 1
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 3: SBR_DIAGNOSTICO (SUPERVISION NEUMATICA DELTA-T Y ATASCOS)
+// SUBRUTINA 3: SBR_DIAGNOSTICO
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_DIAGNOSTICO:SBR3
-TITLE=SUPERVISION NEUMATICA, MEDICION DELTA-T (T33..T36) Y ALARMAS DE ATASCO
+TITLE=Tiempos de los cilindros (T33..T36) y alarmas de atasco
 BEGIN
 
-Network 1 // Delta-t Extension Cilindro Empujador (T33 base 10ms) -> Destino VW210
-// 1. Captura de tiempo real acumulado en flanco de llegada a reed I0.2 antes de reset TON
+Network 1 // Empujador, extender: T33 (10 ms) -> VW210
+// 1. Al llegar a I0.2 se guarda el tiempo antes de que se reinicie el TON
 LD     I0.2
 EU
 LDW=   VW330, +20
 OW=    VW332, +20
 ALD
 MOVW   T33, VW210
-*I     +10, VW210                   // Conversion de cuentas base 10ms a ms
-AW>    VW210, +550                  // Umbral alerta preventiva de fuga (>550 ms)
+*I     +10, VW210                   // Cuentas de 10 ms a ms
+AW>    VW210, +550                  // Mas de 550 ms: aviso de fuga
 S      M4.0, 1
 
-// 2. Temporizador activo mientras dure el movimiento y no alcance I0.2
+// 2. Cuenta mientras el cilindro se mueve y no llega a I0.2
 LDW=   VW330, +20
 OW=    VW332, +20
 AN     I0.2
 TON    T33, +32767
 
-// 3. Deteccion de atasco critico: T33 > 120 (1.2 s) sin activar reed I0.2
+// 3. Atasco: T33 > 120 (1,2 s) sin llegar a I0.2
 LDW>   T33, +120
 AN     I0.2
-S      M4.1, 1                      // Alarma Atasco Critico Neumatico
+S      M4.1, 1                      // Alarma de atasco
 
-Network 2 // Delta-t Retraccion Cilindro Empujador (T34 base 10ms) -> Destino VW212
-// 1. Captura de tiempo real acumulado en flanco de llegada a reed I0.3 antes de reset TON
+Network 2 // Empujador, retraer: T34 (10 ms) -> VW212
+// 1. Al llegar a I0.3 se guarda el tiempo antes de que se reinicie el TON
 LD     I0.3
 EU
 LDW=   VW330, +30
 OW=    VW332, +30
 ALD
 MOVW   T34, VW212
-*I     +10, VW212                   // Conversion a ms
-AW>    VW212, +500                  // Umbral alerta preventiva de fuga (>500 ms)
+*I     +10, VW212                   // Cuentas de 10 ms a ms
+AW>    VW212, +500                  // Mas de 500 ms: aviso de fuga
 S      M4.0, 1
 
-// 2. Temporizador activo mientras dure el movimiento y no alcance I0.3
+// 2. Cuenta mientras el cilindro se mueve y no llega a I0.3
 LDW=   VW330, +30
 OW=    VW332, +30
 AN     I0.3
 TON    T34, +32767
 
-// 3. Deteccion de atasco critico: T34 > 120 (1.2 s) sin activar reed I0.3
+// 3. Atasco: T34 > 120 (1,2 s) sin llegar a I0.3
 LDW>   T34, +120
 AN     I0.3
 S      M4.1, 1
 
-Network 3 // Delta-t Extension Cilindro Sujetador (T35 base 10ms) -> Destino VW214
-// 1. Captura de tiempo real acumulado en flanco de llegada a reed I0.0 antes de reset TON
+Network 3 // Sujetador, extender: T35 (10 ms) -> VW214
+// 1. Al llegar a I0.0 se guarda el tiempo antes de que se reinicie el TON
 LD     I0.0
 EU
 LDW=   VW330, +10
 OW=    VW332, +10
 ALD
 MOVW   T35, VW214
-*I     +10, VW214                   // Conversion a ms
-AW>    VW214, +350                  // Umbral alerta preventiva de fuga (>350 ms)
+*I     +10, VW214                   // Cuentas de 10 ms a ms
+AW>    VW214, +350                  // Mas de 350 ms: aviso de fuga
 S      M4.0, 1
 
-// 2. Temporizador activo mientras dure el movimiento y no alcance I0.0
+// 2. Cuenta mientras el cilindro se mueve y no llega a I0.0
 LDW=   VW330, +10
 OW=    VW332, +10
 AN     I0.0
 TON    T35, +32767
 
-// 3. Deteccion de atasco critico: T35 > 100 (1.0 s) sin activar reed I0.0
+// 3. Atasco: T35 > 100 (1,0 s) sin llegar a I0.0
 LDW>   T35, +100
 AN     I0.0
 S      M4.1, 1
 
-Network 4 // Delta-t Retraccion Cilindro Sujetador (T36 base 10ms) -> Destino VW216
-// 1. Captura de tiempo real acumulado en flanco de llegada a reed I0.1 antes de reset TON
+Network 4 // Sujetador, retraer: T36 (10 ms) -> VW216
+// 1. Al llegar a I0.1 se guarda el tiempo antes de que se reinicie el TON
 LD     I0.1
 EU
 LDW=   VW330, +40
 OW=    VW332, +40
 ALD
 MOVW   T36, VW216
-*I     +10, VW216                   // Conversion a ms
-AW>    VW216, +350                  // Umbral alerta preventiva de fuga (>350 ms)
+*I     +10, VW216                   // Cuentas de 10 ms a ms
+AW>    VW216, +350                  // Mas de 350 ms: aviso de fuga
 S      M4.0, 1
 
-// 2. Temporizador activo mientras dure el movimiento y no alcance I0.1
+// 2. Cuenta mientras el cilindro se mueve y no llega a I0.1
 LDW=   VW330, +40
 OW=    VW332, +40
 AN     I0.1
 TON    T36, +32767
 
-// 3. Deteccion de atasco critico: T36 > 100 (1.0 s) sin activar reed I0.1
+// 3. Atasco: T36 > 100 (1,0 s) sin llegar a I0.1
 LDW>   T36, +100
 AN     I0.1
 S      M4.1, 1
@@ -335,244 +330,244 @@ S      M4.1, 1
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 4: SBR_MAN_STEP (MODO MANUAL PASO A PASO POR PALABRAS VW332)
+// SUBRUTINA 4: SBR_MAN_STEP
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_MAN_STEP:SBR4
-TITLE=SECUENCIADOR MANUAL PASO A PASO POR PALABRAS (VW332) CON PULSADOR SB1
+TITLE=Secuencia manual paso a paso (VW332), avanza con SB1
 BEGIN
 
-Network 1 // Transicion Paso 0 (Reposo) -> Paso 10 (Sujeta Columna)
-// Requiere: VW332=0, Seguridad OK (M2.0=1), Sin Atasco (M4.1=0), Pulsacion SB1 (M5.0)
+Network 1 // Paso 0 -> 10: sujetar la columna
+// Con VW332 = 0, seguridad OK (M2.0), sin atasco (M4.1) y SB1 (M5.0)
 LDW=   VW332, +0
 A      M2.0
 AN     M4.1
-A      M5.0                         // Operario presiona SB1 (I1.3)
-MOVW   +10, VW332                   // Paso 10: Sujetador extiende (Q0.0=1)
-R      M11.1, 1                     // Limpiar permiso de siguiente paso
+A      M5.0                         // SB1 (I1.3)
+MOVW   +10, VW332                   // Paso 10: sujetador extendido (Q0.0 = 1)
+R      M11.1, 1                     // Borrar permiso del paso siguiente
 
-Network 2 // Paso 10: Confirmacion de Carrera de Sujetador Extendido (I0.0)
+Network 2 // Paso 10: sujetador extendido (I0.0)
 LDW=   VW332, +10
-A      I0.0                         // Reed sensor sujetador extendido confirmado
+A      I0.0                         // Sujetador extendido
 AN     M4.1
-S      M11.1, 1                     // Habilita permiso para avanzar a Paso 20
+S      M11.1, 1                     // Permite pasar al paso 20
 
-Network 3 // Transicion Paso 10 -> Paso 20 (Empuja Pieza a Cuna)
-// Requiere: Carrera confirmada (M11.1) y NUEVA pulsacion fisica de SB1 (M5.0)
+Network 3 // Paso 10 -> 20: empujar la pieza a la cuna
+// Con el sujetador extendido (M11.1) y otra pulsacion de SB1
 LDW=   VW332, +10
 A      M11.1
 A      M5.0
 AN     M4.1
-MOVW   +20, VW332                   // Paso 20: Empujador extiende (Q0.1=1)
+MOVW   +20, VW332                   // Paso 20: empujador extendido (Q0.1 = 1)
 R      M11.1, 1
 R      M11.2, 1
 
-Network 4 // Paso 20: Confirmacion de Carrera de Empujador Extendido (I0.2)
+Network 4 // Paso 20: empujador extendido (I0.2)
 LDW=   VW332, +20
-A      I0.2                         // Reed sensor empujador extendido confirmado
-O      I0.4                         // O presencia detectada en cuna de salida
+A      I0.2                         // Empujador extendido
+O      I0.4                         // o pieza en la cuna
 AW=    VW332, +20
 AN     M4.1
-S      M11.2, 1                     // Habilita permiso para avanzar a Paso 30
+S      M11.2, 1                     // Permite pasar al paso 30
 
-Network 5 // Transicion Paso 20 -> Paso 30 (Retrae Empujador a Reposo)
-// Requiere: Carrera confirmada (M11.2) y NUEVA pulsacion fisica de SB1 (M5.0)
+Network 5 // Paso 20 -> 30: retraer el empujador
+// Con el empujador extendido (M11.2) y otra pulsacion de SB1
 LDW=   VW332, +20
 A      M11.2
 A      M5.0
 AN     M4.1
-MOVW   +30, VW332                   // Paso 30: Empujador retrae (Q0.1=0)
+MOVW   +30, VW332                   // Paso 30: empujador retraido (Q0.1 = 0)
 R      M11.2, 1
 R      M11.3, 1
 
-Network 6 // Paso 30: Confirmacion de Retraccion de Empujador (I0.3)
+Network 6 // Paso 30: empujador retraido (I0.3)
 LDW=   VW332, +30
-A      I0.3                         // Reed sensor empujador retraido confirmado
+A      I0.3                         // Empujador retraido
 AN     M4.1
-S      M11.3, 1                     // Habilita permiso para avanzar a Paso 40
+S      M11.3, 1                     // Permite pasar al paso 40
 
-Network 7 // Transicion Paso 30 -> Paso 40 (Retrae Sujetador / Caida Columna)
-// Requiere: Carrera confirmada (M11.3) y NUEVA pulsacion fisica de SB1 (M5.0)
+Network 7 // Paso 30 -> 40: retraer el sujetador (baja la columna)
+// Con el empujador retraido (M11.3) y otra pulsacion de SB1
 LDW=   VW332, +30
 A      M11.3
 A      M5.0
 AN     M4.1
-MOVW   +40, VW332                   // Paso 40: Sujetador retrae (Q0.0=0)
+MOVW   +40, VW332                   // Paso 40: sujetador retraido (Q0.0 = 0)
 R      M11.3, 1
 R      M11.4, 1
 
-Network 8 // Paso 40: Confirmacion de Retraccion de Sujetador (I0.1)
+Network 8 // Paso 40: sujetador retraido (I0.1)
 LDW=   VW332, +40
-A      I0.1                         // Reed sensor sujetador retraido confirmado
+A      I0.1                         // Sujetador retraido
 AN     M4.1
-S      M11.4, 1                     // Habilita permiso para finalizar ciclo
+S      M11.4, 1                     // Permite terminar el ciclo
 
-Network 9 // Transicion Paso 40 -> Paso 0 (Fin de Ciclo Manual / Retorno a Reposo)
-// Requiere: Carrera confirmada (M11.4) y NUEVA pulsacion fisica de SB1 (M5.0)
+Network 9 // Paso 40 -> 0: fin del ciclo manual
+// Con el sujetador retraido (M11.4) y otra pulsacion de SB1
 LDW=   VW332, +40
 A      M11.4
 A      M5.0
-MOVW   +0, VW332                    // Retorno a Reposo (Paso 0)
+MOVW   +0, VW332                    // Paso 0 (reposo)
 R      M11.4, 1
 
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 5: SBR_AUTO (MODO AUTOMATICO POR PALABRAS VW330 Y RED PPI)
+// SUBRUTINA 5: SBR_AUTO
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_AUTO:SBR5
-TITLE=SECUENCIADOR AUTOMATICO POR PALABRAS (VW330) Y TRIANGULACION PPI
+TITLE=Secuencia automatica (VW330) coordinada con el PLC 1
 BEGIN
 
-Network 1 // Gestion de Comandos de Marcha y Pausa en Modo Automatico
-// Marcha solicitada por comando PPI (flanco V100.0 -> M6.0) o por pulsador local SB1 (M5.0)
-// MARCHA CONTINUA (autonoma): SB1 local, CMD_START o la primera CMD_AUTORIZAR_DOSIF del
-// PLC 1 enclavan M6.0. Desde ahi la estacion repone sola una base cada vez que la cuna
-// queda libre (I0.4 = 0). Se detiene con SB2, pausa remota o seta QS.
+Network 1 // Marcha y pausa en automatico
+// Marcha por orden del PLC 1 (V100.0 -> M6.0) o por SB1 local (M5.0).
+// Marcha continua: SB1 local, CMD_START o la primera CMD_AUTORIZAR_DOSIF
+// del PLC 1 dejan M6.0 activo. Desde ahi la estacion repone una base cada vez
+// que la cuna queda libre (I0.4 = 0). Se detiene con SB2, pausa remota o la seta.
 LD     M6.0
 O      M5.0
 O      M6.5
 A      M2.0                         // Seguridad OK
-S      M6.0, 1                      // Marcha continua activa
-R      M6.1, 1                      // Reset Pausa
+S      M6.0, 1                      // Marcha continua
+R      M6.1, 1                      // Quitar pausa
 
-// Pausa solicitada por PPI (flanco V100.1 -> M6.1) o por pulsador local SB2 (M5.1)
+// Pausa por orden del PLC 1 (V100.1 -> M6.1) o por SB2 local (M5.1)
 LD     M6.1
 O      M5.1
-S      M6.1, 1                      // Pausa activa
+S      M6.1, 1                      // Pausa
 
-Network 2 // Enclavamiento de Inicio de Dosificacion: Paso 0 -> Paso 10
-// Inicia solo si:
-// 1. En Reposo (VW330 = 0) y Seguridad OK (M2.0 = 1) y Sin Atasco (M4.1 = 0)
-// 2. Autorizacion PPI (CMD_AUTORIZAR_DOSIF M6.5 o CMD_START M6.0) o Marcha local (M5.0)
-// 3. Silo con existencias en la base (I0.6 = 1)
-// 4. Cuna de salida libre (I0.4 = 0)
-// 5. Cilindros en reposo fisico (I0.1 = 1 y I0.3 = 1)
-// 6. Sin Pausa activa (M6.1 = 0)
+Network 2 // Paso 0 -> 10: empezar a preparar una pieza
+// Solo si:
+// 1. Paso 0, seguridad OK (M2.0) y sin atasco (M4.1)
+// 2. Permiso del PLC 1 (M6.5), marcha (M6.0) o SB1 local (M5.0)
+// 3. Hay pieza en la base del silo (I0.6 = 1)
+// 4. Cuna libre (I0.4 = 0)
+// 5. Cilindros en reposo (I0.1 = 1 e I0.3 = 1)
+// 6. Sin pausa (M6.1 = 0)
 LDW=   VW330, +0
 A      M2.0
 AN     M4.1
 AN     M6.1
-A      I0.6                         // Stock disponible en base de silo
-AN     I0.4                         // Cuna libre de pieza
+A      I0.6                         // Pieza en la base del silo
+AN     I0.4                         // Cuna libre
 A      I0.1                         // Sujetador en reposo
 A      I0.3                         // Empujador en reposo
-LD     M6.5                         // Autorizacion PPI Transporte
-O      M6.0                         // O Start general celda
-O      M5.0                         // O Marcha local SB1
+LD     M6.5                         // Permiso del PLC 1
+O      M6.0                         // o marcha
+O      M5.0                         // o SB1 local
 ALD
-MOVW   +10, VW330                   // Iniciar Paso 10: Sujetar columna (Q0.0=1)
-R      M6.5, 1                      // Consumir autorizacion
+MOVW   +10, VW330                   // Paso 10: sujetar la columna (Q0.0 = 1)
+R      M6.5, 1                      // Permiso usado
 
-Network 3 // Pieza YA presente en la cuna con la estacion en reposo -> Paso 50 (pieza disponible, STAT_DONE)
-// Evita el bloqueo mutuo: con la cuna ocupada la estacion no puede dosificar y, sin este
-// paso, Transporte esperaria indefinidamente un STAT_DONE que nunca llegaria.
+Network 3 // Pieza ya en la cuna con la estacion en reposo -> paso 50 (STAT_DONE)
+// Con la cuna ocupada la estacion no puede preparar otra pieza; sin este paso
+// Transporte se quedaria esperando un STAT_DONE que no llega nunca.
 LDW=   VW330, +0
 A      M2.0
 AN     M4.1
-A      I0.4                         // Pieza en la cuna de salida
+A      I0.4                         // Pieza en la cuna
 A      I0.1                         // Sujetador en reposo
 A      I0.3                         // Empujador en reposo
 MOVW   +50, VW330
-R      M6.5, 1                      // La autorizacion pendiente ya no hace falta
+R      M6.5, 1                      // El permiso pendiente ya no hace falta
 
-Network 4 // Paso 10 -> Paso 20: Sujecion Confirmada -> Empujar Pieza a Cuna
-// Requiere: Sujetador extendido (I0.0 = 1)
+Network 4 // Paso 10 -> 20: columna sujeta, empujar la pieza
+// Con el sujetador extendido (I0.0 = 1)
 LDW=   VW330, +10
-A      I0.0                         // Confirmacion fisica reed I0.0
+A      I0.0                         // Sujetador extendido
 AN     M4.1
-MOVW   +20, VW330                   // Iniciar Paso 20: Empujar pieza (Q0.1=1)
+MOVW   +20, VW330                   // Paso 20: empujar la pieza (Q0.1 = 1)
 
-Network 5 // Paso 20 -> Paso 30: Empuje Confirmado -> Retraer Empujador
-// Requiere: Empujador extendido (I0.2 = 1) y presencia de pieza en cuna (I0.4 = 1)
+Network 5 // Paso 20 -> 30: pieza empujada, retraer el empujador
+// Con el empujador extendido (I0.2 = 1) y la pieza en la cuna (I0.4 = 1)
 LDW=   VW330, +20
-A      I0.2                         // Confirmacion fisica reed I0.2
-A      I0.4                         // Pieza alcanzando cuna de salida
+A      I0.2                         // Empujador extendido
+A      I0.4                         // Pieza en la cuna
 AN     M4.1
-MOVW   +30, VW330                   // Iniciar Paso 30: Retraer empujador (Q0.1=0)
+MOVW   +30, VW330                   // Paso 30: retraer el empujador (Q0.1 = 0)
 
-Network 6 // Paso 30 -> Paso 40: Retraccion Empujador Confirmada -> Retraer Sujetador
-// Requiere: Empujador retraido en reposo (I0.3 = 1)
+Network 6 // Paso 30 -> 40: empujador retraido, retraer el sujetador
+// Con el empujador retraido (I0.3 = 1)
 LDW=   VW330, +30
-A      I0.3                         // Confirmacion fisica reed I0.3
+A      I0.3                         // Empujador retraido
 AN     M4.1
-MOVW   +40, VW330                   // Iniciar Paso 40: Retraer sujetador (Q0.0=0)
+MOVW   +40, VW330                   // Paso 40: retraer el sujetador (Q0.0 = 0)
 
-Network 7 // Paso 40: Temporizador de Estabilizacion de Caida por Gravedad (T37)
-// Al retraer el sujetador, la columna desciende; T37 da 300 ms de asentamiento
+Network 7 // Paso 40: espera a que la columna baje (T37)
+// Al retraer el sujetador baja la columna; T37 da 300 ms para que se asiente
 LDW=   VW330, +40
-A      I0.1                         // Reed sujetador retraido
-TON    T37, +3                      // Base 100ms: 3 = 300 ms
+A      I0.1                         // Sujetador retraido
+TON    T37, +3                      // Base 100 ms: 3 = 300 ms
 
-Network 8 // Paso 40 -> Paso 50: Caida Estabilizada -> Espera Recogida por Transporte
+Network 8 // Paso 40 -> 50: columna asentada, esperar a Transporte
 LDW=   VW330, +40
 A      I0.1                         // Sujetador en reposo
-A      T37                          // Caida asentada en base
+A      T37                          // Columna asentada
 AN     M4.1
-MOVW   +50, VW330                   // Iniciar Paso 50: Espera recogida por Transporte
-S      V200.2, 1                    // Señalizar STAT_DONE (Pieza disponible en cuna)
+MOVW   +50, VW330                   // Paso 50: esperar que Transporte retire la pieza
+S      V200.2, 1                    // STAT_DONE: pieza lista en la cuna
 
-Network 9 // Paso 50 -> Paso 0: Pieza Retirada por Transporte -> Retorno a Reposo
-// Disparado por:
-// 1. Confirmacion PPI de Transporte: CMD_RETIRO_CONFIRMADO (M6.6 = 1)
-// 2. O sensor optico de cuna liberado fisicamente (I0.4 = 0)
-// 3. O pulsador local SB1 (M5.0 = 1) en modo de prueba individual
+Network 9 // Paso 50 -> 0: Transporte retiro la pieza
+// Avanza con cualquiera de estas:
+// 1. Aviso del PLC 1: CMD_RETIRO_CONFIRMADO (M6.6 = 1)
+// 2. La cuna quedo libre (I0.4 = 0)
+// 3. SB1 local (M5.0 = 1), para probar la estacion sola
 LDW=   VW330, +50
-LD     M6.6                         // Comando remoto Transporte
-O      M5.0                         // O liberacion manual local con SB1
+LD     M6.6                         // Aviso del PLC 1
+O      M5.0                         // o SB1 local
 LDW=   VW330, +50
-AN     I0.4                         // O cuna liberada fisicamente
+AN     I0.4                         // o cuna libre
 OLD
 ALD
-MOVW   +0, VW330                    // Retorno a Reposo (Paso 0)
-R      V200.2, 1                    // Reset STAT_DONE
-R      M6.6, 1                      // Consumir comando
+MOVW   +0, VW330                    // Paso 0 (reposo)
+R      V200.2, 1                    // Quitar STAT_DONE
+R      M6.6, 1                      // Aviso atendido
 
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 6: SBR_ACTUADORES (MAPEO DE ELECTROVALVULAS Y BALIZAS)
+// SUBRUTINA 6: SBR_ACTUADORES
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_ACTUADORES:SBR6
-TITLE=MAPEO DE SALIDAS FISICAS: ELECTROVALVULAS Y BALIZAS HL1, HL2, HL3
+TITLE=Salidas: electrovalvulas y focos HL1, HL2, HL3
 BEGIN
 
-Network 1 // Cilindro Superior Sujetador Q0.0 (Retiene Columna de Piezas)
+Network 1 // Sujetador Q0.0 (retiene la columna)
 // Activo en:
-// - Modo Auto: Pasos 10, 20 y 30 (VW330 = 10, 20, 30)
-// - Modo Manual: Pasos 10, 20 y 30 (VW332 = 10, 20, 30)
-// Enclavamiento critico: SOLO si Seguridad OK (M2.0=1) y Sin Atasco (M4.1=0)
+// - Automatico: pasos 10, 20 y 30 (VW330)
+// - Manual: pasos 10, 20 y 30 (VW332)
+// Solo con seguridad OK (M2.0 = 1) y sin atasco (M4.1 = 0)
 LDW=   VW330, +10
 OW=    VW330, +20
 OW=    VW330, +30
-A      M5.2                         // En Modo Auto
+A      M5.2                         // Automatico
 LDW=   VW332, +10
 OW=    VW332, +20
 OW=    VW332, +30
-AN     M5.2                         // En Modo Manual
+AN     M5.2                         // Manual
 OLD
-A      M2.0                         // Enclavamiento de Seguridad
-AN     M4.1                         // Sin atasco activo
+A      M2.0                         // Seguridad OK
+AN     M4.1                         // Sin atasco
 =      Q0.0
 
-Network 2 // Cilindro Inferior Empujador Q0.1 (Expulsa Pieza Base a Cuna)
+Network 2 // Empujador Q0.1 (lleva la pieza a la cuna)
 // Activo en:
-// - Modo Auto: Paso 20 (VW330 = 20)
-// - Modo Manual: Paso 20 (VW332 = 20)
-// Enclavamiento critico: SOLO si Seguridad OK (M2.0=1) y Sin Atasco (M4.1=0)
+// - Automatico: paso 20 (VW330)
+// - Manual: paso 20 (VW332)
+// Solo con seguridad OK (M2.0 = 1) y sin atasco (M4.1 = 0)
 LDW=   VW330, +20
-A      M5.2                         // En Modo Auto
+A      M5.2                         // Automatico
 LDW=   VW332, +20
-AN     M5.2                         // En Modo Manual
+AN     M5.2                         // Manual
 OLD
-A      M2.0                         // Enclavamiento de Seguridad
-AN     M4.1                         // Sin atasco activo
+A      M2.0                         // Seguridad OK
+AN     M4.1                         // Sin atasco
 =      Q0.1
 
-Network 3 // Baliza Verde HL1 (Q1.0): Ciclo Activo en Ejecucion
-// Se enciende cuando la estacion esta operando activamente:
-// - Auto en ejecucion: VW330 > 0 y VW330 < 50
-// - Manual en ejecucion: VW332 > 0
-// Bloqueado en emergencia o atasco
+Network 3 // Foco verde HL1 (Q1.0): ciclo en marcha
+// Encendido mientras la estacion trabaja:
+// - Automatico: VW330 entre 1 y 49
+// - Manual: VW332 > 0
+// Apagado con la seta o con atasco
 LDW>   VW330, +0
 AW<    VW330, +50
 A      M5.2
@@ -583,12 +578,12 @@ A      M2.0
 AN     M4.1
 =      Q1.0
 
-Network 4 // Baliza Amarilla HL2 (Q0.7): Modo Manual en Espera, Pausa o Alerta Preventiva
-// 1. Modo Manual en Reposo: Titila a 1 Hz (SM0.5) indicando listo para SB1
+Network 4 // Foco amarillo HL2 (Q0.7): manual, pausa o aviso
+// 1. Manual en reposo: parpadea a 1 Hz (SM0.5), listo para SB1
 LDN    M5.2
 AW=    VW332, +0
 A      SM0.5
-// 2. Modo Manual esperando siguiente pulsacion SB1 (carrera confirmada): Titila a 2 Hz (SM0.4)
+// 2. Manual con el movimiento confirmado, esperando SB1: parpadea a 2 Hz (SM0.4)
 LDN    M5.2
 A      M11.1
 O      M11.2
@@ -597,30 +592,30 @@ O      M11.4
 AN     M5.2
 A      SM0.4
 OLD
-// 3. Modo Auto en Pausa o en Espera de retirada Paso 50: Fija
+// 3. Automatico en pausa o esperando retiro (paso 50): fijo
 LD     M5.2
 A      M6.1
 LD     M5.2
 AW=    VW330, +50
 OLD
 OLD
-// 4. Modo Auto con alerta preventiva de fuga/lentitud: Titila a 1 Hz
+// 4. Automatico con aviso de fuga o lentitud: parpadea a 1 Hz
 LD     M5.2
 A      M4.0
 A      SM0.5
 OLD
-// 5. Espera de Rearme de Seguridad tras liberacion de QS (M2.1=1): Titila a 2 Hz
+// 5. Esperando rearme despues de la seta (M2.1 = 1): parpadea a 2 Hz
 LD     M2.1
 A      SM0.4
 OLD
-// Enclavamiento: Apagada si hay emergencia fisica activa
+// Apagado con la seta accionada
 AN     M2.2
 =      Q0.7
 
-Network 5 // Baliza Roja HL3 (Q1.1): Emergencia Activa, Atasco o Silo Vacio
-// 1. Emergencia activa (I1.4 = 0 o M2.2 = 1): Fija
-// 2. Atasco neumatico critico (M4.1 = 1): Fija
-// 3. Silo vacio en Auto reposo (VW330 = 0 y I0.6 = 0): Fija
+Network 5 // Foco rojo HL3 (Q1.1): seta, atasco o silo vacio
+// 1. Seta accionada (I1.4 = 0 o M2.2 = 1): fijo
+// 2. Atasco (M4.1 = 1): fijo
+// 3. Silo vacio en automatico y en reposo (VW330 = 0 e I0.6 = 0): fijo
 LDN    I1.4
 O      M2.2
 O      M4.1
@@ -633,14 +628,14 @@ OLD
 END_SUBROUTINE_BLOCK
 
 // ==============================================================================
-// SUBRUTINA 7: SBR_COMMS_PPI (EMPAQUETADO ESTANDARIZADO DE TELEMETRIA PPI)
+// SUBRUTINA 7: SBR_COMMS_PPI
 // ==============================================================================
 SUBROUTINE_BLOCK SBR_COMMS_PPI:SBR7
-TITLE=EMPAQUETADO ESTANDARIZADO DE TELEMETRIA PPI (VB200..VB203) HACIA MAESTRO
+TITLE=Datos para el PLC 1 (VB200..VB207)
 BEGIN
 
-Network 1 // Empaquetado de Byte de Estado Global: VB200 (STAT_GLOBAL)
-// Bit 0: STAT_READY (En reposo y listo para operar)
+Network 1 // VB200 (STAT_GLOBAL): byte de estado
+// Bit 0: STAT_READY (en reposo y lista)
 LDW=   VW330, +0
 A      M5.2
 A      M2.0
@@ -654,7 +649,7 @@ AN     M4.1
 OLD
 =      V200.0
 
-// Bit 1: STAT_BUSY (Secuencia local en ejecucion)
+// Bit 1: STAT_BUSY (secuencia en curso)
 LDW>   VW330, +0
 AW<    VW330, +50
 A      M5.2
@@ -663,54 +658,54 @@ AN     M5.2
 OLD
 =      V200.1
 
-// Bit 2: STAT_DONE (Secuencia terminada con exito, pieza en cuna lista)
+// Bit 2: STAT_DONE (pieza lista en la cuna)
 LDW=   VW330, +50
 A      I0.4
 A      M5.2
 =      V200.2
 
-// Bit 3: STAT_ALM_ATASCO (Alarma por tiempo de carrera excedido)
+// Bit 3: STAT_ALM_ATASCO (un cilindro tardo mas de lo permitido)
 LD     M4.1
 =      V200.3
 
-// Bit 4: STAT_ALM_FUGA (Alerta predictiva de fuga o lentitud)
+// Bit 4: STAT_ALM_FUGA (aviso de fuga o lentitud)
 LD     M4.0
 =      V200.4
 
-// Bit 5: STAT_SILO_EMPTY (Alarma silo sin existencias en base I0.6=0)
+// Bit 5: STAT_SILO_EMPTY (no hay pieza en la base, I0.6 = 0)
 LDW=   VW330, +0
 A      M5.2
 AN     I0.6
 =      V200.5
 
-// Bit 6: STAT_EMERGENCIA (seta QS I1.4 pulsada o emergencia aun no liberada) -> baliza de planta
+// Bit 6: seta QS accionada o sin liberar (para la baliza de la planta)
 LDN    I1.4
 O      M2.2
 =      V200.6
 
-// Bit 7: STAT_HOMED (Origen fisico referenciado: ambos cilindros en reposo)
+// Bit 7: STAT_HOMED (los dos cilindros en reposo)
 LD     I0.1                         // Sujetador retraido
 A      I0.3                         // Empujador retraido
-A      M2.0                         // Seguridad normal
+A      M2.0                         // Seguridad OK
 =      V200.7
 
-Network 2 // VB201 (STAT_PASO): Copia del Paso Activo para Telemetria SCADA
-// En Auto copia VB331 (byte bajo de VW330 = VB331: 0, 10, 20, 30, 40, 50)
-// En Manual copia VB333 (byte bajo de VW332 = VB333: 0, 10, 20, 30, 40)
+Network 2 // VB201 (STAT_PASO): paso actual para el SCADA
+// Automatico: VB331 (byte bajo de VW330: 0, 10, 20, 30, 40, 50)
+// Manual: VB333 (byte bajo de VW332: 0, 10, 20, 30, 40)
 LD     M5.2
 MOVB   VB331, VB201
 LDN    M5.2
 MOVB   VB333, VB201
 
-Network 3 // VB202 (STAT_INPUTS): Espejo Directo de Entradas Fisicas IB0
+Network 3 // VB202 (STAT_INPUTS): copia de IB0
 LD     SM0.0
 MOVB   IB0, VB202
 
-Network 4 // VB203 (STAT_DATA): Material Base Clasificado (1 = Metal, 0 = Plastico)
-// El dato ya se mantiene actualizado en SBR_IO_SCAN segun sensor inductivo I0.7
+Network 4 // VB203 (STAT_DATA): material de la base (1 = metal, 0 = plastico)
+// Ya lo actualiza SBR_IO_SCAN con el inductivo I0.7
 
 Network 5 // VB204..VB207: datos extra para el SCADA (el PLC 1 lee 8 bytes)
-// VB204 IB1 (SB2, SB1, seta, selector)   VB205 QB0 (electrovalvulas)   VB206 QB1 (focos)   VB207 reservado
+// VB204 = IB1 (SB2, SB1, seta, selector), VB205 = QB0 (electrovalvulas), VB206 = QB1 (focos), VB207 libre
 LD     SM0.0
 MOVB   IB1, VB204
 MOVB   QB0, VB205

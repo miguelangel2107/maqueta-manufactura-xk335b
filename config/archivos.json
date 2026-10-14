@@ -60,6 +60,13 @@
       5
     ]
   },
+  "global/datasheets/sensor_omron_na11.pdf": {
+    "titulo": "Sensor de fibra óptica Omron E3X-NA11",
+    "descripcion": "Detecta si la pieza es negra en el nido de Ensamblaje (I0.4 del PLC 3).",
+    "estaciones": [
+      3
+    ]
+  },
   "global/datasheets/SERSOR_MAGNETICO_-Z80.pdf": {
     "titulo": "Sensores magnéticos SMC D-Z80",
     "descripcion": "Finales de carrera de los cilindros neumáticos.",

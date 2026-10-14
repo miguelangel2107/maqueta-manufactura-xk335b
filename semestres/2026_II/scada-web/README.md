@@ -1,6 +1,6 @@
-# SCADA web de la celda XL-335B
+# SCADA web de la planta XK-335B
 
-Supervisión y mando de toda la celda desde el navegador. Se conecta al **PLC 1 (Transporte)** por Modbus RTU con la Web Serial API, sin servidor ni programas intermedios. El PLC 1 reúne los datos de las otras cinco estaciones por la red PPI, así que una sola conexión basta para ver toda la planta.
+Supervisión y mando de toda la planta desde el navegador. Se conecta al **PLC 1 (Transporte)** por Modbus RTU con la Web Serial API, sin servidor ni programas intermedios. El PLC 1 reúne los datos de las otras cinco estaciones por la red PPI, así que una sola conexión basta para ver toda la planta.
 
 ## 1. Requisitos
 
@@ -70,13 +70,12 @@ Sirve para conocer el SCADA sin el PLC. En *Diagnóstico* hay botones para simul
 | `js/ui.js` | Componentes de interfaz |
 | `js/pages.js` | Las ventanas |
 | `js/app.js` | Navegación, conexión, sondeo, alarmas y producción |
-| `_anterior/` | SCADA anterior, solo como referencia |
 
 No usa librerías externas y funciona sin Internet.
 
 ## 6. Mapa de datos
 
-El mapa completo de registros está en `04_Docs_y_Config/Mapeo_Memoria_Global.md`.
+El mapa completo de registros está en `../configuracion/Mapeo_Memoria_Global.md`.
 
 - El SCADA lee los registros 40001 a 40128 (`VB1000..VB1255`) en dos tramas de 64 registros.
 - Trabaja con las mismas direcciones V que los programas AWL.
@@ -92,4 +91,4 @@ El mapa completo de registros está en `04_Docs_y_Config/Mapeo_Memoria_Global.md
 | 40091..40096 | Sensores y contadores |
 | 40101..40128 | Imagen extendida: E/S de Transporte y bytes de estado, paso, E/S y diagnóstico de cada estación |
 
-**Requisito:** la imagen extendida necesita cargar los programas de los PLC 1, 2, 3, 4 y 5 de esta revisión.
+Para ver los registros 40101 a 40128, los PLC 1 a 5 deben tener cargada la versión actual de sus programas.

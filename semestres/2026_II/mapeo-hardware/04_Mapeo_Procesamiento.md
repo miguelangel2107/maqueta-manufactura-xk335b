@@ -1,54 +1,46 @@
-# 04_Mapeo_Procesamiento.md
-# UNIDAD 4: ESTACIÓN DE PROCESAMIENTO Y PRENSADO (ESTAMPADO DOBLE)
-## Celda de Manufactura Flexible XL-335B[cite: 2]
+# Unidad 4: Procesamiento
 
-**Controlador:** Siemens SIMATIC S7-200 CPU 224CN (1 Puerto RS-485 integrado)[cite: 2, 16]  
-**Canal de Comunicación:** Puerto 0 conectado como Esclavo PPI a 19,200 bps (Dirección de Estación: **4**)[cite: 2, 5, 16].
+Sujeta la pieza ensamblada, la lleva bajo la prensa y la prensa dos veces.
 
----
+- **CPU:** S7-200 CPU 224CN (un puerto RS-485).
+- **Puerto 0:** esclavo PPI a 19 200 bps, dirección 4.
 
-## 1. Tabla de Entradas Digitales (DI)
+## 1. Entradas digitales
 
-| Dirección PLC | Tipo | Nemónico / Tag | Lógica Eléctrica | Descripción Funcional del Sensor / Mando |
+| Dirección | Tipo | Símbolo | Sensor | Función |
 |---|---|---|---|---|
-| **I0.0** | DI | `Sens_Pres_Mord` | Fotoeléctrico | Sensor de presencia de pieza entregada en la mordaza[cite: 16] |
-| **I0.1** | DI | `Mordaza_Cerrada`| Reed magnético | Sensor confirmación mordaza de sujeción cerrada[cite: 16] |
-| **I0.2** | DI | `Carro_Origen` | Reed magnético | Sensor carro posicionado en origen (zona de intercambio/recogida)[cite: 16] |
-| **I0.3** | DI | `Carro_Prensa` | Reed magnético | Sensor carro desplazado bajo la prensa de estampado[cite: 16] |
-| **I0.4** | DI | `Prensa_Arriba` | Reed magnético | Sensor cilindro prensador arriba (cota alta de seguridad)[cite: 16] |
-| **I0.5** | DI | `Prensa_Abajo` | Reed magnético | Sensor cilindro prensador abajo (cota baja de contacto/estampado)[cite: 16] |
-| **I1.2** | DI | `Btn_Paro (SB2)` | **NA (Contacto Abierto)** | Pulsador local de parada / pausa / reset manual[cite: 16] |
-| **I1.3** | DI | `Btn_Marcha (SB1)`| **NA (Contacto Abierto)** | Pulsador local de marcha / avance paso a paso[cite: 16] |
-| **I1.4** | DI | `Seta_Emerg (QS)` | **NC (Contacto Cerrado)** | Seta parada de emergencia (*fail-safe*). Reposo = `1`, Accionada = `0`[cite: 2, 16] |
-| **I1.5** | DI | `Selector (SA1)` | Conmutador 2P | Selector de modo local: `1` = Modo Automático, `0` = Manual / Diagnóstico[cite: 2, 16] |
+| I0.0 | DI | `Sens_Pres_Mord` | Fotoeléctrico | Pieza en la mordaza. |
+| I0.1 | DI | `Mordaza_Cerrada` | Reed | Mordaza cerrada. |
+| I0.2 | DI | `Carro_Origen` | Reed | Carro en el origen (donde se entrega y recoge la pieza). |
+| I0.3 | DI | `Carro_Prensa` | Reed | Carro bajo la prensa. |
+| I0.4 | DI | `Prensa_Arriba` | Reed | Cilindro de la prensa arriba. |
+| I0.5 | DI | `Prensa_Abajo` | Reed | Cilindro de la prensa abajo (prensando). |
+| I1.2 | DI | `Btn_Paro (SB2)` | NA | Pausa / reset en manual. |
+| I1.3 | DI | `Btn_Marcha (SB1)` | NA | Marcha / avance de paso. |
+| I1.4 | DI | `Seta_Emerg (QS)` | NC | Seta de emergencia. Reposo = `1`, accionada = `0`. |
+| I1.5 | DI | `Selector (SA1)` | 2 posiciones | `1` = automático, `0` = manual / diagnóstico. |
 
----
+## 2. Salidas digitales
 
-## 2. Tabla de Salidas Digitales (DO)
-
-| Dirección PLC | Tipo | Nemónico / Tag | Descripción Funcional del Actuador |
+| Dirección | Tipo | Símbolo | Función |
 |---|---|---|---|
-| **Q0.0** | DO | `V_Mordaza` | Electroválvula mordaza: `1` = Cerrar sujeción, `0` = Abrir / liberar[cite: 16] |
-| **Q0.2** | DO | `V_Carro_Avance` | Electroválvula carro: `1` = Avanzar bajo prensa, `0` = Retorno a origen[cite: 16] |
-| **Q0.3** | DO | `V_Prensa_Baja` | Electroválvula cilindro de prensa: `1` = Descenso estampado, `0` = Ascenso[cite: 16] |
-| **Q0.7** | DO | `Lamp_Amarilla` | Baliza HL2: Modo manual en espera, pausa o alerta preventiva[cite: 2, 16] |
-| **Q1.0** | DO | `Lamp_Verde` | Baliza HL1: Ciclo de estampado automático en ejecución[cite: 2, 16] |
-| **Q1.1** | DO | `Lamp_Roja` | Baliza HL3: Parada de emergencia activa (QS) o atasco mecánico[cite: 2, 16] |
+| Q0.0 | DO | `V_Mordaza` | Mordaza: `1` = cerrar, `0` = abrir. |
+| Q0.2 | DO | `V_Carro_Avance` | Carro: `1` = avanzar bajo la prensa, `0` = volver al origen. |
+| Q0.3 | DO | `V_Prensa_Baja` | Prensa: `1` = bajar, `0` = subir. |
+| Q0.7 | DO | `Lamp_Amarilla` | HL2: manual en espera, pausa o aviso. |
+| Q1.0 | DO | `Lamp_Verde` | HL1: ciclo automático en marcha. |
+| Q1.1 | DO | `Lamp_Roja` | HL3: seta QS o atasco. |
 
----
+## 3. Funcionamiento
 
-## 3. Dinámica Operativa de la Unidad 4
+**Reposo:** carro en el origen (`I0.2 = 1`), prensa arriba (`I0.4 = 1`) y mordaza abierta (`I0.1 = 0`).
 
-1. **Condición de Reposo Inicial:**
-   - Carro en cota de origen (`I0.2 = 1`)[cite: 16].
-   - Prensa en cota superior de reposo (`I0.4 = 1`)[cite: 16].
-   - Mordaza abierta (`I0.1 = 0`)[cite: 16].
-2. **Ciclo de Estampado Doble Secuencial:**
-   - Al recibir la orden de inicio con pieza en mordaza (`I0.0 = 1`)[cite: 16]:
-     1. La mordaza cierra (`Q0.0 = 1`, confirmado por `I0.1 = 1`)[cite: 16].
-     2. El carro avanza bajo la prensa (`Q0.2 = 1`, confirmado por `I0.3 = 1`)[cite: 16].
-     3. **Golpe 1:** La prensa desciende (`Q0.3 = 1` hasta `I0.5 = 1`), sostiene presión durante 500 ms y asciende (`Q0.3 = 0` hasta `I0.4 = 1`)[cite: 2, 4, 16].
-     4. **Golpe 2:** La prensa desciende nuevamente (`Q0.3 = 1` hasta `I0.5 = 1`), sostiene presión durante 500 ms y retorna a cota alta (`Q0.3 = 0` hasta `I0.4 = 1`)[cite: 2, 4, 16].
-     5. El carro retorna a origen (`Q0.2 = 0`, confirmado por `I0.2 = 1`)[cite: 16].
-     6. La mordaza abre (`Q0.0 = 0`, confirmado por `I0.1 = 0`)[cite: 16].
-     7. La estación emite `STAT_DONE = 1` por PPI hacia Transporte (PLC 1) y espera la recogida de la pieza conformada[cite: 2, 5, 16].
+**Ciclo** (con orden de inicio y pieza en la mordaza, `I0.0 = 1`):
+
+1. La mordaza se cierra (`Q0.0 = 1`, confirma `I0.1`).
+2. El carro avanza bajo la prensa (`Q0.2 = 1`, confirma `I0.3`).
+3. Primer golpe: la prensa baja (`Q0.3 = 1` hasta `I0.5`), se mantiene 500 ms y sube (`Q0.3 = 0` hasta `I0.4`).
+4. Segundo golpe: igual que el primero.
+5. El carro vuelve al origen (`Q0.2 = 0`, confirma `I0.2`).
+6. La mordaza se abre (`Q0.0 = 0`, `I0.1 = 0`).
+7. La estación pone `STAT_DONE = 1` en la red PPI y espera que Transporte retire la pieza.
